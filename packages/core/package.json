@@ -1,0 +1,9 @@
+{
+  "name": "@scalprum/core",
+  "version": "0.0.0",
+  "description": "Includes core functions for scalprum scaffolding.",
+  "main": "index.js",
+  "repository": "https://github.com/scalprum/scaffloding.git",
+  "author": "Martin Marosi <marvusm.mmi@gmail.com>",
+  "license": "Apache-2.0"
+}
