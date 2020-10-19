@@ -5,13 +5,14 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "files": ["dist"],
-  "typings": "dist/cjs/index.d.ts",
+  "typings": "dist/index.d.ts",
   "repository": "https://github.com/scalprum/scaffloding.git",
   "author": "Martin Marosi <marvusm.mmi@gmail.com>",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "yarn build:cjs && yarn build:esm",
+    "build": "yarn build:cjs && yarn build:esm && yarn build:typings",
     "build:esm": "tsc",
-    "build:cjs": "tsc --build tsconfig.cjs.json"
+    "build:cjs": "tsc --build tsconfig.cjs.json",
+    "build:typings": "node ../../scripts/create-typings.js"
   }
 }

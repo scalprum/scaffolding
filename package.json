@@ -29,6 +29,8 @@
     "eslint": "^7.11.0",
     "eslint-config-prettier": "^6.13.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "fs-extra": "^9.0.1",
+    "glob": "^7.1.6",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^26.4.2",
     "lerna": "^3.22.1",
