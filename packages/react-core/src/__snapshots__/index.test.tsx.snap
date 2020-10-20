@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`useScalprum should set assing static scalprum feed to state and inititliaze component 1`] = `
+<div>
+  <div>
+    <pre>
+      {
+  "initialized": true,
+  "config": [
+    {
+      "appId": "foo",
+      "elementId": "element",
+      "rootLocation": "/foo/bar"
+    }
+  ]
+}
+    </pre>
+  </div>
+</div>
+`;
+
+exports[`useScalprum should set scalprum feed from async function 1`] = `
+<div>
+  <div>
+    <pre>
+      {
+  "initialized": true,
+  "config": {}
+}
+    </pre>
+  </div>
+</div>
+`;
+
+exports[`useScalprum should set scalprum feed from function 1`] = `
+<div>
+  <div>
+    <pre>
+      {
+  "initialized": true,
+  "config": [
+    {
+      "appId": "foo",
+      "elementId": "element",
+      "rootLocation": "/foo/bar"
+    }
+  ]
+}
+    </pre>
+  </div>
+</div>
+`;
