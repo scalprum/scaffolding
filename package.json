@@ -36,6 +36,6 @@
   "scripts": {
     "lint": "eslint ./**/*.ts",
     "build": "lerna run build",
-    "test": "jest --config jest.config.js"
+    "test": "jest --config jest.config.js --coverage"
   }
 }
