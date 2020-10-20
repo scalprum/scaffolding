@@ -26,7 +26,7 @@ jobs:
           command: npm run lint
       - codecov/upload:
           file: coverage/*.json
-          token: aa1b6b4d-79a1-49f6-bcb2-d6069134a772
+          token: c6e9b194-44be-4a27-8a27-b16e2beba0d6
       - persist_to_workspace:
           root: ~/scalprum
           paths:
