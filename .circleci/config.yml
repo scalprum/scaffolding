@@ -5,6 +5,8 @@ orbs:
 jobs:
   test:
     working_directory: ~/scalprum
+    docker:
+      - image: circleci/node:14
     steps:
       - checkout
       - run:
