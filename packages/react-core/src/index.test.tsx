@@ -17,7 +17,7 @@ const DummyComponent: React.ComponentType<{ feed: ScalprumFeed }> = ({ feed }) =
 describe('useScalprum', () => {
   afterEach(() => cleanup());
 
-  const config = { appOne: { name: 'appOne', appId: 'foo', elementId: 'element', rootLocation: '/foo/bar' } };
+  const config = { appOne: { name: 'appOne', appId: 'foo', elementId: 'element', rootLocation: '/foo/bar', scriptLocation: '/some/location' } };
   test('should set assing static scalprum feed to state and inititliaze component', () => {
     const { container } = render(<DummyComponent feed={config} />);
     expect(container).toMatchSnapshot();

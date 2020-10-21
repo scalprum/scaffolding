@@ -11,12 +11,9 @@ export interface AppsConfig {
   [key: string]: AppMetadata;
 }
 
-export interface AppInitConfig {
+export interface AppInitConfig extends Omit<Scalplet, 'nodeId'> {
   id: string;
   name: string;
-  mount(): void;
-  unmount(): void;
-  update(): void;
 }
 
 export interface Scalplet {

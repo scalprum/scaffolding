@@ -37,7 +37,8 @@ exports[`useScalprum should set scalprum feed from function 1`] = `
       "name": "appOne",
       "appId": "foo",
       "elementId": "element",
-      "rootLocation": "/foo/bar"
+      "rootLocation": "/foo/bar",
+      "scriptLocation": "/some/location"
     }
   }
 }
