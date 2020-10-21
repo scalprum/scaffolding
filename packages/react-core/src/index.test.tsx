@@ -17,18 +17,19 @@ const DummyComponent: React.ComponentType<{ feed: ScalprumFeed }> = ({ feed }) =
 describe('useScalprum', () => {
   afterEach(() => cleanup());
 
+  const config = { appOne: { name: 'appOne', appId: 'foo', elementId: 'element', rootLocation: '/foo/bar' } };
   test('should set assing static scalprum feed to state and inititliaze component', () => {
-    const { container } = render(<DummyComponent feed={[{ appId: 'foo', elementId: 'element', rootLocation: '/foo/bar' }]} />);
+    const { container } = render(<DummyComponent feed={config} />);
     expect(container).toMatchSnapshot();
   });
 
   test('should set scalprum feed from function', () => {
-    const { container } = render(<DummyComponent feed={() => [{ appId: 'foo', elementId: 'element', rootLocation: '/foo/bar' }]} />);
+    const { container } = render(<DummyComponent feed={() => config} />);
     expect(container).toMatchSnapshot();
   });
 
   test('should set scalprum feed from async function', () => {
-    const { container } = render(<DummyComponent feed={() => Promise.resolve([{ appId: 'foo', elementId: 'element', rootLocation: '/foo/bar' }])} />);
+    const { container } = render(<DummyComponent feed={() => Promise.resolve(config)} />);
     expect(container).toMatchSnapshot();
   });
 });
