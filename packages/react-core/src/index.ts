@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { initialize, AppsConfig } from '@scalprum/core';
+export * from './scalplet-route';
 
 /**
  * This is totally random implemenetaion of something that does not exists yet. I needed some react code to setup tests.
@@ -12,14 +13,14 @@ export interface ScalprumState {
   config: AppsConfig;
 }
 
-const useScalprum = (applicationFeed: ScalprumFeed): ScalprumState => {
+export const useScalprum = (applicationFeed: ScalprumFeed): ScalprumState => {
   const [state, setState] = useState<ScalprumState>({
     initialized: false,
     config: {},
   });
 
   useEffect(() => {
-    if (Array.isArray(applicationFeed)) {
+    if (typeof applicationFeed === 'object') {
       initialize({ scalpLets: applicationFeed as AppsConfig });
       setState({ initialized: true, config: applicationFeed as AppsConfig });
     }
@@ -40,5 +41,3 @@ const useScalprum = (applicationFeed: ScalprumFeed): ScalprumState => {
 
   return state;
 };
-
-export default useScalprum;

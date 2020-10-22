@@ -1,9 +1,6 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist/esm",
-    "declarationDir": "./dist/cjs",
     "jsx": "preserve",       
   },
   "include": [
