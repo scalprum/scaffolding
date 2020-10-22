@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, cleanup } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
-import useScalprum, { ScalprumFeed, ScalprumState } from '.';
+import { useScalprum, ScalprumFeed, ScalprumState } from '.';
 
 const SpyComponent: React.ComponentType<ScalprumState> = (props) => (
   <div>
@@ -11,7 +12,11 @@ const SpyComponent: React.ComponentType<ScalprumState> = (props) => (
 
 const DummyComponent: React.ComponentType<{ feed: ScalprumFeed }> = ({ feed }) => {
   const state = useScalprum(feed);
-  return <SpyComponent {...state} />;
+  return (
+    <MemoryRouter>
+      <SpyComponent {...state} />
+    </MemoryRouter>
+  );
 };
 
 describe('useScalprum', () => {

@@ -45,6 +45,7 @@
     "lint": "eslint ./**/*.{ts,tsx,js}",
     "build": "lerna run build",
     "test": "jest --config jest.config.js --coverage",
-    "cypress": "cypress open"
+    "cypress": "cypress open",
+    "clear": "lerna clean"
   }
 }

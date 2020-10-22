@@ -5,8 +5,16 @@ exports[`useScalprum should set assing static scalprum feed to state and inititl
   <div>
     <pre>
       {
-  "initialized": false,
-  "config": {}
+  "initialized": true,
+  "config": {
+    "appOne": {
+      "name": "appOne",
+      "appId": "foo",
+      "elementId": "element",
+      "rootLocation": "/foo/bar",
+      "scriptLocation": "/some/location"
+    }
+  }
 }
     </pre>
   </div>
