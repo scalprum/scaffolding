@@ -18,8 +18,10 @@
     "@types/react": "^16.9.53",
     "@typescript-eslint/parser": "^4.4.1",
     "babel-jest": "^26.5.2",
+    "cypress": "^5.4.0",
     "eslint": "^7.11.0",
     "eslint-config-prettier": "^6.13.0",
+    "eslint-plugin-cypress": "^2.11.2",
     "eslint-plugin-prettier": "^3.1.4",
     "fs-extra": "^9.0.1",
     "glob": "^7.1.6",
@@ -34,8 +36,9 @@
     "webpack-cli": "^4.0.0"
   },
   "scripts": {
-    "lint": "eslint ./**/*.ts",
+    "lint": "eslint ./**/*.{ts,tsx,js}",
     "build": "lerna run build",
-    "test": "jest --config jest.config.js --coverage"
+    "test": "jest --config jest.config.js --coverage",
+    "cypress": "cypress open"
   }
 }
