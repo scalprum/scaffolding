@@ -6,6 +6,7 @@ export interface ScalpletRouteProps extends RouteProps {
   Placeholder?: React.ComponentType;
   appName: string;
   elementId: string;
+  path: string;
 }
 export const ScalpletRoute: React.ComponentType<ScalpletRouteProps> = ({ Placeholder = Fragment, elementId, appName, path, ...props }) => {
   const { scriptLocation } = getAppsByRootLocation(path as string)?.[0];
