@@ -1,0 +1,25 @@
+{
+  "name": "my-webpack-project",
+  "private": true,
+  "version": "1.0.0",
+  "description": "My webpack project",
+  "repository": "https://github.com/scalprum/scaffloding.git",
+  "author": "Martin Marosi <marvusm.mmi@gmail.com>",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start:dev": "webpack-dev-server --hot --open"
+  },
+  "devDependencies": {
+    "@scalprum/core": "file:../core",
+    "@scalprum/react-core": "file:../react-core",
+    "@types/react": "^16.9.53",
+    "@types/react-dom": "^16.9.8",
+    "@types/react-router-dom": "^5.1.6",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "react-router-dom": "^5.2.0",
+    "webpack": "^4.41.3",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
+  }
+}
