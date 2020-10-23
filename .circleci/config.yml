@@ -2,6 +2,7 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@1.0.4
   node: circleci/node@3.0.0
+  cypress: cypress-io/cypress@1.26.0
 jobs:
   test:
     working_directory: ~/scalprum
@@ -29,8 +30,21 @@ jobs:
           paths:
               - "*"
 
+
 workflows:
   version: 2
   build:
     jobs:
       - test
+      - cypress/run:
+          requires:
+            - test
+          yarn: true
+          start: yarn start:test
+          wait-on: 'http://localhost:8123'
+          executor: cypress/base-14
+          post-steps:
+            - store_test_results:
+                path: cypress/results
+            - store_artifacts:
+                path: cypress/artifacts

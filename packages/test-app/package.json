@@ -7,7 +7,8 @@
   "author": "Martin Marosi <marvusm.mmi@gmail.com>",
   "license": "Apache-2.0",
   "scripts": {
-    "start:dev": "webpack-dev-server --hot --open"
+    "start:dev": "webpack-dev-server --hot --open",
+    "start:test": "webpack-dev-server"
   },
   "devDependencies": {
     "@scalprum/core": "file:../core",

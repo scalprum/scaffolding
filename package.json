@@ -45,6 +45,8 @@
     "build": "lerna run build",
     "test": "jest --config jest.config.js --coverage",
     "cypress": "cypress open",
+    "cypress:run": "cypress run",
+    "start:test": "yarn --cwd packages/test-app start:test --port 8123 --mode production",
     "clear": "lerna clean"
   }
 }
