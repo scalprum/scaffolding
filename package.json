@@ -5,8 +5,7 @@
   "license": "Apache-2.0",
   "private": true,
   "workspaces": [
-    "packages/core",
-    "packages/react-core"
+    "packages/**"
   ],
   "devDependencies": {
     "@babel/preset-env": "^7.12.1",
@@ -29,7 +28,7 @@
     "fs-extra": "^9.0.1",
     "glob": "^7.1.6",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^26.5.3",
+    "jest": "~26.5.3",
     "lerna": "^3.22.1",
     "prettier": "^2.1.2",
     "rollup": "^2.32.1",

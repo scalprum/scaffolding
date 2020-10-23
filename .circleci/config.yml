@@ -10,20 +10,17 @@ jobs:
     steps:
       - checkout
       - run:
-          name: update-npm
-          command: 'sudo npm install -g npm@7'
-      - run:
           name: install-deps
-          command: npm i
+          command: yarn
       - run:
           name: build-packages
-          command: npm run build
+          command: yarn build
       - run:
           name: test
-          command: npm run test
+          command: yarn test
       - run:
           name: lint
-          command: npm run lint
+          command: yarn lint
       - codecov/upload:
           file: coverage/*.json
           token: c6e9b194-44be-4a27-8a27-b16e2beba0d6

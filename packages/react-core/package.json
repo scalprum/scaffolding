@@ -12,7 +12,7 @@
   "author": "Martin Marosi <marvusm.mmi@gmail.com>",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "npm run build:cjs && npm run build:esm && npm run build:typings",
+    "build": "yarn build:cjs && yarn build:esm && yarn build:typings",
     "build:cjs": "rollup -c ./rollup.config.js --format=cjs --environment FORMAT:cjs",
     "build:esm": "rollup -c ./rollup.config.js --format=esm --environment FORMAT:esm",
     "build:typings": "tsc --build tsconfig.declaration.json && node ../../scripts/create-typings.js"
