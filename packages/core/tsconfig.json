@@ -6,7 +6,6 @@
     "declarationDir": "./dist/cjs"
   },
   "include": [
-    "./src/*",
-    "./src/**/*"
+    "./src/index.ts"
   ],
 }

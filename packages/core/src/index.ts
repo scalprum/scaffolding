@@ -18,7 +18,8 @@ export interface AppInitConfig extends Omit<Scalplet, 'nodeId'> {
 
 export interface Scalplet {
   mount(): void;
-  unmount(): void;
+  // eslint-disable-next-line no-unused-vars
+  unmount(...args: any[]): void;
   update(): void;
   nodeId: string;
 }
@@ -66,3 +67,5 @@ export const getAppsByRootLocation = (pathname: string): AppMetadata[] => {
       name: key,
     }));
 };
+
+export * from './inject-script';
