@@ -30,7 +30,7 @@
     "rollup-pluginutils": "^2.8.2"
   },
   "dependencies": {
-    "@scalprum/core": "0.0.0",
+    "@scalprum/core": "*",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-router-dom": "^5.2.0"
