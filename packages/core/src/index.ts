@@ -1,5 +1,4 @@
 export const GLOBAL_NAMESPACE = '__scalprum__';
-
 export interface AppMetadata {
   name: string;
   appId: string;
@@ -11,21 +10,17 @@ export interface AppsConfig {
   [key: string]: AppMetadata;
 }
 
-export interface AppInitConfig extends Omit<Scalplet, 'nodeId'> {
+export interface AppInitConfig<T> extends Omit<Omit<Scalplet<T>, 'nodeId'>, 'mount'> {
   id: string;
   name: string;
+  // eslint-disable-next-line no-unused-vars
+  mount(api: Scalprum<T>): void;
 }
 
-export interface Scalplet {
-  mount(): void;
-  // eslint-disable-next-line no-unused-vars
-  unmount(...args: any[]): void;
-  update(): void;
-  nodeId: string;
-}
-export interface Scalprum {
+export type Scalprum<T = any> = T & {
   apps: {
-    [key: string]: Scalplet;
+    // eslint-disable-next-line no-unused-vars
+    [key: string]: Scalplet<T>;
   };
   appsMetaData: AppsConfig;
   activeApps: {
@@ -34,6 +29,14 @@ export interface Scalprum {
   scalpletRoutes: {
     [key: string]: string[];
   };
+};
+export interface Scalplet<T> {
+  // eslint-disable-next-line no-unused-vars
+  mount(api?: T): void;
+  // eslint-disable-next-line no-unused-vars
+  unmount(...args: any[]): void;
+  update(): void;
+  nodeId: string;
 }
 declare global {
   // eslint-disable-next-line no-unused-vars
@@ -70,17 +73,21 @@ export const removeActiveApp = (name: string) => {
   window[GLOBAL_NAMESPACE].activeApps[name] = false;
 };
 export const unmountAppsFromRoute = (route: string) => {
-  window[GLOBAL_NAMESPACE].scalpletRoutes[route]?.forEach((name) => window[GLOBAL_NAMESPACE].apps[name].unmount());
+  window[GLOBAL_NAMESPACE].scalpletRoutes[route]?.forEach((name: string) => window[GLOBAL_NAMESPACE].apps[name].unmount());
 };
 
-export function initializeApp(configuration: AppInitConfig) {
+export function initializeApp<T extends {}>(configuration: AppInitConfig<T>) {
   if (typeof window[GLOBAL_NAMESPACE] === 'undefined') {
     throw 'Cannot inititlize app. Scalprum was not inititliazed!';
   }
   window[GLOBAL_NAMESPACE].apps[configuration.name] = {
-    mount: () => {
+    mount: (api: T) => {
+      const fullApi: Scalprum<T> = {
+        ...api,
+        ...window[GLOBAL_NAMESPACE],
+      };
       setActiveApp(configuration.name);
-      configuration.mount();
+      configuration.mount(fullApi);
     },
     unmount: () => {
       removeActiveApp(configuration.name);
@@ -91,7 +98,7 @@ export function initializeApp(configuration: AppInitConfig) {
   };
 }
 
-export const getApp = (name: string): Scalplet => window[GLOBAL_NAMESPACE].apps[name];
+export const getApp = <T = unknown>(name: string): Scalplet<T> => window[GLOBAL_NAMESPACE].apps[name];
 
 export const getAppsByRootLocation = (pathname: string): AppMetadata[] => {
   return Object.keys(window[GLOBAL_NAMESPACE].appsMetaData)

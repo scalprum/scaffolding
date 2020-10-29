@@ -62,7 +62,6 @@ describe('scalprum', () => {
         nodeId: 'foo',
       },
     });
-    expect(mount).toHaveBeenCalledTimes(1);
   });
 
   test('should retrive one app by name', () => {
@@ -87,5 +86,26 @@ describe('scalprum', () => {
       { appId: 'app-one', elementId: 'app-one-element', name: 'appOne', rootLocation: '/foo/bar', scriptLocation: '/appOne/url' },
       { appId: 'app-two', elementId: 'app-two-element', name: 'appTwo', rootLocation: '/foo/bar', scriptLocation: '/appTwo/url' },
     ]);
+  });
+
+  test('should pass scalprum object to application on mount', () => {
+    const mount = jest.fn();
+    initialize(mockInititliazeConfig);
+    initializeApp({ ...mockInitializeAppConfig, mount });
+    const app = getApp('foo');
+    app.mount();
+    expect(mount).toHaveBeenCalledWith(window[GLOBAL_NAMESPACE]);
+  });
+
+  test('should pass scalprum object with custom API to application on mount', () => {
+    const mount = jest.fn();
+    initialize(mockInititliazeConfig);
+    initializeApp<{ foo: string }>({ ...mockInitializeAppConfig, mount });
+    const app = getApp<{ foo: string }>('foo');
+    app.mount({ foo: 'bar' });
+    expect(mount).toHaveBeenCalledWith({
+      ...window[GLOBAL_NAMESPACE],
+      foo: 'bar',
+    });
   });
 });
