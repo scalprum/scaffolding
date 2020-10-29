@@ -14,9 +14,6 @@ jobs:
           name: install-deps
           command: npm i
       - run:
-          name: build-packages
-          command: npm run build
-      - run:
           name: test
           command: npm run test
       - run:
@@ -39,11 +36,11 @@ workflows:
       - cypress/run:
           requires:
             - test
-          start: npm run start:test
+          yarn: true
+          start: yarn start:test
           wait-on: 'http://localhost:8123'
           executor: cypress/base-14
+          store_artifacts: true
           post-steps:
             - store_test_results:
                 path: cypress/results
-            - store_artifacts:
-                path: cypress/artifacts
