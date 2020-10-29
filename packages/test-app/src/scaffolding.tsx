@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppsConfig } from '@scalprum/core';
-import { useScalprum, ScalpletRoute } from '@scalprum/react-core';
-import { BrowserRouter, Link, Route, Switch } from 'react-router-dom';
+import { useScalprum, ScalprumRoute, ScalprumLink } from '@scalprum/react-core';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 window.React = React;
 window.ReactDOM = ReactDOM;
@@ -36,11 +36,11 @@ const App = () => {
         <div>
           <ul>
             <li>
-              <Link to="/">Home</Link>
+              <ScalprumLink to="/">Home</ScalprumLink>
             </li>
             {Object.values(scalprum.config).map(({ appId, rootLocation }) => (
               <li key={appId}>
-                <Link to={rootLocation}>{appId}</Link>
+                <ScalprumLink to={rootLocation}>{appId}</ScalprumLink>
               </li>
             ))}
           </ul>
@@ -48,7 +48,7 @@ const App = () => {
         <div>
           <Switch>
             {Object.values(scalprum.config).map(({ name, rootLocation, ...item }) => (
-              <ScalpletRoute key={rootLocation} {...item} appName={name} path={rootLocation} />
+              <ScalprumRoute key={rootLocation} {...item} appName={name} path={rootLocation} />
             ))}
             <Route>
               <h1>Home</h1>
