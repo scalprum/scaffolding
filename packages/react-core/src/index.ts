@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { initialize, AppsConfig } from '@scalprum/core';
-export * from './scalplet-route';
+export * from './scalprum-route';
+export * from './scalprum-link';
 
 /**
  * This is totally random implemenetaion of something that does not exists yet. I needed some react code to setup tests.

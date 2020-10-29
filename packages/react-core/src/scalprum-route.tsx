@@ -2,32 +2,25 @@ import { getApp, getAppsByRootLocation, injectScript } from '@scalprum/core';
 import React, { Fragment, useEffect } from 'react';
 import { Route, RouteProps } from 'react-router-dom';
 
-export interface ScalpletRouteProps extends RouteProps {
+export interface ScalprumRouteProps extends RouteProps {
   Placeholder?: React.ComponentType;
   appName: string;
   elementId: string;
   path: string;
 }
-export const ScalpletRoute: React.ComponentType<ScalpletRouteProps> = ({ Placeholder = Fragment, elementId, appName, path, ...props }) => {
+export const ScalprumRoute: React.ComponentType<ScalprumRouteProps> = ({ Placeholder = Fragment, elementId, appName, path, ...props }) => {
   const { scriptLocation } = getAppsByRootLocation(path as string)?.[0];
   useEffect(() => {
     const app = getApp(appName);
 
     if (!app) {
-      injectScript(appName, scriptLocation).then((...args) => {
+      injectScript(appName, scriptLocation).then(() => {
         const app = getApp(appName);
-        console.log(args);
         app.mount();
       });
     } else {
       app.mount();
     }
-    return () => {
-      const app = getApp(appName);
-      if (app) {
-        app.unmount();
-      }
-    };
   }, [path]);
 
   return (
