@@ -7,21 +7,21 @@ jobs:
   test:
     working_directory: ~/scalprum
     docker:
-      - image: circleci/node:14
+      - image: circleci/node:15
     steps:
       - checkout
       - run:
           name: install-deps
-          command: yarn
+          command: npm i
       - run:
           name: build-packages
-          command: yarn build
+          command: npm run build
       - run:
           name: test
-          command: yarn test
+          command: npm run test
       - run:
           name: lint
-          command: yarn lint
+          command: npm run lint
       - codecov/upload:
           file: coverage/*.json
           token: c6e9b194-44be-4a27-8a27-b16e2beba0d6
@@ -39,8 +39,7 @@ workflows:
       - cypress/run:
           requires:
             - test
-          yarn: true
-          start: yarn start:test
+          start: npm run start:test
           wait-on: 'http://localhost:8123'
           executor: cypress/base-14
           post-steps:
