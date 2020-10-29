@@ -1,10 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "jsx": "preserve",       
+    "rootDir": "./src",
+    "outDir": "./dist/esm",
+    "declarationDir": "./dist/cjs",
+    "jsx": "react"
   },
   "include": [
-    "./src/*",
-    "./src/**/*"
+    "./src/index.ts"
   ],
 }
