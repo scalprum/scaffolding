@@ -89,8 +89,6 @@ export function initializeApp(configuration: AppInitConfig) {
     update: configuration.update,
     nodeId: configuration.id,
   };
-
-  configuration.mount();
 }
 
 export const getApp = (name: string): Scalplet => window[GLOBAL_NAMESPACE].apps[name];
