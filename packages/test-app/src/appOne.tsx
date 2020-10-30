@@ -36,7 +36,7 @@ const AppOne = () => {
   );
 };
 
-initializeApp({
+initializeApp<{ foo: string }>({
   id: 'app-one',
   name: 'appOne',
   unmount: () => {
@@ -44,5 +44,10 @@ initializeApp({
     unmountComponentAtNode(document.getElementById('app-one-root')!);
   },
   update: console.log,
-  mount: () => render(<AppOne />, document.getElementById('app-one-root')),
+  mount: (x) => {
+    // just TS check x.foo and scalprum API is type checked;
+    x.foo;
+    x.activeApps;
+    return render(<AppOne />, document.getElementById('app-one-root'));
+  },
 });
