@@ -28,6 +28,12 @@ export interface Scalprum {
     [key: string]: Scalplet;
   };
   appsMetaData: AppsConfig;
+  activeApps: {
+    [key: string]: boolean;
+  };
+  scalpletRoutes: {
+    [key: string]: string[];
+  };
 }
 declare global {
   // eslint-disable-next-line no-unused-vars
@@ -36,11 +42,35 @@ declare global {
   }
 }
 
+const generateScalpletRoutes = (scalpLets: AppsConfig): { [key: string]: string[] } => {
+  const routes: { [key: string]: string[] } = {};
+  Object.values(scalpLets).forEach(({ rootLocation, name }) => {
+    if (routes[rootLocation]) {
+      routes[rootLocation].push(name);
+    } else {
+      routes[rootLocation] = [name];
+    }
+  });
+  return routes;
+};
+
 export const initialize = ({ scalpLets }: { scalpLets: AppsConfig }): void => {
   window[GLOBAL_NAMESPACE] = {
     apps: {},
     appsMetaData: scalpLets,
+    activeApps: {},
+    scalpletRoutes: generateScalpletRoutes(scalpLets),
   };
+};
+
+export const setActiveApp = (name: string) => {
+  window[GLOBAL_NAMESPACE].activeApps[name] = true;
+};
+export const removeActiveApp = (name: string) => {
+  window[GLOBAL_NAMESPACE].activeApps[name] = false;
+};
+export const unmountAppsFromRoute = (route: string) => {
+  window[GLOBAL_NAMESPACE].scalpletRoutes[route]?.forEach((name) => window[GLOBAL_NAMESPACE].apps[name].unmount());
 };
 
 export function initializeApp(configuration: AppInitConfig) {
@@ -48,8 +78,14 @@ export function initializeApp(configuration: AppInitConfig) {
     throw 'Cannot inititlize app. Scalprum was not inititliazed!';
   }
   window[GLOBAL_NAMESPACE].apps[configuration.name] = {
-    mount: configuration.mount,
-    unmount: configuration.unmount,
+    mount: () => {
+      setActiveApp(configuration.name);
+      configuration.mount();
+    },
+    unmount: () => {
+      removeActiveApp(configuration.name);
+      configuration.unmount();
+    },
     update: configuration.update,
     nodeId: configuration.id,
   };

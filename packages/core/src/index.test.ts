@@ -35,6 +35,10 @@ describe('scalprum', () => {
         appOne: { appId: 'app-one', elementId: 'app-one-element', name: 'appOne', rootLocation: '/foo/bar', scriptLocation: '/appOne/url' },
         appTwo: { appId: 'app-two', elementId: 'app-two-element', name: 'appTwo', rootLocation: '/foo/bar', scriptLocation: '/appTwo/url' },
       },
+      scalpletRoutes: {
+        '/foo/bar': ['appOne', 'appTwo'],
+      },
+      activeApps: {},
     };
 
     // @ts-ignore
