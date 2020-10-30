@@ -1,4 +1,4 @@
-export const injectScript = (appName: string, scriptLocation: string) => {
+export const injectScript = (appName: string, scriptLocation: string): Promise<unknown> => {
   let s: HTMLScriptElement | undefined = undefined;
   const injectionPromise = new Promise((res, rej) => {
     s = document.createElement('script');
