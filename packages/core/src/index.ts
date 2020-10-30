@@ -13,13 +13,11 @@ export interface AppsConfig {
 export interface AppInitConfig<T> extends Omit<Omit<Scalplet<T>, 'nodeId'>, 'mount'> {
   id: string;
   name: string;
-  // eslint-disable-next-line no-unused-vars
   mount(api: Scalprum<T>): void;
 }
 
 export type Scalprum<T = any> = T & {
   apps: {
-    // eslint-disable-next-line no-unused-vars
     [key: string]: Scalplet<T>;
   };
   appsMetaData: AppsConfig;
@@ -31,9 +29,7 @@ export type Scalprum<T = any> = T & {
   };
 };
 export interface Scalplet<T> {
-  // eslint-disable-next-line no-unused-vars
   mount(api?: T): void;
-  // eslint-disable-next-line no-unused-vars
   unmount(...args: any[]): void;
   update(): void;
   nodeId: string;
@@ -66,17 +62,17 @@ export const initialize = ({ scalpLets }: { scalpLets: AppsConfig }): void => {
   };
 };
 
-export const setActiveApp = (name: string) => {
+export const setActiveApp = (name: string): void => {
   window[GLOBAL_NAMESPACE].activeApps[name] = true;
 };
-export const removeActiveApp = (name: string) => {
+export const removeActiveApp = (name: string): void => {
   window[GLOBAL_NAMESPACE].activeApps[name] = false;
 };
-export const unmountAppsFromRoute = (route: string) => {
+export const unmountAppsFromRoute = (route: string): void => {
   window[GLOBAL_NAMESPACE].scalpletRoutes[route]?.forEach((name: string) => window[GLOBAL_NAMESPACE].apps[name].unmount());
 };
 
-export function initializeApp<T extends {}>(configuration: AppInitConfig<T>) {
+export function initializeApp<T extends Record<string, unknown>>(configuration: AppInitConfig<T>): void {
   if (typeof window[GLOBAL_NAMESPACE] === 'undefined') {
     throw 'Cannot inititlize app. Scalprum was not inititliazed!';
   }

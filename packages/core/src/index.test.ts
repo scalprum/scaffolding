@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { initialize, GLOBAL_NAMESPACE, initializeApp, getApp, getAppsByRootLocation } from '.';
 
 describe('scalprum', () => {

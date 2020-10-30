@@ -2,9 +2,7 @@ import React from 'react';
 import { unmountAppsFromRoute } from '@scalprum/core';
 import { Link, useLocation, LinkProps } from 'react-router-dom';
 
-export interface ScalprumLinkProps extends LinkProps {}
-
-export const ScalprumLink: React.ComponentType<ScalprumLinkProps> = ({ to, onClick, ...props }) => {
+export const ScalprumLink: React.ComponentType<LinkProps> = ({ to, onClick, ...props }) => {
   const { pathname } = useLocation();
   return (
     <Link
