@@ -41,6 +41,8 @@ declare global {
   }
 }
 
+export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
+
 const generateScalpletRoutes = (scalpLets: AppsConfig): { [key: string]: string[] } => {
   const routes: { [key: string]: string[] } = {};
   Object.values(scalpLets).forEach(({ rootLocation, name }) => {
@@ -53,12 +55,13 @@ const generateScalpletRoutes = (scalpLets: AppsConfig): { [key: string]: string[
   return routes;
 };
 
-export const initialize = ({ scalpLets }: { scalpLets: AppsConfig }): void => {
+export const initialize = <T = unknown>({ scalpLets, api }: { scalpLets: AppsConfig; api?: T }): void => {
   window[GLOBAL_NAMESPACE] = {
     apps: {},
     appsMetaData: scalpLets,
     activeApps: {},
     scalpletRoutes: generateScalpletRoutes(scalpLets),
+    ...api,
   };
 };
 
@@ -70,6 +73,14 @@ export const removeActiveApp = (name: string): void => {
 };
 export const unmountAppsFromRoute = (route: string): void => {
   window[GLOBAL_NAMESPACE].scalpletRoutes[route]?.forEach((name: string) => window[GLOBAL_NAMESPACE].apps[name].unmount());
+};
+
+export const unmountAll = (): void => {
+  Object.entries(window[GLOBAL_NAMESPACE].activeApps).filter(([name, isActive]) => {
+    if (isActive) {
+      window[GLOBAL_NAMESPACE].apps[name].unmount();
+    }
+  });
 };
 
 export function initializeApp<T extends Record<string, unknown>>(configuration: AppInitConfig<T>): void {
