@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { initialize, GLOBAL_NAMESPACE, initializeApp, getApp, getAppsByRootLocation } from '.';
+import {
+  initialize,
+  GLOBAL_NAMESPACE,
+  initializeApp,
+  getApp,
+  getAppsByRootLocation,
+  getScalprum,
+  setActiveApp,
+  unmountAll,
+  removeActiveApp,
+  unmountAppsFromRoute,
+} from '.';
 
 describe('scalprum', () => {
   const mockInititliazeConfig = {
@@ -108,5 +119,32 @@ describe('scalprum', () => {
       ...window[GLOBAL_NAMESPACE],
       foo: 'bar',
     });
+  });
+
+  test('getScalprum should return the scalprum object', () => {
+    initialize(mockInititliazeConfig);
+    const restult = getScalprum();
+    expect(restult).toEqual(expect.any(Object));
+  });
+
+  test('should call unmount on all active applications', () => {
+    const unmount = jest.fn();
+    initialize(mockInititliazeConfig);
+    initializeApp({ ...mockInitializeAppConfig, name: 'appOne', unmount });
+    initializeApp({ ...mockInitializeAppConfig, name: 'appTwo', unmount });
+
+    setActiveApp('appOne');
+    setActiveApp('appTwo');
+    removeActiveApp('appTwo');
+    unmountAll();
+    expect(unmount).toHaveBeenCalledTimes(1);
+  });
+
+  test('should unmount apps from a route', () => {
+    const unmount = jest.fn();
+    initialize(mockInititliazeConfig);
+    initializeApp({ ...mockInitializeAppConfig, id: 'app-one', name: 'appOne', unmount });
+    initializeApp({ ...mockInitializeAppConfig, id: 'app-two', name: 'appTwo', unmount });
+    unmountAppsFromRoute('/foo/bar');
   });
 });
