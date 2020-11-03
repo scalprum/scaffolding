@@ -30,6 +30,8 @@ module.exports = {
   entry: {
     appOne: './src/appOne.tsx',
     appTwo: './src/appTwo.tsx',
+    appThree: './src/appThree.tsx',
+    appFour: './src/appFour.tsx',
     scaffolding: './src/scaffolding.tsx',
   },
   resolve: {
@@ -53,5 +55,8 @@ module.exports = {
   },
   optimization: {
     minimizer: [new TerserPlugin()],
+  },
+  devServer: {
+    historyApiFallback: true,
   },
 };
