@@ -1,6 +1,6 @@
 describe('React routing', () => {
   it('should inject appOne script', () => {
-    cy.visit('http://localhost:8123');
+    cy.visit('http://localhost:8123/basic-routing');
 
     cy.contains('app-one').click();
     cy.get('h1').contains('This is application one').should('exist');

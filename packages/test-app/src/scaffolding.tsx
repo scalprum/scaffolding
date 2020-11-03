@@ -1,61 +1,83 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import * as ReactDOM from 'react-dom';
-import { AppsConfig } from '@scalprum/core';
-import { useScalprum, ScalprumRoute, ScalprumLink } from '@scalprum/react-core';
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { Router, Route, Switch } from 'react-router-dom';
+import { createBrowserHistory, History } from 'history';
+import { AppsConfig, unmountAll } from '@scalprum/core';
+import { useScalprum, ScalprumLink } from '@scalprum/react-core';
+
+import NestedRouting from './nested-routing';
+import BasicRouting from './basic-routing';
 
 window.React = React;
 window.ReactDOM = ReactDOM;
+
+const BASIC_ROUTING = '/basic-routing';
+const NESTED_ROUTING = '/nested-routing';
 
 const config: AppsConfig = {
   appOne: {
     appId: 'app-one',
     elementId: 'app-one-root',
     name: 'appOne',
-    rootLocation: '/app-one',
+    rootLocation: `${BASIC_ROUTING}/app-one`,
     scriptLocation: '/appOne.js',
   },
   appTwo: {
     appId: 'app-two',
     elementId: 'app-two-root',
     name: 'appTwo',
-    rootLocation: '/app-two',
+    rootLocation: `${BASIC_ROUTING}/app-two`,
     scriptLocation: '/appTwo.js',
+  },
+  appThree: {
+    appId: 'app-three',
+    elementId: 'app-three-root',
+    name: 'appThree',
+    rootLocation: `${NESTED_ROUTING}/app-three`,
+    scriptLocation: '/appThree.js',
+  },
+  appFour: {
+    appId: 'app-four',
+    elementId: 'app-four-root',
+    name: 'appFour',
+    rootLocation: `${NESTED_ROUTING}/app-four`,
+    scriptLocation: '/appFour.js',
   },
 };
 
+const history = createBrowserHistory();
+
 const App = () => {
-  const scalprum = useScalprum(config);
-  useEffect(() => {
-    console.log(scalprum);
-  });
+  const scalprum = useScalprum<{ history: History }>(config, { history });
   return (
     <div>
-      <h1>There will be dragons</h1>
-      <BrowserRouter>
+      <Router history={history}>
         <div>
+          <h1>Scafolding routes</h1>
           <ul>
             <li>
-              <ScalprumLink to="/">Home</ScalprumLink>
+              <ScalprumLink shouldUnmount unmount={() => unmountAll()} to={BASIC_ROUTING}>
+                Basic routing
+              </ScalprumLink>
             </li>
-            {Object.values(scalprum.config).map(({ appId, rootLocation }) => (
-              <li key={appId}>
-                <ScalprumLink to={rootLocation}>{appId}</ScalprumLink>
-              </li>
-            ))}
+            <li>
+              <ScalprumLink shouldUnmount unmount={() => unmountAll()} to={NESTED_ROUTING}>
+                Nested routing
+              </ScalprumLink>
+            </li>
           </ul>
         </div>
         <div>
           <Switch>
-            {Object.values(scalprum.config).map(({ name, rootLocation, ...item }) => (
-              <ScalprumRoute key={rootLocation} {...item} appName={name} path={rootLocation} />
-            ))}
-            <Route>
-              <h1>Home</h1>
+            <Route path="/nested-routing">
+              <NestedRouting scalprum={scalprum} routePrefix={NESTED_ROUTING} />
+            </Route>
+            <Route path="/basic-routing">
+              <BasicRouting routePrefix={BASIC_ROUTING} scalprum={scalprum} />
             </Route>
           </Switch>
         </div>
-      </BrowserRouter>
+      </Router>
     </div>
   );
 };

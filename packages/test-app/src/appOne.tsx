@@ -5,9 +5,9 @@ import { initializeApp } from '@scalprum/core';
 
 const AppOneLazyLoaded = lazy(() => import('./app-one-lazy-loaded'));
 
-const AppOne = () => {
+const AppOne: React.ComponentType<{ basename: string }> = ({ basename }) => {
   return (
-    <BrowserRouter basename="/app-one">
+    <BrowserRouter basename={basename}>
       <ul>
         <li>
           <Link to="/">App one top</Link>
@@ -44,10 +44,7 @@ initializeApp<{ foo: string }>({
     unmountComponentAtNode(document.getElementById('app-one-root')!);
   },
   update: console.log,
-  mount: (x) => {
-    // just TS check x.foo and scalprum API is type checked;
-    x.foo;
-    x.activeApps;
-    return render(<AppOne />, document.getElementById('app-one-root'));
+  mount: ({ appsMetaData: { appOne } }) => {
+    return render(<AppOne basename={appOne.rootLocation} />, document.getElementById('app-one-root'));
   },
 });

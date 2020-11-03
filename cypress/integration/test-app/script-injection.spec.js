@@ -1,6 +1,6 @@
 describe('React script injection', () => {
   it('should inject appOne script', () => {
-    cy.visit('http://localhost:8123');
+    cy.visit('http://localhost:8123/basic-routing');
 
     /**
      * App one should load
