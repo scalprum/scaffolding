@@ -1,7 +1,7 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { ScalprumRoute } from './scalprum-route';
-import { render, cleanup, getByText, act } from '@testing-library/react';
+import { render, cleanup, act } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
 import * as Inject from '@scalprum/core/dist/cjs/inject-script';
 import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
@@ -28,9 +28,11 @@ describe('<ScalprumRoute />', () => {
 
   test('should retrieve script location', () => {
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    ScalprumCore.initializeApp({ name: 'appOne', id: 'id', mount: jest.fn(), unmount: jest.fn(), update: jest.fn() });
     render(
       <MemoryRouter>
         <ScalprumRoute appName="appOne" elementId="id" path="/foo" />
+        <div id="id"></div>
       </MemoryRouter>
     );
 
@@ -48,6 +50,7 @@ describe('<ScalprumRoute />', () => {
       render(
         <MemoryRouter>
           <ScalprumRoute appName="appOne" elementId="id" path="/foo" />
+          <div id="id"></div>
         </MemoryRouter>
       );
     });
@@ -64,6 +67,7 @@ describe('<ScalprumRoute />', () => {
       render(
         <MemoryRouter>
           <ScalprumRoute appName="appOne" elementId="id" path="/foo" />
+          <div id="id"></div>
         </MemoryRouter>
       );
     });

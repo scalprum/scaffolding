@@ -29,7 +29,7 @@ export type Scalprum<T = any> = T & {
   };
 };
 export interface Scalplet<T> {
-  mount(api?: T): void;
+  mount<A = void>(api?: T): A;
   unmount(...args: any[]): void;
   update(): void;
   nodeId: string;
@@ -94,7 +94,7 @@ export function initializeApp<T extends Record<string, unknown>>(configuration: 
         ...window[GLOBAL_NAMESPACE],
       };
       setActiveApp(configuration.name);
-      configuration.mount(fullApi);
+      return configuration.mount(fullApi);
     },
     unmount: () => {
       removeActiveApp(configuration.name);

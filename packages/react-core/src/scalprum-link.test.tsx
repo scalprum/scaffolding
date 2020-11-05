@@ -14,7 +14,10 @@ const DummyComponent: React.ComponentType<ScalprumLinkProps & { initialEntries?:
     </MemoryRouter>
   );
 };
-describe('<ScalprumLink />', () => {
+/**
+ * Scalprum link is deprecated. Unmount handling was moved to scalprum route.
+ */
+describe.skip('<ScalprumLink />', () => {
   afterEach(() => cleanup());
 
   test('should not call onmount function', () => {
