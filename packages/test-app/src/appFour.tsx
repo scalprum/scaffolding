@@ -1,10 +1,15 @@
-import React, { Fragment, lazy, Suspense, useEffect } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
-import { Route, Link, BrowserRouter, useHistory } from 'react-router-dom';
 import { initializeApp } from '@scalprum/core';
 import { History } from 'history';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const { Fragment, lazy, Suspense, useEffect, default: React } = window.React;
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const { Route, Link, BrowserRouter, useHistory } = window.ReactRouterDOM;
+
 const AppOneLazyLoaded = lazy(() => import('./app-one-lazy-loaded'));
+console.log({ AppOneLazyLoaded });
 
 /**
  * Nested routing with isolated history.
@@ -56,15 +61,13 @@ initializeApp<{ history: History }>({
   name: 'appFour',
   unmount: () => {
     console.log('unmounting app four');
-    unmountComponentAtNode(document.getElementById('app-four-root')!);
   },
   update: console.log,
   mount: ({ appsMetaData: { appFour }, history }) => {
-    return render(
+    return (
       <BrowserRouter basename={appFour.rootLocation}>
         <AppFour history={history} basename={appFour.rootLocation} />
-      </BrowserRouter>,
-      document.getElementById('app-four-root')
+      </BrowserRouter>
     );
   },
 });

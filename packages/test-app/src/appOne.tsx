@@ -1,11 +1,14 @@
-import React, { lazy, Suspense } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const { lazy, Suspense, useState, default: React } = window.React;
 import { BrowserRouter, Route, Link } from 'react-router-dom';
 import { initializeApp } from '@scalprum/core';
 
+console.log(window.React);
 const AppOneLazyLoaded = lazy(() => import('./app-one-lazy-loaded'));
 
 const AppOne: React.ComponentType<{ basename: string }> = ({ basename }) => {
+  const [foo, bar] = useState();
   return (
     <BrowserRouter basename={basename}>
       <ul>
@@ -41,10 +44,9 @@ initializeApp<{ foo: string }>({
   name: 'appOne',
   unmount: () => {
     console.log('unmounting app one');
-    unmountComponentAtNode(document.getElementById('app-one-root')!);
   },
   update: console.log,
   mount: ({ appsMetaData: { appOne } }) => {
-    return render(<AppOne basename={appOne.rootLocation} />, document.getElementById('app-one-root'));
+    return <AppOne basename={appOne.rootLocation} />;
   },
 });

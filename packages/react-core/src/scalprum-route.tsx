@@ -1,5 +1,6 @@
 import { getApp, getAppsByRootLocation, injectScript } from '@scalprum/core';
 import React, { Fragment, useEffect } from 'react';
+import { unmountComponentAtNode, render } from 'react-dom';
 import { Route, RouteProps } from 'react-router-dom';
 
 export interface ScalprumRouteProps<T = Record<string, unknown>> extends RouteProps {
@@ -13,15 +14,23 @@ export const ScalprumRoute: React.ComponentType<ScalprumRouteProps> = ({ Placeho
   const { scriptLocation } = getAppsByRootLocation(path as string)?.[0];
   useEffect(() => {
     const app = getApp(appName);
+    const element = document.getElementById(elementId);
 
     if (!app) {
       injectScript(appName, scriptLocation).then(() => {
         const app = getApp(appName);
-        app.mount(api);
+        const node = app.mount<JSX.Element>(api);
+        render(node, element);
       });
     } else {
-      app.mount(api);
+      const node = app.mount<JSX.Element>(api);
+      render(node, element);
     }
+    return () => {
+      const app = getApp(appName);
+      app.unmount();
+      unmountComponentAtNode(element!);
+    };
   }, [path]);
 
   return (

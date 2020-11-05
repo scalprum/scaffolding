@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/react-core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "React binding for @scalprum/core package.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -26,7 +26,9 @@
     "@types/react-router-dom": "^5.1.6"
   },
   "dependencies": {
-    "@scalprum/core": "*",
+    "@scalprum/core": "*"
+  },
+  "peerDependencies": {
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0"

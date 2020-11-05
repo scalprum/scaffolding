@@ -7,6 +7,9 @@ export interface ScalprumLinkProps extends LinkProps {
   shouldUnmount?: boolean | ((pathname: string, to: string | History.LocationDescriptor | ((location: Location) => LocationDescriptor)) => boolean);
   unmount?: (pathname: string) => void;
 }
+/**
+ * @deprecated since version 0.0.2
+ */
 export const ScalprumLink: React.ComponentType<ScalprumLinkProps> = ({ to, onClick, shouldUnmount, unmount, ...props }) => {
   const { pathname } = useLocation();
   return (
@@ -22,7 +25,7 @@ export const ScalprumLink: React.ComponentType<ScalprumLinkProps> = ({ to, onCli
           unmountResult = shouldUnmount(pathname, to);
         }
         if (unmountResult) {
-          unmountFunction(pathname);
+          // unmountFunction(pathname);
         }
         if (onClick) {
           onClick(event);

@@ -1,6 +1,6 @@
-import React from 'react';
+import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { Router, Route, Switch } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { createBrowserHistory, History } from 'history';
 import { AppsConfig, unmountAll } from '@scalprum/core';
 import { useScalprum, ScalprumLink } from '@scalprum/react-core';
@@ -8,8 +8,13 @@ import { useScalprum, ScalprumLink } from '@scalprum/react-core';
 import NestedRouting from './nested-routing';
 import BasicRouting from './basic-routing';
 
+const { Router, Route, Switch } = ReactRouterDOM;
+
 window.React = React;
 window.ReactDOM = ReactDOM;
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+window.ReactRouterDOM = ReactRouterDOM;
 
 const BASIC_ROUTING = '/basic-routing';
 const NESTED_ROUTING = '/nested-routing';

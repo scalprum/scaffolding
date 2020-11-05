@@ -1,5 +1,4 @@
 import React, { lazy, Suspense } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
 import { Router, Route, Link } from 'react-router-dom';
 import { initializeApp } from '@scalprum/core';
 import { History } from 'history';
@@ -45,11 +44,10 @@ initializeApp<{ history: History }>({
   id: 'app-three',
   name: 'appThree',
   unmount: () => {
-    console.log('unmounting app one');
-    unmountComponentAtNode(document.getElementById('app-three-root')!);
+    console.log('unmounting app three');
   },
   update: console.log,
   mount: ({ appsMetaData: { appThree }, history }) => {
-    return render(<AppThree history={history} basename={appThree.rootLocation} />, document.getElementById('app-three-root'));
+    return <AppThree history={history} basename={appThree.rootLocation} />;
   },
 });
