@@ -29,16 +29,10 @@ export const useScalprum = <T = Record<string, unknown>>(applicationFeed: Scalpr
     }
 
     if (typeof applicationFeed === 'function') {
-      const result = applicationFeed();
-      if (Object.prototype.hasOwnProperty.call(result, 'then')) {
-        (result as Promise<AppsConfig>).then((config) => {
-          setState((prev) => ({ ...prev, initialized: true, config }));
-          initialize<T>({ scalpLets: config, api });
-        });
-      } else {
-        setState((prev) => ({ ...prev, initialized: true, config: result as AppsConfig }));
-        initialize<T>({ scalpLets: result as AppsConfig, api });
-      }
+      Promise.resolve(applicationFeed()).then((config) => {
+        setState((prev) => ({ ...prev, initialized: true, config: config as AppsConfig }));
+        initialize<T>({ scalpLets: config as AppsConfig, api });
+      });
     }
   }, []);
 
