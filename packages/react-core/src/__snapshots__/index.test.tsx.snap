@@ -27,7 +27,15 @@ exports[`useScalprum should set scalprum feed from async function 1`] = `
     <pre>
       {
   "initialized": true,
-  "config": {}
+  "config": {
+    "appOne": {
+      "name": "appOne",
+      "appId": "foo",
+      "elementId": "element",
+      "rootLocation": "/foo/bar",
+      "scriptLocation": "/some/location"
+    }
+  }
 }
     </pre>
   </div>

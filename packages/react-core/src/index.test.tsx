@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, cleanup } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 import { MemoryRouter } from 'react-router-dom';
 
 import { useScalprum, ScalprumFeed, ScalprumState } from '.';
@@ -28,13 +29,19 @@ describe('useScalprum', () => {
     expect(container).toMatchSnapshot();
   });
 
-  test('should set scalprum feed from function', () => {
-    const { container } = render(<DummyComponent feed={() => config} />);
+  test('should set scalprum feed from function', async () => {
+    let container;
+    await act(async () => {
+      container = render(<DummyComponent feed={() => config} />)?.container;
+    });
     expect(container).toMatchSnapshot();
   });
 
-  test('should set scalprum feed from async function', () => {
-    const { container } = render(<DummyComponent feed={() => Promise.resolve(config)} />);
+  test('should set scalprum feed from async function', async () => {
+    let container;
+    await act(async () => {
+      container = render(<DummyComponent feed={() => Promise.resolve(config)} />)?.container;
+    });
     expect(container).toMatchSnapshot();
   });
 });
