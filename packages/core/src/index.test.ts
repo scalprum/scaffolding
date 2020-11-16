@@ -47,6 +47,7 @@ describe('scalprum', () => {
         appOne: { appId: 'app-one', elementId: 'app-one-element', name: 'appOne', rootLocation: '/foo/bar', scriptLocation: '/appOne/url' },
         appTwo: { appId: 'app-two', elementId: 'app-two-element', name: 'appTwo', rootLocation: '/foo/bar', scriptLocation: '/appTwo/url' },
       },
+      pendingInjections: {},
       scalpletRoutes: {
         '/foo/bar': ['appOne', 'appTwo'],
       },
@@ -64,6 +65,10 @@ describe('scalprum', () => {
   test('should initialize app', () => {
     const mount = jest.fn();
     initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global[GLOBAL_NAMESPACE].pendingInjections = {
+      foo: jest.fn(),
+    };
     initializeApp({ ...mockInitializeAppConfig, mount });
     // @ts-ignore
     expect(global[GLOBAL_NAMESPACE].apps).toEqual({
@@ -78,6 +83,10 @@ describe('scalprum', () => {
 
   test('should retrive one app by name', () => {
     initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global[GLOBAL_NAMESPACE].pendingInjections = {
+      foo: jest.fn(),
+    };
     initializeApp({ ...mockInitializeAppConfig });
 
     const app = getApp('foo');
@@ -91,6 +100,10 @@ describe('scalprum', () => {
 
   test('should retrive multiple apps root location', () => {
     initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global[GLOBAL_NAMESPACE].pendingInjections = {
+      foo: jest.fn(),
+    };
     initializeApp({ ...mockInitializeAppConfig });
 
     const apps = getAppsByRootLocation('/foo/bar');
@@ -103,6 +116,10 @@ describe('scalprum', () => {
   test('should pass scalprum object to application on mount', () => {
     const mount = jest.fn();
     initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global[GLOBAL_NAMESPACE].pendingInjections = {
+      foo: jest.fn(),
+    };
     initializeApp({ ...mockInitializeAppConfig, mount });
     const app = getApp('foo');
     app.mount();
@@ -112,6 +129,10 @@ describe('scalprum', () => {
   test('should pass scalprum object with custom API to application on mount', () => {
     const mount = jest.fn();
     initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global[GLOBAL_NAMESPACE].pendingInjections = {
+      foo: jest.fn(),
+    };
     initializeApp<{ foo: string }>({ ...mockInitializeAppConfig, mount });
     const app = getApp<{ foo: string }>('foo');
     app.mount({ foo: 'bar' });
@@ -130,6 +151,11 @@ describe('scalprum', () => {
   test('should call unmount on all active applications', () => {
     const unmount = jest.fn();
     initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global[GLOBAL_NAMESPACE].pendingInjections = {
+      appOne: jest.fn(),
+      appTwo: jest.fn(),
+    };
     initializeApp({ ...mockInitializeAppConfig, name: 'appOne', unmount });
     initializeApp({ ...mockInitializeAppConfig, name: 'appTwo', unmount });
 
@@ -143,6 +169,11 @@ describe('scalprum', () => {
   test('should unmount apps from a route', () => {
     const unmount = jest.fn();
     initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global[GLOBAL_NAMESPACE].pendingInjections = {
+      appOne: jest.fn(),
+      appTwo: jest.fn(),
+    };
     initializeApp({ ...mockInitializeAppConfig, id: 'app-one', name: 'appOne', unmount });
     initializeApp({ ...mockInitializeAppConfig, id: 'app-two', name: 'appTwo', unmount });
     unmountAppsFromRoute('/foo/bar');

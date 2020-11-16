@@ -3,7 +3,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { ScalprumRoute } from './scalprum-route';
 import { render, cleanup, act } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
-import * as Inject from '@scalprum/core/dist/cjs/inject-script';
 import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
 
 describe('<ScalprumRoute />', () => {
@@ -17,7 +16,7 @@ describe('<ScalprumRoute />', () => {
     },
   };
   const getAppsByRootLocationSpy = jest.spyOn(ScalprumCore, 'getAppsByRootLocation').mockReturnValue([mockInitScalprumConfig.appOne]);
-  const injectScriptSpy = jest.spyOn(Inject, 'injectScript');
+  const injectScriptSpy = jest.spyOn(ScalprumCore, 'injectScript');
 
   afterEach(() => {
     cleanup();
@@ -28,6 +27,7 @@ describe('<ScalprumRoute />', () => {
 
   test('should retrieve script location', () => {
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', id: 'id', mount: jest.fn(), unmount: jest.fn(), update: jest.fn() });
     render(
       <MemoryRouter>
@@ -43,6 +43,7 @@ describe('<ScalprumRoute />', () => {
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
     injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
       ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
       return Promise.resolve();
     });
@@ -62,6 +63,7 @@ describe('<ScalprumRoute />', () => {
   test('should not inject script the app was initialized before', async () => {
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
     await act(async () => {
       render(
