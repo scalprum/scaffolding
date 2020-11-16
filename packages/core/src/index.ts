@@ -27,6 +27,9 @@ export type Scalprum<T = any> = T & {
   scalpletRoutes: {
     [key: string]: string[];
   };
+  pendingInjections: {
+    [key: string]: () => void;
+  };
 };
 export interface Scalplet<T> {
   mount<A = void>(api?: T): A;
@@ -55,12 +58,17 @@ const generateScalpletRoutes = (scalpLets: AppsConfig): { [key: string]: string[
   return routes;
 };
 
+export const setPendingInjection = (id: string, callback: () => void): void => {
+  window[GLOBAL_NAMESPACE].pendingInjections[id] = callback;
+};
+
 export const initialize = <T = unknown>({ scalpLets, api }: { scalpLets: AppsConfig; api?: T }): void => {
   window[GLOBAL_NAMESPACE] = {
     apps: {},
     appsMetaData: scalpLets,
     activeApps: {},
     scalpletRoutes: generateScalpletRoutes(scalpLets),
+    pendingInjections: {},
     ...api,
   };
 };
@@ -103,6 +111,7 @@ export function initializeApp<T extends Record<string, unknown>>(configuration: 
     update: configuration.update,
     nodeId: configuration.id,
   };
+  window[GLOBAL_NAMESPACE].pendingInjections[configuration.name]();
 }
 
 export const getApp = <T = unknown>(name: string): Scalplet<T> => window[GLOBAL_NAMESPACE].apps[name];
@@ -116,4 +125,21 @@ export const getAppsByRootLocation = (pathname: string): AppMetadata[] => {
     }));
 };
 
-export * from './inject-script';
+export const injectScript = (appName: string, scriptLocation: string): Promise<unknown> => {
+  let s: HTMLScriptElement | undefined = undefined;
+  const injectionPromise = new Promise((res, rej) => {
+    s = document.createElement('script');
+    s.src = scriptLocation;
+    s.id = appName;
+    setPendingInjection(appName, () => res(name));
+    s.onerror = (...args) => {
+      console.log(args);
+      setPendingInjection(appName, () => rej(args));
+    };
+  });
+  if (typeof s !== 'undefined') {
+    document.body.appendChild(s);
+  }
+
+  return injectionPromise;
+};
