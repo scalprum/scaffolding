@@ -9,7 +9,7 @@ export interface ScalprumComponentProps<T = Record<string, unknown>> {
   api?: T;
   scope: string;
   module: string;
-  ErrorComponent?: React.Component;
+  ErrorComponent?: React.ComponentType<any>;
 }
 
 export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({

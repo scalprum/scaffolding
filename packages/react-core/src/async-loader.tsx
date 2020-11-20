@@ -11,7 +11,7 @@ const DefaultErrorComponent: React.ComponentType<any> = () => {
   return <span>Error while loading component!</span>;
 };
 
-export function loadComponent(scope: string, module: string, ErrorComponent: React.Component | undefined) {
+export function loadComponent(scope: string, module: string, ErrorComponent: React.ComponentType<any> = DefaultErrorComponent) {
   return async (): Promise<{ default: React.ComponentType<any> }> => {
     let Module;
     try {
@@ -23,7 +23,7 @@ export function loadComponent(scope: string, module: string, ErrorComponent: Rea
     } catch (e) {
       console.error(e);
       Module = {
-        default: ErrorComponent || DefaultErrorComponent,
+        default: ErrorComponent,
       };
     }
 
