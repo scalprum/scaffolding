@@ -45,7 +45,7 @@ describe('<ScalprumRoute />', () => {
     injectScriptSpy.mockImplementationOnce(() => {
       ScalprumCore.setPendingInjection('appOne', jest.fn());
       ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
-      return Promise.resolve();
+      return Promise.resolve(['', undefined]);
     });
     await act(async () => {
       render(

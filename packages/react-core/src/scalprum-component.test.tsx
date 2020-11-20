@@ -3,7 +3,6 @@ import * as asyncComponent from './async-loader';
 import { ScalprumComponent } from './scalprum-component';
 import { render, cleanup, act } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
-import * as Inject from '@scalprum/core/dist/cjs/inject-script';
 import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
 
 describe('<ScalprumComponent />', () => {
@@ -17,7 +16,7 @@ describe('<ScalprumComponent />', () => {
     },
   };
   const getAppsByRootLocationSpy = jest.spyOn(ScalprumCore, 'getAppsByRootLocation').mockReturnValue([mockInitScalprumConfig.appOne]);
-  const injectScriptSpy = jest.spyOn(Inject, 'injectScript');
+  const injectScriptSpy = jest.spyOn(ScalprumCore, 'injectScript');
   const loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(() => import('./TestComponent'));
 
   afterEach(() => {
@@ -29,6 +28,7 @@ describe('<ScalprumComponent />', () => {
 
   test('should retrieve script location', () => {
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', id: 'id', mount: jest.fn(), unmount: jest.fn(), update: jest.fn() });
     render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
 
@@ -39,8 +39,9 @@ describe('<ScalprumComponent />', () => {
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
     injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
       ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
-      return Promise.resolve();
+      return Promise.resolve(['', undefined]);
     });
     await act(async () => {
       render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
@@ -53,6 +54,7 @@ describe('<ScalprumComponent />', () => {
   test('should not inject script the app was initialized before', async () => {
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
     await act(async () => {
       render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
@@ -65,10 +67,10 @@ describe('<ScalprumComponent />', () => {
   test('should render test component', async () => {
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
-    ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
     injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
       ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
-      return Promise.resolve();
+      return Promise.resolve(['', undefined]);
     });
     let container;
     await act(async () => {
