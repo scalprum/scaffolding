@@ -125,16 +125,16 @@ export const getAppsByRootLocation = (pathname: string): AppMetadata[] => {
     }));
 };
 
-export const injectScript = (appName: string, scriptLocation: string): Promise<unknown> => {
+export const injectScript = (appName: string, scriptLocation: string): Promise<[unknown, HTMLScriptElement | undefined]> => {
   let s: HTMLScriptElement | undefined = undefined;
-  const injectionPromise = new Promise((res, rej) => {
+  const injectionPromise: Promise<[unknown, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
     s = document.createElement('script');
     s.src = scriptLocation;
     s.id = appName;
-    setPendingInjection(appName, () => res(name));
+    setPendingInjection(appName, () => res([name, s]));
     s.onerror = (...args) => {
       console.log(args);
-      setPendingInjection(appName, () => rej(args));
+      setPendingInjection(appName, () => rej([args, s]));
     };
   });
   if (typeof s !== 'undefined') {

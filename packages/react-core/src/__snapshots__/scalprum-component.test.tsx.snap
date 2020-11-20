@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<ScalprumComponent /> should render test component 1`] = `
+<div>
+  <span>
+    Test
+  </span>
+</div>
+`;
