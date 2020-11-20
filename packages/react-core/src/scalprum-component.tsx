@@ -9,6 +9,7 @@ export interface ScalprumComponentProps<T = Record<string, unknown>> {
   api?: T;
   scope: string;
   module: string;
+  ErrorComponent?: React.Component;
 }
 
 export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
@@ -18,6 +19,7 @@ export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
   api,
   scope,
   module,
+  ErrorComponent,
   ...props
 }) => {
   const { scriptLocation } = getAppsByRootLocation(path as string)?.[0];
@@ -30,12 +32,12 @@ export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
       injectScript(appName, scriptLocation).then(([, scriptMountedAt]) => {
         const app = getApp(appName);
         app?.mount<JSX.Element>(api);
-        setComponent(() => React.lazy(loadComponent(scope, module)));
+        setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
         setMountedAt(() => scriptMountedAt);
       });
     } else {
       app?.mount<JSX.Element>(api);
-      setComponent(() => React.lazy(loadComponent(scope, module)));
+      setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
     }
     return () => {
       const app = getApp(appName);

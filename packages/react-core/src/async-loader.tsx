@@ -7,11 +7,11 @@ export interface Container extends Window {
 declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
 
-const ErrorComponent: React.ComponentType<any> = () => {
+const DefaultErrorComponent: React.ComponentType<any> = () => {
   return <span>Error while loading component!</span>;
 };
 
-export function loadComponent(scope: string, module: string) {
+export function loadComponent(scope: string, module: string, ErrorComponent: React.Component | undefined) {
   return async (): Promise<{ default: React.ComponentType<any> }> => {
     let Module;
     try {
@@ -23,7 +23,7 @@ export function loadComponent(scope: string, module: string) {
     } catch (e) {
       console.error(e);
       Module = {
-        default: ErrorComponent,
+        default: ErrorComponent || DefaultErrorComponent,
       };
     }
 
