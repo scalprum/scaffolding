@@ -1,11 +1,11 @@
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { ScalprumRoute } from './scalprum-route';
+import * as asyncComponent from './async-loader';
+import { ScalprumComponent } from './scalprum-component';
 import { render, cleanup, act } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
 import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
 
-describe('<ScalprumRoute />', () => {
+describe('<ScalprumComponent />', () => {
   const mockInitScalprumConfig: AppsConfig = {
     appOne: {
       name: 'appOne',
@@ -17,6 +17,7 @@ describe('<ScalprumRoute />', () => {
   };
   const getAppsByRootLocationSpy = jest.spyOn(ScalprumCore, 'getAppsByRootLocation').mockReturnValue([mockInitScalprumConfig.appOne]);
   const injectScriptSpy = jest.spyOn(ScalprumCore, 'injectScript');
+  const loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(() => import('./TestComponent'));
 
   afterEach(() => {
     cleanup();
@@ -29,12 +30,7 @@ describe('<ScalprumRoute />', () => {
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
     ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', id: 'id', mount: jest.fn(), unmount: jest.fn(), update: jest.fn() });
-    render(
-      <MemoryRouter>
-        <ScalprumRoute appName="appOne" elementId="id" path="/foo" />
-        <div id="id"></div>
-      </MemoryRouter>
-    );
+    render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
 
     expect(getAppsByRootLocationSpy).toHaveBeenCalledWith('/foo');
   });
@@ -48,12 +44,7 @@ describe('<ScalprumRoute />', () => {
       return Promise.resolve(['', undefined]);
     });
     await act(async () => {
-      render(
-        <MemoryRouter>
-          <ScalprumRoute appName="appOne" elementId="id" path="/foo" />
-          <div id="id"></div>
-        </MemoryRouter>
-      );
+      render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
     });
 
     expect(mount).toHaveBeenCalled();
@@ -66,15 +57,27 @@ describe('<ScalprumRoute />', () => {
     ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
     await act(async () => {
-      render(
-        <MemoryRouter>
-          <ScalprumRoute appName="appOne" elementId="id" path="/foo" />
-          <div id="id"></div>
-        </MemoryRouter>
-      );
+      render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
     });
 
     expect(mount).toHaveBeenCalled();
     expect(injectScriptSpy).not.toHaveBeenCalled();
+  });
+
+  test('should render test component', async () => {
+    const mount = jest.fn();
+    ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
+      ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
+      return Promise.resolve(['', undefined]);
+    });
+    let container;
+    await act(async () => {
+      container = render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />)?.container;
+    });
+
+    expect(loadComponentSpy).toHaveBeenCalled();
+    expect(container).toMatchSnapshot();
   });
 });
