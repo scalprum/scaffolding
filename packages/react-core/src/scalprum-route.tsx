@@ -17,7 +17,7 @@ export const ScalprumRoute: React.ComponentType<ScalprumRouteProps> = ({ Placeho
     const element = document.getElementById(elementId);
 
     if (!app) {
-      injectScript(appName, scriptLocation).then(() => {
+      injectScript(appName, scriptLocation as string).then(() => {
         const app = getApp(appName);
         const node = app.mount<JSX.Element>(api);
         render(node, element);
