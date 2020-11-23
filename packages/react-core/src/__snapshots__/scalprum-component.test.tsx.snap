@@ -7,3 +7,11 @@ exports[`<ScalprumComponent /> should render test component 1`] = `
   </span>
 </div>
 `;
+
+exports[`<ScalprumComponent /> should render test component with manifest 1`] = `
+<div>
+  <span>
+    Test
+  </span>
+</div>
+`;
