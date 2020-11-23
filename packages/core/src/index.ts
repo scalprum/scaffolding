@@ -4,7 +4,8 @@ export interface AppMetadata {
   appId: string;
   elementId: string;
   rootLocation: string;
-  scriptLocation: string;
+  scriptLocation?: string;
+  manifestLocation?: string;
 }
 export interface AppsConfig {
   [key: string]: AppMetadata;
@@ -143,3 +144,18 @@ export const injectScript = (appName: string, scriptLocation: string): Promise<[
 
   return injectionPromise;
 };
+
+export async function processManifest(
+  url: string,
+  appName: string,
+  scope: string,
+  processor: ((value: any) => string) | undefined
+): Promise<[unknown, HTMLScriptElement | undefined][]> {
+  const manifest = await (await fetch(url)).json();
+  return Promise.all(
+    Object.entries(manifest)
+      .filter(([key]) => (scope ? key === scope : true))
+      .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
+      .map((scriptLocation: any) => injectScript(appName, scriptLocation as string))
+  );
+}

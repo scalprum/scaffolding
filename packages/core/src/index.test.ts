@@ -29,6 +29,13 @@ describe('scalprum', () => {
         rootLocation: '/foo/bar',
         scriptLocation: '/appTwo/url',
       },
+      appThree: {
+        name: 'appThree',
+        appId: 'app-three',
+        elementId: 'app-three-element',
+        rootLocation: '/foo/bar',
+        manifestLocation: '/appThree/url',
+      },
     },
   };
   const mockInitializeAppConfig = { id: 'foo', name: 'foo', mount: jest.fn(), unmount: jest.fn(), update: jest.fn() };
@@ -46,10 +53,17 @@ describe('scalprum', () => {
       appsMetaData: {
         appOne: { appId: 'app-one', elementId: 'app-one-element', name: 'appOne', rootLocation: '/foo/bar', scriptLocation: '/appOne/url' },
         appTwo: { appId: 'app-two', elementId: 'app-two-element', name: 'appTwo', rootLocation: '/foo/bar', scriptLocation: '/appTwo/url' },
+        appThree: {
+          appId: 'app-three',
+          elementId: 'app-three-element',
+          name: 'appThree',
+          rootLocation: '/foo/bar',
+          manifestLocation: '/appThree/url',
+        },
       },
       pendingInjections: {},
       scalpletRoutes: {
-        '/foo/bar': ['appOne', 'appTwo'],
+        '/foo/bar': ['appOne', 'appTwo', 'appThree'],
       },
       activeApps: {},
     };
@@ -110,6 +124,13 @@ describe('scalprum', () => {
     expect(apps).toEqual([
       { appId: 'app-one', elementId: 'app-one-element', name: 'appOne', rootLocation: '/foo/bar', scriptLocation: '/appOne/url' },
       { appId: 'app-two', elementId: 'app-two-element', name: 'appTwo', rootLocation: '/foo/bar', scriptLocation: '/appTwo/url' },
+      {
+        appId: 'app-three',
+        elementId: 'app-three-element',
+        name: 'appThree',
+        rootLocation: '/foo/bar',
+        manifestLocation: '/appThree/url',
+      },
     ]);
   });
 
@@ -155,15 +176,18 @@ describe('scalprum', () => {
     global[GLOBAL_NAMESPACE].pendingInjections = {
       appOne: jest.fn(),
       appTwo: jest.fn(),
+      appThree: jest.fn(),
     };
     initializeApp({ ...mockInitializeAppConfig, name: 'appOne', unmount });
     initializeApp({ ...mockInitializeAppConfig, name: 'appTwo', unmount });
+    initializeApp({ ...mockInitializeAppConfig, name: 'appThree', unmount });
 
     setActiveApp('appOne');
     setActiveApp('appTwo');
-    removeActiveApp('appTwo');
+    setActiveApp('appThree');
+    removeActiveApp('appThree');
     unmountAll();
-    expect(unmount).toHaveBeenCalledTimes(1);
+    expect(unmount).toHaveBeenCalledTimes(2);
   });
 
   test('should unmount apps from a route', () => {
@@ -173,9 +197,11 @@ describe('scalprum', () => {
     global[GLOBAL_NAMESPACE].pendingInjections = {
       appOne: jest.fn(),
       appTwo: jest.fn(),
+      appThree: jest.fn(),
     };
     initializeApp({ ...mockInitializeAppConfig, id: 'app-one', name: 'appOne', unmount });
     initializeApp({ ...mockInitializeAppConfig, id: 'app-two', name: 'appTwo', unmount });
+    initializeApp({ ...mockInitializeAppConfig, id: 'app-three', name: 'appThree', unmount });
     unmountAppsFromRoute('/foo/bar');
   });
 });

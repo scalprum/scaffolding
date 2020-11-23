@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, Suspense, useState } from 'react';
-import { getApp, getAppsByRootLocation, injectScript } from '@scalprum/core';
+import { getApp, getAppsByRootLocation, injectScript, processManifest } from '@scalprum/core';
 import { loadComponent } from './async-loader';
 
 export interface ScalprumComponentProps<T = Record<string, unknown>> {
@@ -10,6 +10,7 @@ export interface ScalprumComponentProps<T = Record<string, unknown>> {
   scope: string;
   module: string;
   ErrorComponent?: React.ComponentType<any>;
+  processor?: (item: any) => string;
 }
 
 export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
@@ -20,21 +21,31 @@ export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
   scope,
   module,
   ErrorComponent,
+  processor,
   ...props
 }) => {
-  const { scriptLocation } = getAppsByRootLocation(path as string)?.[0];
+  const { scriptLocation, manifestLocation } = getAppsByRootLocation(path as string)?.[0];
   const [Component, setComponent] = useState<React.ComponentType<any>>(Fragment);
-  const [mountedAt, setMountedAt] = useState<HTMLScriptElement | undefined>();
+  const [mountedAt, setMountedAt] = useState<HTMLScriptElement | HTMLScriptElement[] | undefined>();
   useEffect(() => {
     const app = getApp(appName);
 
     if (!app) {
-      injectScript(appName, scriptLocation).then(([, scriptMountedAt]) => {
-        const app = getApp(appName);
-        app?.mount<JSX.Element>(api);
-        setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
-        setMountedAt(() => scriptMountedAt);
-      });
+      if (scriptLocation) {
+        injectScript(appName, scriptLocation).then(([, scriptMountedAt]) => {
+          const app = getApp(appName);
+          app?.mount<JSX.Element>(api);
+          setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+          setMountedAt(() => scriptMountedAt);
+        });
+      } else if (manifestLocation) {
+        processManifest(manifestLocation, appName, scope, processor).then((items) => {
+          setMountedAt(() => items.map((value) => (value as [unknown, HTMLScriptElement])[1]));
+          const app = getApp(appName);
+          app?.mount<JSX.Element>(api);
+          setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+        });
+      }
     } else {
       app?.mount<JSX.Element>(api);
       setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
@@ -42,7 +53,9 @@ export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
     return () => {
       const app = getApp(appName);
       app?.unmount();
-      mountedAt && document.body.removeChild(mountedAt);
+      if (mountedAt) {
+        Array.isArray(mountedAt) ? mountedAt.forEach((mounted) => document.body.removeChild(mounted)) : document.body.removeChild(mountedAt);
+      }
     };
   }, [path]);
 
