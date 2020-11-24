@@ -66,7 +66,7 @@ initializeApp<{ history: History }>({
   mount: ({ appsMetaData: { appFour }, history }) => {
     return (
       <BrowserRouter basename={appFour.rootLocation}>
-        <AppFour history={history} basename={appFour.rootLocation} />
+        <AppFour history={history} basename={appFour.rootLocation!} />
       </BrowserRouter>
     );
   },

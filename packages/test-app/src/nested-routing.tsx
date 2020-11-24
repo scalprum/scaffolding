@@ -1,7 +1,8 @@
-import { unmountAll } from '@scalprum/core';
+import { AppMetadata, unmountAll } from '@scalprum/core';
 import { ScalprumLink, ScalprumRoute, ScalprumState } from '@scalprum/react-core';
 import React from 'react';
 import { Route, Switch } from 'react-router-dom';
+import { Full } from './helpers';
 
 const NestedRouting: React.ComponentType<{ scalprum: ScalprumState; routePrefix: string }> = ({ scalprum, routePrefix }) => {
   return (
@@ -31,7 +32,7 @@ const NestedRouting: React.ComponentType<{ scalprum: ScalprumState; routePrefix:
             App four nested link from scaffolding
           </ScalprumLink>
         </li>
-        {Object.values(scalprum.config)
+        {Object.values(scalprum.config as { [key: string]: Full<AppMetadata> })
           .filter(({ rootLocation }) => rootLocation.includes(routePrefix))
           .map(({ appId, rootLocation }) => (
             <li key={appId}>
@@ -40,7 +41,7 @@ const NestedRouting: React.ComponentType<{ scalprum: ScalprumState; routePrefix:
           ))}
       </ul>
       <Switch>
-        {Object.values(scalprum.config)
+        {Object.values(scalprum.config as { [key: string]: Full<AppMetadata> })
           .filter(({ rootLocation }) => rootLocation.includes(routePrefix))
           .map(({ name, rootLocation, ...item }) => (
             <ScalprumRoute key={rootLocation} {...item} appName={name} path={rootLocation} />
