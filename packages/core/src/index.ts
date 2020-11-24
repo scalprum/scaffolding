@@ -126,16 +126,30 @@ export const getAppsByRootLocation = (pathname: string): AppMetadata[] => {
     }));
 };
 
-export const injectScript = (appName: string, scriptLocation: string): Promise<[unknown, HTMLScriptElement | undefined]> => {
+export const injectScript = (
+  appName: string,
+  scriptLocation: string,
+  skipPending: boolean | undefined = false
+): Promise<[unknown, HTMLScriptElement | undefined]> => {
   let s: HTMLScriptElement | undefined = undefined;
   const injectionPromise: Promise<[unknown, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
     s = document.createElement('script');
     s.src = scriptLocation;
     s.id = appName;
-    setPendingInjection(appName, () => res([name, s]));
+    if (skipPending) {
+      s.onload = () => {
+        res([name, s]);
+      };
+    } else {
+      setPendingInjection(appName, () => res([name, s]));
+    }
     s.onerror = (...args) => {
       console.log(args);
-      setPendingInjection(appName, () => rej([args, s]));
+      if (skipPending) {
+        rej([args, s]);
+      } else {
+        setPendingInjection(appName, () => rej([args, s]));
+      }
     };
   });
   if (typeof s !== 'undefined') {
@@ -156,6 +170,6 @@ export async function processManifest(
     Object.entries(manifest)
       .filter(([key]) => (scope ? key === scope : true))
       .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
-      .map((scriptLocation: any) => injectScript(appName, scriptLocation as string))
+      .map((scriptLocation: any) => injectScript(appName, scriptLocation as string, true))
   );
 }
