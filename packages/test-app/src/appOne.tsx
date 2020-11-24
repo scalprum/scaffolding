@@ -47,6 +47,6 @@ initializeApp<{ foo: string }>({
   },
   update: console.log,
   mount: ({ appsMetaData: { appOne } }) => {
-    return <AppOne basename={appOne.rootLocation} />;
+    return <AppOne basename={appOne.rootLocation!} />;
   },
 });

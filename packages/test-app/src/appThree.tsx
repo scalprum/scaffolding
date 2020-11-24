@@ -48,6 +48,6 @@ initializeApp<{ history: History }>({
   },
   update: console.log,
   mount: ({ appsMetaData: { appThree }, history }) => {
-    return <AppThree history={history} basename={appThree.rootLocation} />;
+    return <AppThree history={history} basename={appThree.rootLocation!} />;
   },
 });

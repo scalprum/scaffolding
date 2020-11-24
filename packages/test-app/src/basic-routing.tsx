@@ -1,6 +1,8 @@
+import { AppMetadata } from '@scalprum/core';
 import { ScalprumLink, ScalprumRoute, ScalprumState } from '@scalprum/react-core';
 import React from 'react';
 import { Route, Switch } from 'react-router-dom';
+import { Full } from './helpers';
 
 const BasicRouting: React.ComponentType<{ scalprum: ScalprumState; routePrefix: string }> = ({ scalprum, routePrefix }) => {
   return (
@@ -10,7 +12,7 @@ const BasicRouting: React.ComponentType<{ scalprum: ScalprumState; routePrefix: 
         <li>
           <ScalprumLink to={routePrefix}>Basic routing home</ScalprumLink>
         </li>
-        {Object.values(scalprum.config)
+        {Object.values(scalprum.config as { [key: string]: Full<AppMetadata> })
           .filter(({ rootLocation }) => rootLocation.includes(routePrefix))
           .map(({ appId, rootLocation }) => (
             <li key={appId}>
@@ -19,7 +21,7 @@ const BasicRouting: React.ComponentType<{ scalprum: ScalprumState; routePrefix: 
           ))}
       </ul>
       <Switch>
-        {Object.values(scalprum.config)
+        {Object.values(scalprum.config as { [key: string]: Full<AppMetadata> })
           .filter(({ rootLocation }) => rootLocation.includes(routePrefix))
           .map(({ name, rootLocation, ...item }) => (
             <ScalprumRoute key={rootLocation} {...item} appName={name} path={rootLocation} />
