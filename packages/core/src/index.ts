@@ -1,9 +1,9 @@
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
   name: string;
-  appId: string;
-  elementId: string;
-  rootLocation: string;
+  appId?: string;
+  elementId?: string;
+  rootLocation?: string;
   scriptLocation?: string;
   manifestLocation?: string;
 }
@@ -50,9 +50,9 @@ export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => windo
 const generateScalpletRoutes = (scalpLets: AppsConfig): { [key: string]: string[] } => {
   const routes: { [key: string]: string[] } = {};
   Object.values(scalpLets).forEach(({ rootLocation, name }) => {
-    if (routes[rootLocation]) {
+    if (rootLocation && routes[rootLocation]) {
       routes[rootLocation].push(name);
-    } else {
+    } else if (rootLocation) {
       routes[rootLocation] = [name];
     }
   });
@@ -116,6 +116,7 @@ export function initializeApp<T extends Record<string, unknown>>(configuration: 
 }
 
 export const getApp = <T = unknown>(name: string): Scalplet<T> => window[GLOBAL_NAMESPACE].apps[name];
+export const getAppData = (name: string): AppMetadata => window[GLOBAL_NAMESPACE].appsMetaData[name];
 
 export const getAppsByRootLocation = (pathname: string): AppMetadata[] => {
   return Object.keys(window[GLOBAL_NAMESPACE].appsMetaData)

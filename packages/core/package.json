@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/core",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Includes core functions for scalprum scaffolding.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",

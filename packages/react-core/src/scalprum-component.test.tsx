@@ -25,7 +25,7 @@ describe('<ScalprumComponent />', () => {
       elementId: 'id',
     },
   };
-  const getAppsByRootLocationSpy = jest.spyOn(ScalprumCore, 'getAppsByRootLocation').mockReturnValue([mockInitScalprumConfig.appOne]);
+  const getAppDataSpy = jest.spyOn(ScalprumCore, 'getAppData').mockReturnValue(mockInitScalprumConfig.appOne);
   const injectScriptSpy = jest.spyOn(ScalprumCore, 'injectScript');
   const processManifestSpy = jest.spyOn(ScalprumCore, 'processManifest');
   const loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(() => import('./TestComponent'));
@@ -33,7 +33,7 @@ describe('<ScalprumComponent />', () => {
   afterEach(() => {
     cleanup();
     window[GLOBAL_NAMESPACE] = undefined;
-    getAppsByRootLocationSpy.mockClear();
+    getAppDataSpy.mockClear();
     injectScriptSpy.mockClear();
     processManifestSpy.mockClear();
   });
@@ -42,19 +42,19 @@ describe('<ScalprumComponent />', () => {
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
     ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', id: 'id', mount: jest.fn(), unmount: jest.fn(), update: jest.fn() });
-    render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
+    render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
 
-    expect(getAppsByRootLocationSpy).toHaveBeenCalledWith('/foo');
+    expect(getAppDataSpy).toHaveBeenCalledWith('appOne');
   });
 
   test('should retrieve manifest location', () => {
-    getAppsByRootLocationSpy.mockReturnValueOnce([mockInitScalpumConfigManifest.appOne]);
+    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     ScalprumCore.initialize({ scalpLets: mockInitScalpumConfigManifest });
     ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', id: 'id', mount: jest.fn(), unmount: jest.fn(), update: jest.fn() });
-    render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
+    render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
 
-    expect(getAppsByRootLocationSpy).toHaveBeenCalledWith('/foo');
+    expect(getAppDataSpy).toHaveBeenCalledWith('appOne');
   });
 
   test('should inject script and mount app if it was not initialized before', async () => {
@@ -66,7 +66,7 @@ describe('<ScalprumComponent />', () => {
       return Promise.resolve(['', undefined]);
     });
     await act(async () => {
-      render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
+      render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
     });
 
     expect(mount).toHaveBeenCalled();
@@ -74,7 +74,7 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should inject manifest and mount app if it was not initialized before', async () => {
-    getAppsByRootLocationSpy.mockReturnValueOnce([mockInitScalpumConfigManifest.appOne]);
+    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalpumConfigManifest });
     processManifestSpy.mockImplementationOnce(() => {
@@ -83,7 +83,7 @@ describe('<ScalprumComponent />', () => {
       return Promise.resolve([['', undefined]]);
     });
     await act(async () => {
-      render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
+      render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
     });
 
     expect(mount).toHaveBeenCalled();
@@ -96,7 +96,7 @@ describe('<ScalprumComponent />', () => {
     ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
     await act(async () => {
-      render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
+      render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
     });
 
     expect(mount).toHaveBeenCalled();
@@ -105,13 +105,13 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should not process manifest the app was initialized before', async () => {
-    getAppsByRootLocationSpy.mockReturnValueOnce([mockInitScalpumConfigManifest.appOne]);
+    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalpumConfigManifest });
     ScalprumCore.setPendingInjection('appOne', jest.fn());
     ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
     await act(async () => {
-      render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />);
+      render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
     });
 
     expect(mount).toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe('<ScalprumComponent />', () => {
     });
     let container;
     await act(async () => {
-      container = render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />)?.container;
+      container = render(<ScalprumComponent appName="appOne" scope="some" module="test" />)?.container;
     });
 
     expect(loadComponentSpy).toHaveBeenCalled();
@@ -137,7 +137,7 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should render test component with manifest', async () => {
-    getAppsByRootLocationSpy.mockReturnValueOnce([mockInitScalpumConfigManifest.appOne]);
+    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     const mount = jest.fn();
     ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
     processManifestSpy.mockImplementationOnce(() => {
@@ -147,7 +147,7 @@ describe('<ScalprumComponent />', () => {
     });
     let container;
     await act(async () => {
-      container = render(<ScalprumComponent appName="appOne" path="/foo" scope="some" module="test" />)?.container;
+      container = render(<ScalprumComponent appName="appOne" scope="some" module="test" />)?.container;
     });
 
     expect(loadComponentSpy).toHaveBeenCalled();
