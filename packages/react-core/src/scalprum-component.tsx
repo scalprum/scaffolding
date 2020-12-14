@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, Suspense, useState } from 'react';
+import React, { Fragment, useEffect, Suspense, useState, ReactNode } from 'react';
 import { getApp, getAppData, injectScript, processManifest } from '@scalprum/core';
 import { loadComponent } from './async-loader';
 
@@ -8,26 +8,30 @@ export type ScalprumComponentProps<API = Record<string, unknown>, Props = Record
   api?: API;
   scope: string;
   module: string;
-  ErrorComponent?: React.ComponentType;
+  ErrorComponent?: ReactNode;
   LoadingComponent?: React.ComponentType;
+  innerRef?: React.Ref<unknown>;
   processor?: (item: any) => string;
 };
 
 const DefaultComponent: React.ComponentType = () => <Fragment />;
 
-export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
+const DefaultErrorComponent: React.ComponentType = () => <span>Error while loading component!</span>;
+
+const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent: React.ComponentType }> = ({
   fallback = 'loading',
   appName,
   api,
   scope,
   module,
-  ErrorComponent = () => <span>Error while loading component!</span>,
+  ErrorComponent,
   processor,
   LoadingComponent = DefaultComponent,
+  innerRef,
   ...props
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
-  const [Component, setComponent] = useState<React.ComponentType>(() => () => <LoadingComponent />);
+  const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }>>(() => () => <LoadingComponent />);
   const [mountedAt, setMountedAt] = useState<HTMLScriptElement | HTMLScriptElement[] | undefined>();
   useEffect(() => {
     const app = getApp(appName);
@@ -71,7 +75,35 @@ export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = ({
 
   return (
     <Suspense fallback={fallback}>
-      <Component {...props} />
+      <Component ref={innerRef} {...props} />
     </Suspense>
   );
 };
+
+class BaseScalprumComponent extends React.Component<ScalprumComponentProps, { hasError: boolean }> {
+  static defaultProps = {
+    ErrorComponent: <DefaultErrorComponent />,
+  };
+  constructor(props: ScalprumComponentProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  render(): ReactNode {
+    const { ErrorComponent = <DefaultErrorComponent />, ...props } = this.props;
+
+    if (this.state.hasError) {
+      return ErrorComponent;
+    }
+
+    return <LoadModule {...props} ErrorComponent={() => <Fragment>{ErrorComponent}</Fragment>} />;
+  }
+}
+
+export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = React.forwardRef((props, ref) => (
+  <BaseScalprumComponent {...props} innerRef={ref} />
+));

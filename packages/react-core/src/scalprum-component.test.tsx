@@ -220,7 +220,7 @@ describe('<ScalprumComponent />', () => {
       appName: 'appOne',
       scope: 'some',
       module: 'test',
-      ErrorComponent: () => <h1>Custom error component</h1>,
+      ErrorComponent: <h1>Custom error component</h1>,
     };
     let container;
     await act(async () => {
