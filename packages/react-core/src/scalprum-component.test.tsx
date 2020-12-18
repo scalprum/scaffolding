@@ -1,6 +1,6 @@
 import React from 'react';
 import * as asyncComponent from './async-loader';
-import { ScalprumComponent } from './scalprum-component';
+import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
 import { render, cleanup, act } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
 import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
@@ -128,8 +128,19 @@ describe('<ScalprumComponent />', () => {
       return Promise.resolve(['', undefined]);
     });
     let container;
+
+    const props: ScalprumComponentProps<{ apiProp: () => void }, { testProp: number }> = {
+      testProp: 5,
+      appName: 'appOne',
+      scope: 'some',
+      module: 'test',
+      api: {
+        apiProp: () => undefined,
+      },
+    };
     await act(async () => {
-      container = render(<ScalprumComponent appName="appOne" scope="some" module="test" />)?.container;
+      container = render(<ScalprumComponent {...props} />)?.container;
+      expect(container).toMatchSnapshot();
     });
 
     expect(loadComponentSpy).toHaveBeenCalled();
@@ -151,6 +162,70 @@ describe('<ScalprumComponent />', () => {
     });
 
     expect(loadComponentSpy).toHaveBeenCalled();
+    expect(container).toMatchSnapshot();
+  });
+
+  test('should render fallback component', async () => {
+    jest.useFakeTimers();
+    /**
+     * We need the async component "hang" to render the fallback
+     */
+    jest
+      .spyOn(asyncComponent, 'loadComponent')
+      .mockReturnValueOnce(() => new Promise((res) => setTimeout(() => res(import('./TestComponent')), 500)));
+    const mount = jest.fn();
+    ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
+      ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
+      return Promise.resolve(['', undefined]);
+    });
+
+    const props: ScalprumComponentProps = {
+      appName: 'appOne',
+      scope: 'some',
+      module: 'test',
+      LoadingComponent: () => <h1>Loading</h1>,
+      fallback: <h1>Suspense fallback</h1>,
+    };
+    const { container } = render(<ScalprumComponent {...props} />);
+    /**
+     * Should render Loading component
+     */
+    expect(container).toMatchSnapshot();
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+    /**
+     * Should render fallback component
+     */
+    expect(container).toMatchSnapshot();
+  });
+
+  test('should render error component', async () => {
+    jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(() =>
+      import('./TestComponent').then(() => {
+        throw 'foo';
+      })
+    );
+    const mount = jest.fn();
+    ScalprumCore.initialize({ scalpLets: mockInitScalprumConfig });
+    injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
+      ScalprumCore.initializeApp({ name: 'appOne', mount, unmount: jest.fn(), update: jest.fn(), id: 'appOne' });
+      return Promise.reject(['', undefined]);
+    });
+
+    const props: ScalprumComponentProps = {
+      appName: 'appOne',
+      scope: 'some',
+      module: 'test',
+      ErrorComponent: <h1>Custom error component</h1>,
+    };
+    let container;
+    await act(async () => {
+      container = render(<ScalprumComponent {...props} />).container;
+    });
     expect(container).toMatchSnapshot();
   });
 });
