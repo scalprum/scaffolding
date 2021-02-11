@@ -35,7 +35,7 @@ export const useScalprum = <T = Record<string, unknown>>(applicationFeed: Scalpr
         initialize<T>({ scalpLets: config as AppsConfig, api });
       });
     }
-  }, []);
+  }, [applicationFeed]);
 
   return state;
 };
