@@ -1,5 +1,6 @@
 import React, { Fragment, useEffect, Suspense, useState, ReactNode } from 'react';
 import { getApp, getAppData, injectScript, processManifest } from '@scalprum/core';
+import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
 
 export type ScalprumComponentProps<API = Record<string, unknown>, Props = Record<string, unknown>> = Props & {
@@ -14,8 +15,6 @@ export type ScalprumComponentProps<API = Record<string, unknown>, Props = Record
   processor?: (item: any) => string;
 };
 
-const DefaultComponent: React.ComponentType = () => <Fragment />;
-
 const DefaultErrorComponent: React.ComponentType = () => <span>Error while loading component!</span>;
 
 const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent: React.ComponentType }> = ({
@@ -26,12 +25,11 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
   module,
   ErrorComponent,
   processor,
-  LoadingComponent = DefaultComponent,
   innerRef,
   ...props
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
-  const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }>>(() => () => <LoadingComponent />);
+  const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
   const [mountedAt, setMountedAt] = useState<HTMLScriptElement | HTMLScriptElement[] | undefined>();
   useEffect(() => {
     const app = getApp(appName);
@@ -73,14 +71,14 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
     };
   }, []);
 
-  return (
-    <Suspense fallback={fallback}>
-      <Component ref={innerRef} {...props} />
-    </Suspense>
-  );
+  return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
 };
 
-class BaseScalprumComponent extends React.Component<ScalprumComponentProps, { hasError: boolean }> {
+interface BaseScalprumComponentState {
+  hasError: boolean;
+}
+
+class BaseScalprumComponent extends React.Component<ScalprumComponentProps, BaseScalprumComponentState> {
   static defaultProps = {
     ErrorComponent: <DefaultErrorComponent />,
   };
@@ -89,8 +87,16 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, { ha
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(): { hasError: boolean } {
+  static getDerivedStateFromError(): BaseScalprumComponentState {
     return { hasError: true };
+  }
+
+  shouldComponentUpdate(nextProps: ScalprumComponentProps, nextState: BaseScalprumComponentState) {
+    if (this.state.hasError !== nextState.hasError) {
+      return true;
+    }
+
+    return !isEqual(nextProps, this.props);
   }
 
   render(): ReactNode {
