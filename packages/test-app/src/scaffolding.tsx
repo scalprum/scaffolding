@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import * as ReactRouterDOM from 'react-router-dom';
 import { createBrowserHistory, History } from 'history';
 import { AppsConfig, unmountAll } from '@scalprum/core';
-import { useScalprum, ScalprumLink } from '@scalprum/react-core';
+import { useScalprum, ScalprumProvider, ScalprumLink, ScalprumState } from '@scalprum/react-core';
 
 import NestedRouting from './nested-routing';
 import BasicRouting from './basic-routing';
@@ -53,7 +53,7 @@ const config: AppsConfig = {
 const history = createBrowserHistory();
 
 const App = () => {
-  const scalprum = useScalprum<{ history: History }>(config, { history });
+  const scalprum = useScalprum<{ history: History }>();
   return (
     <div>
       <Router history={history}>
@@ -75,10 +75,10 @@ const App = () => {
         <div>
           <Switch>
             <Route path="/nested-routing">
-              <NestedRouting scalprum={scalprum} routePrefix={NESTED_ROUTING} />
+              <NestedRouting scalprum={(scalprum as unknown) as ScalprumState<Record<string, unknown>>} routePrefix={NESTED_ROUTING} />
             </Route>
             <Route path="/basic-routing">
-              <BasicRouting routePrefix={BASIC_ROUTING} scalprum={scalprum} />
+              <BasicRouting routePrefix={BASIC_ROUTING} scalprum={(scalprum as unknown) as ScalprumState<Record<string, unknown>>} />
             </Route>
           </Switch>
         </div>
@@ -87,4 +87,10 @@ const App = () => {
   );
 };
 
-ReactDOM.render(<App />, document.getElementById('root'));
+const Wrapper = () => (
+  <ScalprumProvider config={config} api={{ history }}>
+    <App />
+  </ScalprumProvider>
+);
+
+ReactDOM.render(<Wrapper />, document.getElementById('root'));
