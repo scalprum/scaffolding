@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/react-core",
-  "version": "0.0.16",
+  "version": "0.1.0-beta.1",
   "description": "React binding for @scalprum/core package.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
