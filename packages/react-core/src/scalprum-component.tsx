@@ -76,6 +76,8 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
 
 interface BaseScalprumComponentState {
   hasError: boolean;
+  error?: any;
+  errorInfo?: any;
 }
 
 class BaseScalprumComponent extends React.Component<ScalprumComponentProps, BaseScalprumComponentState> {
@@ -96,20 +98,21 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
       return true;
     }
 
-    return !isEqual(nextProps, this.props);
+    return !isEqual(nextProps, this.props) || !isEqual(nextState, this.state);
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Scalprum encountered an error!', error);
     console.log('Error info: ', JSON.stringify(errorInfo, null, 2));
     console.log('Component stack: ', errorInfo.componentStack);
+    this.setState({ error, errorInfo })
   }
 
   render(): ReactNode {
     const { ErrorComponent = <DefaultErrorComponent />, ...props } = this.props;
 
     if (this.state.hasError) {
-      return ErrorComponent;
+      return React.cloneElement(ErrorComponent as React.FunctionComponentElement<BaseScalprumComponentState>, {...this.state})
     }
 
     return <LoadModule {...props} ErrorComponent={() => <Fragment>{ErrorComponent}</Fragment>} />;
