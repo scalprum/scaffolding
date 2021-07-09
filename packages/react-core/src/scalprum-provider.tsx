@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { initialize, AppsConfig } from '@scalprum/core';
 import { ScalprumContext } from './scalprum-context';
 
@@ -21,6 +21,7 @@ export function ScalprumProvider<T = Record<string, unknown>>({
   children,
   api,
 }: ScalprumProviderProps): React.ReactElement | React.ReactElement {
+  const mounted = useRef(false)
   const [state, setState] = useState<ScalprumState<T>>({
     initialized: false,
     config: {},
@@ -30,15 +31,26 @@ export function ScalprumProvider<T = Record<string, unknown>>({
     if (typeof config === 'object') {
       initialize<T>({ scalpLets: config as AppsConfig, api: api as T });
       setState((prev) => ({ ...prev, initialized: true, config: config as AppsConfig }));
+      mounted.current = true;
     }
 
     if (typeof config === 'function') {
       Promise.resolve(config()).then((config) => {
         setState((prev) => ({ ...prev, initialized: true, config: config as AppsConfig }));
         initialize<T>({ scalpLets: config as AppsConfig, api: api as T });
+        mounted.current = true;
       });
     }
   }, [config]);
+
+  useEffect(() => {
+    if(mounted.current) {
+      setState(prev => ({
+        ...prev,
+        api: api as T
+      }))
+    }
+  }, [api])
 
   return <ScalprumContext.Provider value={state as ScalprumState<Record<string, unknown>>}>{children}</ScalprumContext.Provider>;
 }
