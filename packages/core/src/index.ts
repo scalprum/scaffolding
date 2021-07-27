@@ -42,6 +42,11 @@ export interface Scalplet<T> {
 export interface Container extends Window {
   init: (module: any) => void;
 }
+
+export interface IModule {
+  default: any;
+}
+
 declare global {
   // eslint-disable-next-line no-unused-vars
   interface Window {
@@ -182,7 +187,7 @@ export async function processManifest(
   );
 }
 
-export async function asyncLoader(scope: string, module: string): Promise<{ default: any }> {
+export async function asyncLoader(scope: string, module: string): Promise<IModule> {
   if (typeof scope === 'undefined' || scope.length === 0) {
     throw new Error("Scope can't be undefined or empty");
   }
@@ -191,7 +196,7 @@ export async function asyncLoader(scope: string, module: string): Promise<{ defa
   }
 
   if (!module.startsWith('./')) {
-    console.warn(`Your module ${module} doesn't start with './' this indicates and error`);
+    console.warn(`Your module ${module} doesn't start with './' this indicates an error`);
   }
 
   await __webpack_init_sharing__('default');
