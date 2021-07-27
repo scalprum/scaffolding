@@ -38,12 +38,19 @@ export interface Scalplet<T> {
   update(): void;
   nodeId: string;
 }
+
+export interface Container extends Window {
+  init: (module: any) => void;
+}
 declare global {
   // eslint-disable-next-line no-unused-vars
   interface Window {
     [GLOBAL_NAMESPACE]: Scalprum;
   }
 }
+
+declare function __webpack_init_sharing__(scope: string): void;
+declare let __webpack_share_scopes__: any;
 
 export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
 
@@ -173,4 +180,23 @@ export async function processManifest(
       .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
       .map((scriptLocation: any) => injectScript(appName, scriptLocation as string, true))
   );
+}
+
+export async function asyncLoader(scope: string, module: string): Promise<{ default: any }> {
+  if (typeof scope === 'undefined' || scope.length === 0) {
+    throw new Error("Scope can't be undefined or empty");
+  }
+  if (typeof module === 'undefined' || module.length === 0) {
+    throw new Error("Module can't be undefined or empty");
+  }
+
+  if (!module.startsWith('./')) {
+    console.warn(`Your module ${module} doesn't start with './' this indicates and error`);
+  }
+
+  await __webpack_init_sharing__('default');
+  const container: Container = (window as { [key: string]: any })[scope];
+  await container.init(__webpack_share_scopes__.default);
+  const factory = await (window as { [key: string]: any })[scope].get(module);
+  return factory();
 }
