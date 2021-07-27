@@ -21,7 +21,7 @@ export function ScalprumProvider<T = Record<string, unknown>>({
   children,
   api,
 }: ScalprumProviderProps): React.ReactElement | React.ReactElement {
-  const mounted = useRef(false)
+  const mounted = useRef(false);
   const [state, setState] = useState<ScalprumState<T>>({
     initialized: false,
     config: {},
@@ -44,13 +44,13 @@ export function ScalprumProvider<T = Record<string, unknown>>({
   }, [config]);
 
   useEffect(() => {
-    if(mounted.current) {
-      setState(prev => ({
+    if (mounted.current) {
+      setState((prev) => ({
         ...prev,
-        api: api as T
-      }))
+        api: api as T,
+      }));
     }
-  }, [api])
+  }, [api]);
 
   return <ScalprumContext.Provider value={state as ScalprumState<Record<string, unknown>>}>{children}</ScalprumContext.Provider>;
 }

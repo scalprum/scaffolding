@@ -105,14 +105,14 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
     console.error('Scalprum encountered an error!', error);
     console.log('Error info: ', JSON.stringify(errorInfo, null, 2));
     console.log('Component stack: ', errorInfo.componentStack);
-    this.setState({ error, errorInfo })
+    this.setState({ error, errorInfo });
   }
 
   render(): ReactNode {
     const { ErrorComponent = <DefaultErrorComponent />, ...props } = this.props;
 
     if (this.state.hasError) {
-      return React.cloneElement(ErrorComponent as React.FunctionComponentElement<BaseScalprumComponentState>, {...this.state})
+      return React.cloneElement(ErrorComponent as React.FunctionComponentElement<BaseScalprumComponentState>, { ...this.state });
     }
 
     return <LoadModule {...props} ErrorComponent={() => <Fragment>{ErrorComponent}</Fragment>} />;
