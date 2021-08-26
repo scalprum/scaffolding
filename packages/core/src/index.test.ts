@@ -1,14 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import {
-  initialize,
-  GLOBAL_NAMESPACE,
-  initializeApp,
-  getApp,
-  getScalprum,
-  setActiveApp,
-  unmountAll,
-  removeActiveApp,
-} from '.';
+import { initialize, GLOBAL_NAMESPACE, initializeApp, getApp, getScalprum, setActiveApp, unmountAll, removeActiveApp } from '.';
 
 describe('scalprum', () => {
   const mockInititliazeConfig = {
