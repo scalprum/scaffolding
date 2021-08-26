@@ -92,9 +92,6 @@ export const setActiveApp = (name: string): void => {
 export const removeActiveApp = (name: string): void => {
   window[GLOBAL_NAMESPACE].activeApps[name] = false;
 };
-export const unmountAppsFromRoute = (route: string): void => {
-  window[GLOBAL_NAMESPACE].scalpletRoutes[route]?.forEach((name: string) => window[GLOBAL_NAMESPACE].apps[name].unmount());
-};
 
 export const unmountAll = (): void => {
   Object.entries(window[GLOBAL_NAMESPACE].activeApps).filter(([name, isActive]) => {
@@ -129,15 +126,6 @@ export function initializeApp<T extends Record<string, unknown>>(configuration: 
 
 export const getApp = <T = unknown>(name: string): Scalplet<T> => window[GLOBAL_NAMESPACE].apps[name];
 export const getAppData = (name: string): AppMetadata => window[GLOBAL_NAMESPACE].appsMetaData[name];
-
-export const getAppsByRootLocation = (pathname: string): AppMetadata[] => {
-  return Object.keys(window[GLOBAL_NAMESPACE].appsMetaData)
-    .filter((key) => window[GLOBAL_NAMESPACE].appsMetaData[key].rootLocation === pathname)
-    .map((key) => ({
-      ...window[GLOBAL_NAMESPACE].appsMetaData[key],
-      name: key,
-    }));
-};
 
 export const injectScript = (
   appName: string,
