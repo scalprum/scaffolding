@@ -1,16 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import {
-  initialize,
-  GLOBAL_NAMESPACE,
-  initializeApp,
-  getApp,
-  getAppsByRootLocation,
-  getScalprum,
-  setActiveApp,
-  unmountAll,
-  removeActiveApp,
-  unmountAppsFromRoute,
-} from '.';
+import { initialize, GLOBAL_NAMESPACE, initializeApp, getApp, getScalprum, setActiveApp, unmountAll, removeActiveApp } from '.';
 
 describe('scalprum', () => {
   const mockInititliazeConfig = {
@@ -112,28 +101,6 @@ describe('scalprum', () => {
     });
   });
 
-  test('should retrive multiple apps root location', () => {
-    initialize(mockInititliazeConfig);
-    // @ts-ignore
-    global[GLOBAL_NAMESPACE].pendingInjections = {
-      foo: jest.fn(),
-    };
-    initializeApp({ ...mockInitializeAppConfig });
-
-    const apps = getAppsByRootLocation('/foo/bar');
-    expect(apps).toEqual([
-      { appId: 'app-one', elementId: 'app-one-element', name: 'appOne', rootLocation: '/foo/bar', scriptLocation: '/appOne/url' },
-      { appId: 'app-two', elementId: 'app-two-element', name: 'appTwo', rootLocation: '/foo/bar', scriptLocation: '/appTwo/url' },
-      {
-        appId: 'app-three',
-        elementId: 'app-three-element',
-        name: 'appThree',
-        rootLocation: '/foo/bar',
-        manifestLocation: '/appThree/url',
-      },
-    ]);
-  });
-
   test('should pass scalprum object to application on mount', () => {
     const mount = jest.fn();
     initialize(mockInititliazeConfig);
@@ -188,20 +155,5 @@ describe('scalprum', () => {
     removeActiveApp('appThree');
     unmountAll();
     expect(unmount).toHaveBeenCalledTimes(2);
-  });
-
-  test('should unmount apps from a route', () => {
-    const unmount = jest.fn();
-    initialize(mockInititliazeConfig);
-    // @ts-ignore
-    global[GLOBAL_NAMESPACE].pendingInjections = {
-      appOne: jest.fn(),
-      appTwo: jest.fn(),
-      appThree: jest.fn(),
-    };
-    initializeApp({ ...mockInitializeAppConfig, id: 'app-one', name: 'appOne', unmount });
-    initializeApp({ ...mockInitializeAppConfig, id: 'app-two', name: 'appTwo', unmount });
-    initializeApp({ ...mockInitializeAppConfig, id: 'app-three', name: 'appThree', unmount });
-    unmountAppsFromRoute('/foo/bar');
   });
 });
