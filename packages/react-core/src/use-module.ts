@@ -1,16 +1,28 @@
 import { useEffect, useState, useCallback } from 'react';
-import { asyncLoader, IModule } from '@scalprum/core';
+import { asyncLoader, getFactory, IModule } from '@scalprum/core';
 
 export function useModule(scope: string, module: string, defaultState: any): IModule | undefined {
   const [data, setData] = useState<IModule>(defaultState);
   const fetchModule = useCallback(async () => {
-    const Module: IModule = await asyncLoader(scope, module);
+    const factory = getFactory(scope);
+    let Module: IModule;
+    if (!factory) {
+      try {
+        Module = await asyncLoader(scope, module);
+      } catch {
+        console.error(
+          `Module not initialized! Module "${module}" was not found in "${scope}" webpack scope. Make sure the remote container is loaded?`
+        );
+      }
+    } else {
+      Module = factory.get(module);
+    }
     setData(() => Module);
   }, [scope, module]);
 
   useEffect(() => {
     fetchModule();
-  }, [fetchModule]);
+  }, [scope, module]);
 
   return data;
 }
