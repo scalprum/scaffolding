@@ -48,6 +48,7 @@ describe('scalprum', () => {
           manifestLocation: '/appThree/url',
         },
       },
+      factories: {},
       pendingInjections: {},
     };
 

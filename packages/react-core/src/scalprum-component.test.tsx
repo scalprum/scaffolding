@@ -108,6 +108,7 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should render test component with manifest', async () => {
+    jest.useFakeTimers();
     getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     processManifestSpy.mockImplementationOnce(() => {
@@ -120,6 +121,14 @@ describe('<ScalprumComponent />', () => {
     });
 
     expect(loadComponentSpy).toHaveBeenCalled();
+
+    /**
+     * Wait for the loading promise to be resolved
+     */
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+
     expect(container).toMatchSnapshot();
   });
 
