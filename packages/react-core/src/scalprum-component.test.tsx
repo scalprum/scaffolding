@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
 import * as asyncComponent from './async-loader';
 import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
-import { render, cleanup, act } from '@testing-library/react';
+import { render, cleanup, act, screen } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
 import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
 
@@ -28,7 +29,11 @@ describe('<ScalprumComponent />', () => {
   const getAppDataSpy = jest.spyOn(ScalprumCore, 'getAppData').mockReturnValue(mockInitScalprumConfig.appOne);
   const injectScriptSpy = jest.spyOn(ScalprumCore, 'injectScript');
   const processManifestSpy = jest.spyOn(ScalprumCore, 'processManifest');
-  const loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(() => import('./TestComponent'));
+  let loadComponentSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(() => import('./TestComponent'));
+  });
 
   afterEach(() => {
     cleanup();
@@ -36,6 +41,7 @@ describe('<ScalprumComponent />', () => {
     getAppDataSpy.mockClear();
     injectScriptSpy.mockClear();
     processManifestSpy.mockClear();
+    loadComponentSpy.mockReset();
   });
 
   test('should retrieve script location', () => {
@@ -190,5 +196,38 @@ describe('<ScalprumComponent />', () => {
       container = render(<ScalprumComponent {...props} />).container;
     });
     expect(container).toMatchSnapshot();
+  });
+
+  test('should retrieve module from scalprum cache', async () => {
+    const cachedModule = {
+      __esModule: true,
+      default: () => <div data-testid="cached-component">Cached component</div>,
+    };
+    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
+    // @ts-ignore
+    global.__webpack_init_sharing__ = jest.fn();
+    // @ts-ignore
+    global.__webpack_share_scopes__ = {
+      default: jest.fn(),
+    };
+    // @ts-ignore
+    global.cachedScope = {
+      init: jest.fn(),
+      get: jest.fn().mockReturnValue(() => cachedModule),
+    };
+    await ScalprumCore.asyncLoader('cachedScope', './test');
+
+    const props: ScalprumComponentProps = {
+      appName: 'appOne',
+      scope: 'cachedScope',
+      module: './test',
+    };
+    let container;
+    await act(async () => {
+      container = render(<ScalprumComponent {...props} />).container;
+    });
+    expect(container).toMatchSnapshot();
+    expect(screen.getAllByTestId('cached-component')).toHaveLength(1);
+    expect(loadComponentSpy).not.toHaveBeenCalled();
   });
 });
