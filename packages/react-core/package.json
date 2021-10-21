@@ -20,18 +20,17 @@
     "start:cjs": "npm run build:cjs -- -w"
   },
   "devDependencies": {
-    "@types/history": "^4.6.2",
-    "@types/react": "^16.9.53",
-    "@types/react-dom": "^16.9.8",
-    "@types/react-router-dom": "^5.1.6"
+    "@types/history": "^4.7.9",
+    "@types/react": "^17.0.31",
+    "@types/react-dom": "^17.0.10",
+    "@types/react-router-dom": "^5.3.1"
   },
   "dependencies": {
     "@scalprum/core": "^0.0.12",
     "lodash": "^4.17.0"
   },
   "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0",
-    "react-router-dom": "^5.2.0"
+    "react": ">=16.8.0 || >= 17.0.0",
+    "react-dom": ">=16.8.0 || >= 17.0.0"
   }
 }
