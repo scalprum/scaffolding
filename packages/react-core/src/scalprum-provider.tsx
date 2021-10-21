@@ -29,7 +29,7 @@ export function ScalprumProvider<T = Record<string, unknown>>({
   });
   useEffect(() => {
     if (typeof config === 'object') {
-      initialize<T>({ scalpLets: config as AppsConfig, api: api as T });
+      initialize<T>({ appsConfig: config as AppsConfig, api: api as T });
       setState((prev) => ({ ...prev, initialized: true, config: config as AppsConfig }));
       mounted.current = true;
     }
@@ -37,7 +37,7 @@ export function ScalprumProvider<T = Record<string, unknown>>({
     if (typeof config === 'function') {
       Promise.resolve(config()).then((config) => {
         setState((prev) => ({ ...prev, initialized: true, config: config as AppsConfig }));
-        initialize<T>({ scalpLets: config as AppsConfig, api: api as T });
+        initialize<T>({ appsConfig: config as AppsConfig, api: api as T });
         mounted.current = true;
       });
     }
