@@ -84,9 +84,7 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Scalprum encountered an error!', error);
-    console.log('Error info: ', JSON.stringify(errorInfo, null, 2));
-    console.log('Component stack: ', errorInfo.componentStack);
+    console.error('Scalprum encountered an error!', error.message);
     this.setState({ error, errorInfo });
   }
 
