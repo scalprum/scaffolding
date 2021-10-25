@@ -59,7 +59,7 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
         setComponent(() => ErrorComponent);
       }
     }
-  }, [appName]);
+  }, [appName, scope, factory]);
 
   return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
 };
