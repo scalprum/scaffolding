@@ -13,6 +13,7 @@ export type ScalprumComponentProps<API = Record<string, unknown>, Props = Record
   LoadingComponent?: React.ComponentType;
   innerRef?: React.Ref<unknown>;
   processor?: (item: any) => string;
+  skipCache?: boolean;
 };
 
 const DefaultErrorComponent: React.ComponentType = () => <span>Error while loading component!</span>;
@@ -25,11 +26,12 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
   ErrorComponent,
   processor,
   innerRef,
+  skipCache = false,
   ...props
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
-  const factory = getFactory(scope);
+  const factory = getFactory(scope, skipCache);
   useEffect(() => {
     /**
      * Here will be registry check

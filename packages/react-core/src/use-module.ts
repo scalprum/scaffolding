@@ -1,10 +1,21 @@
 import { useEffect, useState, useCallback } from 'react';
 import { asyncLoader, getFactory, IModule } from '@scalprum/core';
 
-export function useModule(scope: string, module: string, defaultState: any): IModule | undefined {
+export function useModule(
+  scope: string,
+  module: string,
+  defaultState: any,
+  options: {
+    skipCache?: boolean;
+  } = {}
+): IModule | undefined {
+  const defaultOptions = {
+    skipCache: false,
+    ...options,
+  };
   const [data, setData] = useState<IModule>(defaultState);
   const fetchModule = useCallback(async () => {
-    const factory = getFactory(scope);
+    const factory = getFactory(scope, defaultOptions.skipCache);
     let Module: IModule;
     if (!factory) {
       try {

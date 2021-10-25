@@ -230,4 +230,43 @@ describe('<ScalprumComponent />', () => {
     expect(screen.getAllByTestId('cached-component')).toHaveLength(1);
     expect(loadComponentSpy).not.toHaveBeenCalled();
   });
+
+  test('should skip scalprum cache', async () => {
+    jest.useFakeTimers();
+    injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
+      return Promise.resolve(['', undefined]);
+    });
+    const cachedModule = {
+      __esModule: true,
+      default: () => <div data-testid="cached-component">Cached component</div>,
+    };
+    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
+    // @ts-ignore
+    global.__webpack_init_sharing__ = jest.fn();
+    // @ts-ignore
+    global.__webpack_share_scopes__ = {
+      default: jest.fn(),
+    };
+    // @ts-ignore
+    global.cachedScope = {
+      init: jest.fn(),
+      get: jest.fn().mockReturnValue(() => cachedModule),
+    };
+    await ScalprumCore.asyncLoader('cachedScope', './test');
+
+    const props: ScalprumComponentProps = {
+      appName: 'appOne',
+      scope: 'cachedScope',
+      module: './test',
+    };
+    let container;
+    await act(async () => {
+      container = render(<ScalprumComponent {...props} skipCache />).container;
+    });
+
+    expect(container).toMatchSnapshot();
+    expect(() => screen.getAllByTestId('cached-component')).toThrow();
+    expect(loadComponentSpy).toHaveBeenCalled();
+  });
 });

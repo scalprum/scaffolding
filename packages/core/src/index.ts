@@ -17,6 +17,10 @@ export interface Factory {
   expiration: Date;
 }
 
+export interface ScalprumOptions {
+  cacheTimeout: number;
+}
+
 export type Scalprum<T = any> = T & {
   appsConfig: AppsConfig;
   pendingInjections: {
@@ -25,6 +29,7 @@ export type Scalprum<T = any> = T & {
   factories: {
     [key: string]: Factory;
   };
+  scalprumOptions: ScalprumOptions;
 };
 
 export type Container = Window & Factory;
@@ -44,15 +49,15 @@ declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
 
 export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
-export const getFactory = (scope: string): Factory | undefined => {
+export const getFactory = (scope: string, skipCache = false): Factory | undefined => {
   const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
   if (!factory) {
     return undefined;
   }
   /**
-   * Invalidtae module after 2 minutes
+   * Invalidate module after 2 minutes
    */
-  const isExpired = (new Date().getTime() - factory.expiration.getTime()) / 1000 > 120;
+  const isExpired = skipCache || (new Date().getTime() - factory.expiration.getTime()) / 1000 > window[GLOBAL_NAMESPACE].scalprumOptions.cacheTimeout;
   if (isExpired) {
     delete window[GLOBAL_NAMESPACE].factories[scope];
     return undefined;
@@ -64,11 +69,24 @@ export const setPendingInjection = (id: string, callback: () => void): void => {
   window[GLOBAL_NAMESPACE].pendingInjections[id] = callback;
 };
 
-export const initialize = <T = unknown>({ appsConfig, api }: { appsConfig: AppsConfig; api?: T }): void => {
+export const initialize = <T = unknown>({
+  appsConfig,
+  api,
+  options,
+}: {
+  appsConfig: AppsConfig;
+  api?: T;
+  options?: Partial<ScalprumOptions>;
+}): void => {
+  const defaultOptions: ScalprumOptions = {
+    cacheTimeout: 120,
+    ...options,
+  };
   window[GLOBAL_NAMESPACE] = {
     appsConfig,
     pendingInjections: {},
     factories: {},
+    scalprumOptions: defaultOptions,
     ...api,
   };
 };

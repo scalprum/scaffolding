@@ -50,6 +50,9 @@ describe('scalprum', () => {
       },
       factories: {},
       pendingInjections: {},
+      scalprumOptions: {
+        cacheTimeout: 120,
+      },
     };
 
     // @ts-ignore
@@ -87,7 +90,7 @@ describe('scalprum', () => {
     expect(global[GLOBAL_NAMESPACE].factories).toEqual(expectFactories);
   });
 
-  test.only('getFactory should invalidate cache after 120s', async () => {
+  test('getFactory should invalidate cache after 120s', async () => {
     jest.useFakeTimers();
     initialize(mockInititliazeConfig);
     // @ts-ignore
@@ -108,6 +111,59 @@ describe('scalprum', () => {
      * Advance time by 120s + 1ms
      */
     jest.advanceTimersByTime(120 * 1000 + 1);
+    expect(getFactory('testScope')).toEqual(undefined);
+  });
+
+  test('getFactory should skip factory cache', async () => {
+    jest.useFakeTimers();
+    initialize(mockInititliazeConfig);
+    // @ts-ignore
+    global.__webpack_init_sharing__ = jest.fn();
+    // @ts-ignore
+    global.__webpack_share_scopes__ = {
+      default: jest.fn(),
+    };
+    // @ts-ignore
+    global.testScope = {
+      init: jest.fn(),
+      get: jest.fn().mockReturnValue(jest.fn()),
+    };
+    await asyncLoader('testScope', './testModule');
+    // @ts-ignore
+    expect(getFactory('testScope', true)).toEqual(undefined);
+  });
+
+  test('getFactory should invalidate cache after 300s', async () => {
+    jest.useFakeTimers();
+    initialize({
+      ...mockInititliazeConfig,
+      options: {
+        cacheTimeout: 300,
+      },
+    });
+    // @ts-ignore
+    global.__webpack_init_sharing__ = jest.fn();
+    // @ts-ignore
+    global.__webpack_share_scopes__ = {
+      default: jest.fn(),
+    };
+    // @ts-ignore
+    global.testScope = {
+      init: jest.fn(),
+      get: jest.fn().mockReturnValue(jest.fn()),
+    };
+    await asyncLoader('testScope', './testModule');
+    // @ts-ignore
+    expect(getFactory('testScope')).toEqual(expect.any(Object));
+    /**
+     * Advance time by 120s + 1ms
+     */
+    jest.advanceTimersByTime(120 * 1000 + 1);
+    expect(getFactory('testScope')).toEqual(expect.any(Object));
+    /**
+     * Advance time by 180s + 1ms
+     */
+    jest.advanceTimersByTime(180 * 1000 + 1);
     expect(getFactory('testScope')).toEqual(undefined);
   });
 });
