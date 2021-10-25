@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, Suspense, useState, ReactNode } from 'react';
-import { getAppData, injectScript, processManifest } from '@scalprum/core';
+import { getFactory, getAppData, injectScript, processManifest } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
 
@@ -20,7 +20,6 @@ const DefaultErrorComponent: React.ComponentType = () => <span>Error while loadi
 const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent: React.ComponentType }> = ({
   fallback = 'loading',
   appName,
-  api,
   scope,
   module,
   ErrorComponent,
@@ -30,28 +29,37 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
+  const factory = getFactory(scope);
   useEffect(() => {
     /**
      * Here will be registry check
      */
-    if (scriptLocation) {
-      injectScript(appName, scriptLocation)
-        .then(() => {
-          setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
-        })
-        .catch(() => {
-          setComponent(() => ErrorComponent);
-        });
-    } else if (manifestLocation) {
-      processManifest(manifestLocation, appName, scope, processor)
-        .then(() => {
-          setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
-        })
-        .catch(() => {
-          setComponent(() => ErrorComponent);
-        });
+    if (!factory) {
+      if (scriptLocation) {
+        injectScript(appName, scriptLocation)
+          .then(() => {
+            setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+          })
+          .catch(() => {
+            setComponent(() => ErrorComponent);
+          });
+      } else if (manifestLocation) {
+        processManifest(manifestLocation, appName, scope, processor)
+          .then(() => {
+            setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+          })
+          .catch(() => {
+            setComponent(() => ErrorComponent);
+          });
+      }
+    } else {
+      try {
+        setComponent(() => factory.get(module).default);
+      } catch {
+        setComponent(() => ErrorComponent);
+      }
     }
-  }, []);
+  }, [appName, scope, factory]);
 
   return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
 };

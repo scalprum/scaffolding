@@ -45,3 +45,13 @@ exports[`<ScalprumComponent /> should render test component with manifest 1`] = 
   </span>
 </div>
 `;
+
+exports[`<ScalprumComponent /> should retrieve module from scalprum cache 1`] = `
+<div>
+  <div
+    data-testid="cached-component"
+  >
+    Cached component
+  </div>
+</div>
+`;

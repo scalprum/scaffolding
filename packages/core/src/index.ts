@@ -11,16 +11,23 @@ export interface AppsConfig {
   [key: string]: AppMetadata;
 }
 
+export interface Factory {
+  init: (sharing: any) => void;
+  get: (module: string) => any;
+  expiration: Date;
+}
+
 export type Scalprum<T = any> = T & {
   appsConfig: AppsConfig;
   pendingInjections: {
     [key: string]: () => void;
   };
+  factories: {
+    [key: string]: Factory;
+  };
 };
 
-export interface Container extends Window {
-  init: (module: any) => void;
-}
+export type Container = Window & Factory;
 
 export interface IModule {
   default: any;
@@ -37,6 +44,21 @@ declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
 
 export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
+export const getFactory = (scope: string): Factory | undefined => {
+  const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
+  if (!factory) {
+    return undefined;
+  }
+  /**
+   * Invalidtae module after 2 minutes
+   */
+  const isExpired = (new Date().getTime() - factory.expiration.getTime()) / 1000 > 120;
+  if (isExpired) {
+    delete window[GLOBAL_NAMESPACE].factories[scope];
+    return undefined;
+  }
+  return factory;
+};
 
 export const setPendingInjection = (id: string, callback: () => void): void => {
   window[GLOBAL_NAMESPACE].pendingInjections[id] = callback;
@@ -46,6 +68,7 @@ export const initialize = <T = unknown>({ appsConfig, api }: { appsConfig: AppsC
   window[GLOBAL_NAMESPACE] = {
     appsConfig,
     pendingInjections: {},
+    factories: {},
     ...api,
   };
 };
@@ -64,10 +87,10 @@ export const injectScript = (
     s.id = appName;
     if (skipPending) {
       s.onload = () => {
-        res([name, s]);
+        res([appName, s]);
       };
     } else {
-      setPendingInjection(appName, () => res([name, s]));
+      setPendingInjection(appName, () => res([appName, s]));
     }
     s.onerror = (...args) => {
       console.log(args);
@@ -96,7 +119,7 @@ export async function processManifest(
     Object.entries(manifest)
       .filter(([key]) => (scope ? key === scope : true))
       .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
-      .map((scriptLocation: any) => injectScript(appName, scriptLocation as string, true))
+      .map((scriptLocation: string) => injectScript(appName, scriptLocation, true))
   );
 }
 
@@ -116,5 +139,12 @@ export async function asyncLoader(scope: string, module: string): Promise<IModul
   const container: Container = (window as { [key: string]: any })[scope];
   await container.init(__webpack_share_scopes__.default);
   const factory = await (window as { [key: string]: any })[scope].get(module);
+  const factoryCache: Factory = {
+    init: container.init,
+    get: factory,
+    expiration: new Date(),
+  };
+
+  window[GLOBAL_NAMESPACE].factories[scope] = factoryCache;
   return factory();
 }
