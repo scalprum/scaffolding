@@ -55,3 +55,9 @@ exports[`<ScalprumComponent /> should retrieve module from scalprum cache 1`] = 
   </div>
 </div>
 `;
+
+exports[`<ScalprumComponent /> should skip scalprum cache 1`] = `
+<div>
+  loading
+</div>
+`;
