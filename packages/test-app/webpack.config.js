@@ -28,10 +28,6 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = {
   mode: 'development',
   entry: {
-    appOne: './src/appOne.tsx',
-    appTwo: './src/appTwo.tsx',
-    appThree: './src/appThree.tsx',
-    appFour: './src/appFour.tsx',
     scaffolding: './src/scaffolding.tsx',
   },
   resolve: {

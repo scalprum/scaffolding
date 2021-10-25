@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, Suspense, useState, ReactNode } from 'react';
-import { getApp, getAppData, injectScript, processManifest } from '@scalprum/core';
+import { getAppData, injectScript, processManifest } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
 
@@ -30,45 +30,27 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
-  const [mountedAt, setMountedAt] = useState<HTMLScriptElement | HTMLScriptElement[] | undefined>();
   useEffect(() => {
-    const app = getApp(appName);
-
-    if (!app) {
-      if (scriptLocation) {
-        injectScript(appName, scriptLocation)
-          .then(([, scriptMountedAt]) => {
-            const app = getApp(appName);
-            app?.mount<JSX.Element>(api);
-            setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
-            setMountedAt(() => scriptMountedAt);
-          })
-          .catch(() => {
-            setComponent(() => ErrorComponent);
-          });
-      } else if (manifestLocation) {
-        processManifest(manifestLocation, appName, scope, processor)
-          .then((items) => {
-            setMountedAt(() => items.map((value) => (value as [unknown, HTMLScriptElement])[1]));
-            const app = getApp(appName);
-            app?.mount<JSX.Element>(api);
-            setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
-          })
-          .catch(() => {
-            setComponent(() => ErrorComponent);
-          });
-      }
-    } else {
-      app?.mount<JSX.Element>(api);
-      setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+    /**
+     * Here will be registry check
+     */
+    if (scriptLocation) {
+      injectScript(appName, scriptLocation)
+        .then(() => {
+          setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+        })
+        .catch(() => {
+          setComponent(() => ErrorComponent);
+        });
+    } else if (manifestLocation) {
+      processManifest(manifestLocation, appName, scope, processor)
+        .then(() => {
+          setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+        })
+        .catch(() => {
+          setComponent(() => ErrorComponent);
+        });
     }
-    return () => {
-      const app = getApp(appName);
-      app?.unmount();
-      if (mountedAt) {
-        Array.isArray(mountedAt) ? mountedAt.forEach((mounted) => document.body.removeChild(mounted)) : document.body.removeChild(mountedAt);
-      }
-    };
   }, []);
 
   return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
@@ -102,9 +84,7 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Scalprum encountered an error!', error);
-    console.log('Error info: ', JSON.stringify(errorInfo, null, 2));
-    console.log('Component stack: ', errorInfo.componentStack);
+    console.error('Scalprum encountered an error!', error.message);
     this.setState({ error, errorInfo });
   }
 

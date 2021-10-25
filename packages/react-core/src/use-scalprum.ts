@@ -8,5 +8,5 @@ export function useScalprum<T = ScalprumState<Record<string, unknown>>>(selector
     return selector(state);
   }
 
-  return (state as unknown) as T;
+  return state as unknown as T;
 }
