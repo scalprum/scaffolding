@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { initialize, GLOBAL_NAMESPACE, getScalprum, asyncLoader, getFactory } from '.';
+import { initialize, GLOBAL_NAMESPACE, getScalprum, asyncLoader, getCachedModule } from '.';
 
 describe('scalprum', () => {
   const mockInititliazeConfig = {
@@ -69,7 +69,9 @@ describe('scalprum', () => {
     const expectFactories = {
       testScope: {
         init: expect.any(Function),
-        get: expect.any(Function),
+        modules: {
+          './testModule': expect.any(Function),
+        },
         expiration: expect.any(Date),
       },
     };
@@ -83,14 +85,14 @@ describe('scalprum', () => {
     // @ts-ignore
     global.testScope = {
       init: jest.fn(),
-      get: jest.fn().mockReturnValue(jest.fn()),
+      get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
     };
     await asyncLoader('testScope', './testModule');
     // @ts-ignore
     expect(global[GLOBAL_NAMESPACE].factories).toEqual(expectFactories);
   });
 
-  test('getFactory should invalidate cache after 120s', async () => {
+  test('getCachedModule should invalidate cache after 120s', async () => {
     jest.useFakeTimers();
     initialize(mockInititliazeConfig);
     // @ts-ignore
@@ -102,19 +104,19 @@ describe('scalprum', () => {
     // @ts-ignore
     global.testScope = {
       init: jest.fn(),
-      get: jest.fn().mockReturnValue(jest.fn()),
+      get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
     };
     await asyncLoader('testScope', './testModule');
     // @ts-ignore
-    expect(getFactory('testScope')).toEqual(expect.any(Object));
+    expect(getCachedModule('testScope', './testModule')).toEqual(expect.any(Function));
     /**
      * Advance time by 120s + 1ms
      */
     jest.advanceTimersByTime(120 * 1000 + 1);
-    expect(getFactory('testScope')).toEqual(undefined);
+    expect(getCachedModule('testScope', './testModule')).toEqual(undefined);
   });
 
-  test('getFactory should skip factory cache', async () => {
+  test('getCachedModule should skip factory cache', async () => {
     jest.useFakeTimers();
     initialize(mockInititliazeConfig);
     // @ts-ignore
@@ -130,10 +132,10 @@ describe('scalprum', () => {
     };
     await asyncLoader('testScope', './testModule');
     // @ts-ignore
-    expect(getFactory('testScope', true)).toEqual(undefined);
+    expect(getCachedModule('testScope', './testModule', true)).toEqual(undefined);
   });
 
-  test('getFactory should invalidate cache after 300s', async () => {
+  test('getCachedModule should invalidate cache after 300s', async () => {
     jest.useFakeTimers();
     initialize({
       ...mockInititliazeConfig,
@@ -150,20 +152,20 @@ describe('scalprum', () => {
     // @ts-ignore
     global.testScope = {
       init: jest.fn(),
-      get: jest.fn().mockReturnValue(jest.fn()),
+      get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
     };
     await asyncLoader('testScope', './testModule');
     // @ts-ignore
-    expect(getFactory('testScope')).toEqual(expect.any(Object));
+    expect(getCachedModule('testScope', './testModule')).toEqual(expect.any(Function));
     /**
      * Advance time by 120s + 1ms
      */
     jest.advanceTimersByTime(120 * 1000 + 1);
-    expect(getFactory('testScope')).toEqual(expect.any(Object));
+    expect(getCachedModule('testScope', './testModule')).toEqual(expect.any(Function));
     /**
      * Advance time by 180s + 1ms
      */
     jest.advanceTimersByTime(180 * 1000 + 1);
-    expect(getFactory('testScope')).toEqual(undefined);
+    expect(getCachedModule('testScope', './testModule')).toEqual(undefined);
   });
 });

@@ -1,5 +1,5 @@
-import React, { Fragment, useEffect, Suspense, useState, ReactNode } from 'react';
-import { getFactory, getAppData, injectScript, processManifest } from '@scalprum/core';
+import React, { Fragment, useEffect, Suspense, useState, ReactNode, useRef } from 'react';
+import { getCachedModule, getAppData, injectScript, processManifest } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
 
@@ -31,37 +31,42 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
-  const factory = getFactory(scope, skipCache);
+  const cachedModule = getCachedModule(scope, module, skipCache);
+  const isMounted = useRef(true);
   useEffect(() => {
     /**
      * Here will be registry check
      */
-    if (!factory) {
+    if (!cachedModule) {
       if (scriptLocation) {
         injectScript(appName, scriptLocation)
           .then(() => {
-            setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+            isMounted.current && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
           })
           .catch(() => {
-            setComponent(() => ErrorComponent);
+            isMounted.current && setComponent(() => ErrorComponent);
           });
       } else if (manifestLocation) {
         processManifest(manifestLocation, appName, scope, processor)
           .then(() => {
-            setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+            isMounted.current && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
           })
           .catch(() => {
-            setComponent(() => ErrorComponent);
+            isMounted.current && setComponent(() => ErrorComponent);
           });
       }
     } else {
       try {
-        setComponent(() => factory.get(module).default);
+        isMounted.current && setComponent(() => cachedModule.default);
       } catch {
-        setComponent(() => ErrorComponent);
+        isMounted.current && setComponent(() => ErrorComponent);
       }
     }
-  }, [appName, scope, factory]);
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, [appName, scope, cachedModule]);
 
   return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
 };

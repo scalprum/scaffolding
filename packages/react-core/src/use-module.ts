@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { asyncLoader, getFactory, IModule } from '@scalprum/core';
+import { asyncLoader, getCachedModule, IModule } from '@scalprum/core';
 
 export function useModule(
   scope: string,
@@ -15,9 +15,9 @@ export function useModule(
   };
   const [data, setData] = useState<IModule>(defaultState);
   const fetchModule = useCallback(async () => {
-    const factory = getFactory(scope, defaultOptions.skipCache);
+    const cachedModule = getCachedModule(scope, module, defaultOptions.skipCache);
     let Module: IModule;
-    if (!factory) {
+    if (!cachedModule) {
       try {
         Module = await asyncLoader(scope, module);
       } catch {
@@ -26,7 +26,7 @@ export function useModule(
         );
       }
     } else {
-      Module = factory.get(module);
+      Module = cachedModule;
     }
     setData(() => Module);
   }, [scope, module]);
