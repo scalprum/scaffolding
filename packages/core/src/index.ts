@@ -13,7 +13,9 @@ export interface AppsConfig {
 
 export interface Factory {
   init: (sharing: any) => void;
-  get: (module: string) => any;
+  modules: {
+    [key: string]: any;
+  };
   expiration: Date;
 }
 
@@ -49,7 +51,7 @@ declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
 
 export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
-export const getFactory = (scope: string, skipCache = false): Factory | undefined => {
+export const getCachedModule = (scope: string, module: string, skipCache = false): any | undefined => {
   const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
   if (!factory) {
     return undefined;
@@ -62,7 +64,13 @@ export const getFactory = (scope: string, skipCache = false): Factory | undefine
     delete window[GLOBAL_NAMESPACE].factories[scope];
     return undefined;
   }
-  return factory;
+
+  const cachedModule = factory.modules[module];
+  if (!module) {
+    return undefined;
+  }
+
+  return cachedModule;
 };
 
 export const setPendingInjection = (id: string, callback: () => void): void => {
@@ -157,9 +165,17 @@ export async function asyncLoader(scope: string, module: string): Promise<IModul
   const container: Container = (window as { [key: string]: any })[scope];
   await container.init(__webpack_share_scopes__.default);
   const factory = await (window as { [key: string]: any })[scope].get(module);
+
+  if (!window[GLOBAL_NAMESPACE].factories[scope]) {
+    window[GLOBAL_NAMESPACE].factories[scope] = {};
+  }
+
   const factoryCache: Factory = {
     init: container.init,
-    get: factory,
+    modules: {
+      ...window[GLOBAL_NAMESPACE].factories[scope].modules,
+      [module]: factory(),
+    },
     expiration: new Date(),
   };
 
