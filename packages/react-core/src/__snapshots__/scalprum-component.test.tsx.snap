@@ -8,6 +8,14 @@ exports[`<ScalprumComponent /> should render error component 1`] = `
 </div>
 `;
 
+exports[`<ScalprumComponent /> should render error component if self-repair attempt fails 1`] = `
+<div>
+  <h1>
+    Custom error component
+  </h1>
+</div>
+`;
+
 exports[`<ScalprumComponent /> should render fallback component 1`] = `
 <div>
   <h1>
@@ -57,6 +65,12 @@ exports[`<ScalprumComponent /> should retrieve module from scalprum cache 1`] = 
 `;
 
 exports[`<ScalprumComponent /> should skip scalprum cache 1`] = `
+<div>
+  loading
+</div>
+`;
+
+exports[`<ScalprumComponent /> should try and re-render original component on first error 1`] = `
 <div>
   loading
 </div>

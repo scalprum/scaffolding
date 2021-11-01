@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React from 'react';
+import React, { useEffect } from 'react';
 import * as asyncComponent from './async-loader';
 import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
 import { render, cleanup, act, screen } from '@testing-library/react';
@@ -268,5 +268,65 @@ describe('<ScalprumComponent />', () => {
     expect(container).toMatchSnapshot();
     expect(() => screen.getAllByTestId('cached-component')).toThrow();
     expect(loadComponentSpy).toHaveBeenCalled();
+  });
+
+  test('should try and re-render original component on first error', async () => {
+    jest
+      .spyOn(asyncComponent, 'loadComponent')
+      .mockReturnValueOnce(() =>
+        import('./TestComponent').then(() => {
+          throw 'foo';
+        })
+      )
+      .mockReturnValueOnce(() => import('./TestComponent'));
+    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
+    injectScriptSpy.mockImplementationOnce(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
+      return Promise.resolve(['', undefined]);
+    });
+
+    const props: ScalprumComponentProps = {
+      appName: 'appOne',
+      scope: 'some',
+      module: 'test',
+      ErrorComponent: <h1>Custom error component</h1>,
+    };
+    let container;
+    await act(async () => {
+      container = render(<ScalprumComponent {...props} />).container;
+    });
+    expect(container).toMatchSnapshot();
+  });
+
+  test('should render error component if self-repair attempt fails', async () => {
+    jest.useFakeTimers();
+    loadComponentSpy.mockReturnValue(() =>
+      import('./TestComponent').then(() => ({
+        __esModule: true,
+        default: () => {
+          useEffect(() => {
+            throw new Error('Expected runtime test error');
+          }, []);
+          return <div>Mocked testing component</div>;
+        },
+      }))
+    );
+    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
+    injectScriptSpy.mockImplementation(() => {
+      ScalprumCore.setPendingInjection('appOne', jest.fn());
+      return Promise.reject(['', undefined]);
+    });
+    let container;
+    await act(async () => {
+      container = render(
+        <ScalprumComponent ErrorComponent={<h1>Custom error component</h1>} module="./TestComponent" scope="appOne" appName="appOne" />
+      ).container;
+    });
+
+    await act(async () => {
+      jest.advanceTimersToNextTimer();
+    });
+
+    expect(container).toMatchSnapshot();
   });
 });

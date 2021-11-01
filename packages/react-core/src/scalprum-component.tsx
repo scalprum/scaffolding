@@ -66,7 +66,7 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
     return () => {
       isMounted.current = false;
     };
-  }, [appName, scope, cachedModule]);
+  }, [appName, scope, cachedModule, skipCache]);
 
   return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
 };
@@ -75,15 +75,18 @@ interface BaseScalprumComponentState {
   hasError: boolean;
   error?: any;
   errorInfo?: any;
+  repairAttempt?: boolean;
 }
 
 class BaseScalprumComponent extends React.Component<ScalprumComponentProps, BaseScalprumComponentState> {
+  selfRepairAttempt: boolean;
   static defaultProps = {
     ErrorComponent: <DefaultErrorComponent />,
   };
   constructor(props: ScalprumComponentProps) {
     super(props);
     this.state = { hasError: false };
+    this.selfRepairAttempt = false;
   }
 
   static getDerivedStateFromError(): BaseScalprumComponentState {
@@ -99,14 +102,27 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Scalprum encountered an error!', error.message);
-    this.setState({ error, errorInfo });
+    if (this.selfRepairAttempt === true) {
+      console.error('Scalprum encountered an error!', error.message);
+      this.setState({ error, errorInfo });
+    } else {
+      console.warn('Scalprum failed to render component. Attempting to skip module cache.');
+      this.setState({ repairAttempt: true });
+    }
   }
 
   render(): ReactNode {
     const { ErrorComponent = <DefaultErrorComponent />, ...props } = this.props;
 
-    if (this.state.hasError) {
+    if (this.state.repairAttempt && !this.selfRepairAttempt) {
+      /**
+       * Retry fetching module with disabled cache
+       */
+      this.selfRepairAttempt = true;
+      return <LoadModule {...props} skipCache ErrorComponent={() => <Fragment>{ErrorComponent}</Fragment>} />;
+    }
+
+    if (this.state.hasError && this.selfRepairAttempt) {
       return React.cloneElement(ErrorComponent as React.FunctionComponentElement<BaseScalprumComponentState>, { ...this.state });
     }
 
