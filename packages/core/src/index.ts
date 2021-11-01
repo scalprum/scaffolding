@@ -140,7 +140,16 @@ export async function processManifest(
   scope: string,
   processor: ((value: any) => string) | undefined
 ): Promise<[unknown, HTMLScriptElement | undefined][]> {
-  const manifest = await (await fetch(url)).json();
+  const headers = new Headers();
+  headers.append('Pragma', 'no-cache');
+  headers.append('Cache-Control', 'no-cache');
+  headers.append('expires', '0');
+  const manifest = await (
+    await fetch(url, {
+      method: 'GET',
+      headers,
+    })
+  ).json();
   return Promise.all(
     Object.entries(manifest)
       .filter(([key]) => (scope ? key === scope : true))
