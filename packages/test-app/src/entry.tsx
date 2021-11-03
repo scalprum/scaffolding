@@ -25,7 +25,7 @@ const Entry = () => {
       }}
     >
       <Initializer>
-        <ScalprumComponent appName="testApp" scope="testApp" module="./ModuleFour" />
+        <ScalprumComponent appName="testApp" scope="testApp" module="./ModuleOne" />
       </Initializer>
     </ScalprumProvider>
   );

@@ -34,13 +34,13 @@ workflows:
     jobs:
       - test
       - cypress/run:
-        requires:
-          - test
-        yarn: true
-        start: yarn start:test
-        wait-on: 'http://localhost:8123'
-        executor: cypress/base-14
-        store_artifacts: true
-        post-steps:
-          - store_test_results:
-              path: cypress/results
+          requires:
+            - test
+          yarn: true
+          start: yarn start:test
+          wait-on: 'http://localhost:8123'
+          executor: cypress/base-14
+          store_artifacts: true
+          post-steps:
+            - store_test_results:
+                path: cypress/results
