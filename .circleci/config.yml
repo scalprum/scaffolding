@@ -2,7 +2,6 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@1.0.4
   node: circleci/node@4.7.0
-  cypress: cypress-io/cypress@1.29.0
 executors:
   with-chrome:
     docker:
@@ -30,6 +29,23 @@ jobs:
           root: ~/scalprum
           paths:
               - "*"
+  cy:
+    working_directory: ~/scalprum
+    docker:
+      - image: circleci/node:16
+    steps:
+      - attach_workspace:
+          at: ~/scalprum
+      - run:
+          name: install-packages
+          command: sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+      - run:
+          name: install-cy
+          command: ./node_modules/.bin/cypress install --force
+      - run:
+          name: e2e
+          command: npm run test:ci
+
 
 
 workflows:
@@ -37,15 +53,6 @@ workflows:
   build:
     jobs:
       - test
-      - cypress/run:
+      - cy:
           requires:
             - test
-          yarn: true
-          start: yarn start:test
-          wait-on: 'http://localhost:8123'
-          executor: with-chrome
-          browser: chrome
-          store_artifacts: true
-          post-steps:
-            - store_test_results:
-                path: cypress/results
