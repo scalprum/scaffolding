@@ -45,6 +45,9 @@ jobs:
       - run:
           name: e2e
           command: npm run test:ci
+      - store_artifacts:
+          path: ~/scalprum/cypress/videos
+          destination: artifact-file
 
 
 
