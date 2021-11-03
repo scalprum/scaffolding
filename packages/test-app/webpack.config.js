@@ -1,29 +1,69 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const webpack = require('webpack');
-
-/*
- * SplitChunksPlugin is enabled by default and replaced
- * deprecated CommonsChunkPlugin. It automatically identifies modules which
- * should be splitted of chunk by heuristics using module duplication count and
- * module category (i. e. node_modules). And splits the chunks…
- *
- * It is safe to remove "splitChunks" from the generated configuration
- * and was added as an educational example.
- *
- * https://webpack.js.org/plugins/split-chunks-plugin/
- *
- */
-
-/*
- * We've enabled TerserPlugin for you! This minifies your app
- * in order to load faster and run less javascript.
- *
- * https://github.com/webpack-contrib/terser-webpack-plugin
- *
- */
-
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const {
+  container: { ModuleFederationPlugin },
+} = webpack;
+
+const TestAppFederation = new ModuleFederationPlugin({
+  name: 'testApp',
+  filename: 'testApp.js',
+  library: {
+    type: 'var',
+    name: 'testApp',
+  },
+  exposes: {
+    './ModuleOne': path.resolve(__dirname, './src/modules/moduleOne.tsx'),
+    './ModuleTwo': path.resolve(__dirname, './src/modules/moduleTwo.tsx'),
+  },
+  shared: [
+    {
+      react: {
+        singleton: true,
+        eager: true,
+      },
+      'react-dom': {
+        singleton: true,
+        eager: true,
+      },
+      '@scalprum/react-core': {
+        singleton: true,
+        eager: true,
+      },
+    },
+  ],
+});
+
+const TestModuleFederation = new ModuleFederationPlugin({
+  name: 'testModule',
+  filename: 'testModule.js',
+  library: {
+    type: 'var',
+    name: 'testModule',
+  },
+  exposes: {
+    './ModuleThree': path.resolve(__dirname, './src/modules/moduleThree.tsx'),
+    './ModuleFour': path.resolve(__dirname, './src/modules/moduleFour.tsx'),
+  },
+  shared: [
+    {
+      react: {
+        singleton: true,
+        eager: true,
+      },
+      'react-dom': {
+        singleton: true,
+        eager: true,
+      },
+      '@scalprum/react-core': {
+        singleton: true,
+        eager: true,
+      },
+    },
+  ],
+});
 
 module.exports = {
   mode: 'development',
@@ -38,7 +78,14 @@ module.exports = {
       'react-router-dom': path.resolve(__dirname, '../../node_modules/react-router-dom'),
     },
   },
-  plugins: [new webpack.ProgressPlugin()],
+  plugins: [
+    new webpack.ProgressPlugin(),
+    new HtmlWebpackPlugin({
+      template: path.resolve(__dirname, './src/index.html'),
+    }),
+    TestAppFederation,
+    TestModuleFederation,
+  ],
   module: {
     rules: [
       {
