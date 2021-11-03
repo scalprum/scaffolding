@@ -37,6 +37,7 @@
     "rollup": "^2.58.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-pluginutils": "^2.8.2",
+    "start-server-and-test": "^1.14.0",
     "ts-jest": "^27.0.7",
     "ts-loader": "^9.2.6",
     "typescript": "^4.4.4"
@@ -50,6 +51,7 @@
     "cypress:run": "cypress run",
     "prepare": "npm run build",
     "start:test": "npm run ---prefix packages/test-app start:test -- --port 8123 --mode production",
-    "clear": "lerna clean -y && rm -rf node_modules"
+    "clear": "lerna clean -y && rm -rf node_modules",
+    "test:ci": "start-server-and-test start:test http-get://localhost:8123 cypress:run"
   }
 }
