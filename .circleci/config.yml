@@ -1,13 +1,17 @@
 version: 2.1
 orbs:
   codecov: codecov/codecov@1.0.4
-  node: circleci/node@3.0.0
-  cypress: cypress-io/cypress@1.26.0
+  node: circleci/node@4.7.0
+  cypress: cypress-io/cypress@1.29.0
+executors:
+  with-chrome:
+    docker:
+      - image: 'cypress/base:node16.5.0'
 jobs:
   test:
     working_directory: ~/scalprum
     docker:
-      - image: circleci/node:15
+      - image: circleci/node:16
     steps:
       - checkout
       - run:
@@ -39,7 +43,8 @@ workflows:
           yarn: true
           start: yarn start:test
           wait-on: 'http://localhost:8123'
-          executor: cypress/base-14
+          executor: with-chrome
+          browser: chrome
           store_artifacts: true
           post-steps:
             - store_test_results:
