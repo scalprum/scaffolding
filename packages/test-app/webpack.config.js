@@ -36,6 +36,31 @@ const TestAppFederation = new ModuleFederationPlugin({
   ],
 });
 
+const TestPreLoadFederation = new ModuleFederationPlugin({
+  name: 'preLoad',
+  filename: 'preLoad.js',
+  library: {
+    type: 'var',
+    name: 'preLoad',
+  },
+  exposes: {
+    './PreLoadedModule': path.resolve(__dirname, './src/modules/preLoad.tsx'),
+  },
+  shared: [
+    {
+      react: {
+        singleton: true,
+      },
+      'react-dom': {
+        singleton: true,
+      },
+      '@scalprum/react-core': {
+        singleton: true,
+      },
+    },
+  ],
+});
+
 const TestModuleFederation = new ModuleFederationPlugin({
   name: 'testModule',
   filename: 'testModule.js',
@@ -85,6 +110,7 @@ module.exports = {
     }),
     TestAppFederation,
     TestModuleFederation,
+    TestPreLoadFederation,
   ],
   module: {
     rules: [
