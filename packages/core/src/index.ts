@@ -28,6 +28,9 @@ export type Scalprum<T = any> = T & {
   pendingInjections: {
     [key: string]: () => void;
   };
+  pendingLoading: {
+    [key: string]: Promise<IModule>;
+  };
   factories: {
     [key: string]: Factory;
   };
@@ -77,6 +80,36 @@ export const setPendingInjection = (id: string, callback: () => void): void => {
   window[GLOBAL_NAMESPACE].pendingInjections[id] = callback;
 };
 
+export const setPendingLoading = (scope: string, module: string, promise: Promise<any>): Promise<any> => {
+  window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`] = promise;
+  promise
+    .then((data) => {
+      delete window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`];
+      console.log('Pre loading has finished!');
+      return data;
+    })
+    .catch(() => {
+      delete window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`];
+    });
+  return promise;
+};
+
+export const getPendingLoading = (scope: string, module: string): Promise<any> | undefined => {
+  return window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`];
+};
+
+export const preloadModule = async (scope: string, module: string, processor?: (item: any) => string, skipCache = false) => {
+  const { manifestLocation } = getAppData(scope);
+  const cachedModule = getCachedModule(scope, module, skipCache);
+  let modulePromise = getPendingLoading(scope, module);
+  // lock preloading if module exists or is already being loaded
+  if (!modulePromise && !cachedModule && manifestLocation) {
+    modulePromise = processManifest(manifestLocation, scope, scope, processor).then(() => asyncLoader(scope, module));
+  }
+  // add preloading information to registry
+  return setPendingLoading('preLoad', './PreLoadedModule', Promise.resolve(modulePromise));
+};
+
 export const initialize = <T = unknown>({
   appsConfig,
   api,
@@ -93,6 +126,7 @@ export const initialize = <T = unknown>({
   window[GLOBAL_NAMESPACE] = {
     appsConfig,
     pendingInjections: {},
+    pendingLoading: {},
     factories: {},
     scalprumOptions: defaultOptions,
     ...api,
