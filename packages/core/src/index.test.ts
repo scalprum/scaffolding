@@ -50,6 +50,7 @@ describe('scalprum', () => {
       },
       factories: {},
       pendingInjections: {},
+      pendingLoading: {},
       scalprumOptions: {
         cacheTimeout: 120,
       },
