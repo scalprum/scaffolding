@@ -1,5 +1,5 @@
-import React, { Fragment, useEffect, Suspense, useState, ReactNode, useRef } from 'react';
-import { getCachedModule, getAppData, injectScript, processManifest } from '@scalprum/core';
+import React, { Fragment, useEffect, Suspense, useState, ReactNode, useReducer } from 'react';
+import { getCachedModule, getAppData, injectScript, processManifest, getPendingLoading } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
 
@@ -30,43 +30,55 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
   ...props
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
+  const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
   const cachedModule = getCachedModule(scope, module, skipCache);
-  const isMounted = useRef(true);
   useEffect(() => {
+    let isMounted = true;
     /**
-     * Here will be registry check
+     * Check if module is being pre-loaded
      */
-    if (!cachedModule) {
-      if (scriptLocation) {
-        injectScript(appName, scriptLocation)
-          .then(() => {
-            isMounted.current && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
-          })
-          .catch(() => {
-            isMounted.current && setComponent(() => ErrorComponent);
-          });
-      } else if (manifestLocation) {
-        processManifest(manifestLocation, appName, scope, processor)
-          .then(() => {
-            isMounted.current && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
-          })
-          .catch(() => {
-            isMounted.current && setComponent(() => ErrorComponent);
-          });
-      }
+    const pendingLoading = getPendingLoading(scope, module);
+
+    if (!cachedModule && pendingLoading) {
+      pendingLoading.finally(() => {
+        forceRender();
+      });
     } else {
-      try {
-        isMounted.current && setComponent(() => cachedModule.default);
-      } catch {
-        isMounted.current && setComponent(() => ErrorComponent);
+      /**
+       * Here will be registry check
+       */
+      if (!cachedModule) {
+        if (scriptLocation) {
+          injectScript(appName, scriptLocation)
+            .then(() => {
+              isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+            })
+            .catch(() => {
+              isMounted && setComponent(() => ErrorComponent);
+            });
+        } else if (manifestLocation) {
+          processManifest(manifestLocation, appName, scope, processor)
+            .then(() => {
+              isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+            })
+            .catch(() => {
+              isMounted && setComponent(() => ErrorComponent);
+            });
+        }
+      } else {
+        try {
+          isMounted && setComponent(() => cachedModule.default);
+        } catch {
+          isMounted && setComponent(() => ErrorComponent);
+        }
       }
     }
 
     return () => {
-      isMounted.current = false;
+      isMounted = false;
     };
-  }, [appName, scope, cachedModule, skipCache]);
+  }, [appName, scope, cachedModule, skipCache, reRender]);
 
   return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
 };
