@@ -68,8 +68,10 @@
     "skipLibCheck": true,                     /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */,
   },
+  "include": ["src/**/*.ts", "**/*.tsx"],
   "exclude": [
     "./packages/**/*.test.ts",
     "./packages/**/*.test.tsx",
+    "node_modules", "cypress/**/*.ts", "**/*.cy.tsx"
   ]
 }
