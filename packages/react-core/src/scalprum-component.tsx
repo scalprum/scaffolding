@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, Suspense, useState, ReactNode, useReducer } from 'react';
-import { getCachedModule, getAppData, injectScript, processManifest, getPendingLoading } from '@scalprum/core';
+import { getCachedModule, getAppData, injectScript, processManifest, getPendingLoading, setPendingLoading } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
 
@@ -50,21 +50,25 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
        */
       if (!cachedModule) {
         if (scriptLocation) {
-          injectScript(appName, scriptLocation)
+          const injecttionPromise = injectScript(appName, scriptLocation)
             .then(() => {
               isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
             })
             .catch(() => {
               isMounted && setComponent(() => ErrorComponent);
             });
+          // lock module preload
+          setPendingLoading(scope, module, injecttionPromise);
         } else if (manifestLocation) {
-          processManifest(manifestLocation, appName, scope, processor)
+          const processPromise = processManifest(manifestLocation, appName, scope, processor)
             .then(() => {
               isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
             })
             .catch(() => {
               isMounted && setComponent(() => ErrorComponent);
             });
+          // lock module preload
+          setPendingLoading(scope, module, processPromise);
         }
       } else {
         try {
