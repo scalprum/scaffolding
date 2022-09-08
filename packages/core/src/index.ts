@@ -85,7 +85,6 @@ export const setPendingLoading = (scope: string, module: string, promise: Promis
   promise
     .then((data) => {
       delete window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`];
-      console.log('Pre loading has finished!');
       return data;
     })
     .catch(() => {
@@ -107,7 +106,7 @@ export const preloadModule = async (scope: string, module: string, processor?: (
     modulePromise = processManifest(manifestLocation, scope, scope, processor).then(() => asyncLoader(scope, module));
   }
   // add preloading information to registry
-  return setPendingLoading('preLoad', './PreLoadedModule', Promise.resolve(modulePromise));
+  return setPendingLoading(scope, module, Promise.resolve(modulePromise));
 };
 
 export const initialize = <T = unknown>({
