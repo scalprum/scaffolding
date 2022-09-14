@@ -1,24 +1,28 @@
-import React, { Fragment, useEffect, Suspense, useState, ReactNode, useReducer } from 'react';
+import React, { useEffect, Suspense, useState, ReactNode, useReducer } from 'react';
 import { getCachedModule, getAppData, injectScript, processManifest, getPendingLoading, setPendingLoading } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
+import DefaultErrorComponent from './default-error-component';
 
-export type ScalprumComponentProps<API = Record<string, unknown>, Props = Record<string, unknown>> = Props & {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type ScalprumComponentProps<API = Record<string, unknown>, Props extends Record<string, any> = {}> = Props & {
   fallback?: NonNullable<React.ReactNode> | null;
   appName: string;
   api?: API;
   scope: string;
   module: string;
-  ErrorComponent?: ReactNode;
+  ErrorComponent?: React.ReactElement;
   LoadingComponent?: React.ComponentType;
   innerRef?: React.Ref<unknown>;
   processor?: (item: any) => string;
   skipCache?: boolean;
 };
 
-const DefaultErrorComponent: React.ComponentType = () => <span>Error while loading component!</span>;
+interface LoadModuleProps extends Omit<ScalprumComponentProps, 'ErrorComponent'> {
+  ErrorComponent: React.ComponentType;
+}
 
-const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent: React.ComponentType }> = ({
+const LoadModule: React.ComponentType<LoadModuleProps> = ({
   fallback = 'loading',
   appName,
   scope,
@@ -35,6 +39,12 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
   const cachedModule = getCachedModule(scope, module, skipCache);
   useEffect(() => {
     let isMounted = true;
+    const handleLoadingError = () =>
+      isMounted &&
+      setComponent(() => (props: any) => {
+        console.log('Anonumous component', props);
+        return <ErrorComponent {...props} />;
+      });
     /**
      * Check if module is being pre-loaded
      */
@@ -54,9 +64,7 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
             .then(() => {
               isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
             })
-            .catch(() => {
-              isMounted && setComponent(() => ErrorComponent);
-            });
+            .catch(handleLoadingError);
           // lock module preload
           setPendingLoading(scope, module, injecttionPromise);
         } else if (manifestLocation) {
@@ -64,9 +72,7 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
             .then(() => {
               isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
             })
-            .catch(() => {
-              isMounted && setComponent(() => ErrorComponent);
-            });
+            .catch(handleLoadingError);
           // lock module preload
           setPendingLoading(scope, module, processPromise);
         }
@@ -74,7 +80,7 @@ const LoadModule: React.ComponentType<ScalprumComponentProps & { ErrorComponent:
         try {
           isMounted && setComponent(() => cachedModule.default);
         } catch {
-          isMounted && setComponent(() => ErrorComponent);
+          handleLoadingError();
         }
       }
     }
@@ -128,21 +134,24 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
   }
 
   render(): ReactNode {
-    const { ErrorComponent = <DefaultErrorComponent />, ...props } = this.props;
+    const { ErrorComponent = <DefaultErrorComponent {...this.state} />, ...props } = this.props;
+
+    const PreparedError: React.ComponentType = (props: any) => {
+      return React.cloneElement<typeof this.state>(ErrorComponent, { ...this.state, ...props });
+    };
 
     if (this.state.repairAttempt && !this.selfRepairAttempt) {
       /**
        * Retry fetching module with disabled cache
        */
       this.selfRepairAttempt = true;
-      return <LoadModule {...props} skipCache ErrorComponent={() => <Fragment>{ErrorComponent}</Fragment>} />;
+      return <LoadModule {...props} skipCache ErrorComponent={PreparedError} />;
     }
 
     if (this.state.hasError && this.selfRepairAttempt) {
       return React.cloneElement(ErrorComponent as React.FunctionComponentElement<BaseScalprumComponentState>, { ...this.state });
     }
-
-    return <LoadModule {...props} ErrorComponent={() => <Fragment>{ErrorComponent}</Fragment>} />;
+    return <LoadModule {...props} ErrorComponent={PreparedError} />;
   }
 }
 
