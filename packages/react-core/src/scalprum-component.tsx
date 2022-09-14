@@ -39,12 +39,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   const cachedModule = getCachedModule(scope, module, skipCache);
   useEffect(() => {
     let isMounted = true;
-    const handleLoadingError = () =>
-      isMounted &&
-      setComponent(() => (props: any) => {
-        console.log('Anonumous component', props);
-        return <ErrorComponent {...props} />;
-      });
+    const handleLoadingError = () => isMounted && setComponent(() => (props: any) => <ErrorComponent {...props} />);
     /**
      * Check if module is being pre-loaded
      */

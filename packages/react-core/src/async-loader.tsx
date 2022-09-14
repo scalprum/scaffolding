@@ -8,7 +8,6 @@ export function loadComponent(scope: string, module: string, ErrorComponent: Rea
     try {
       Module = await asyncLoader(scope, module);
     } catch (e: any) {
-      console.error(e, ErrorComponent);
       Module = {
         default: (props: Record<string, any>) => <ErrorComponent {...props} error={e} />,
       };
