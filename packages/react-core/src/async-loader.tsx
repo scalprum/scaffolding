@@ -1,19 +1,15 @@
 import React from 'react';
 import { asyncLoader } from '@scalprum/core';
-
-const DefaultErrorComponent: React.ComponentType<any> = () => {
-  return <span>Error while loading component!</span>;
-};
+import DefaultErrorComponent from './default-error-component';
 
 export function loadComponent(scope: string, module: string, ErrorComponent: React.ComponentType<any> = DefaultErrorComponent) {
   return async (): Promise<{ default: React.ComponentType<any> }> => {
     let Module;
     try {
       Module = await asyncLoader(scope, module);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
       Module = {
-        default: ErrorComponent,
+        default: (props: Record<string, any>) => <ErrorComponent {...props} error={e} />,
       };
     }
 

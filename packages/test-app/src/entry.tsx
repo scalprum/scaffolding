@@ -1,6 +1,9 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { ScalprumComponent, ScalprumProvider, useScalprum } from '@scalprum/react-core';
 import { preloadModule } from '@scalprum/core';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import LoadingComponent from './components/LoadingComponent';
+import RuntimeErrorRoute from './routes/RuntimeErrorRoute';
 
 const Initializer: React.ComponentType = ({ children }) => {
   const { initialized } = useScalprum();
@@ -9,23 +12,6 @@ const Initializer: React.ComponentType = ({ children }) => {
   }
 
   return <Fragment>{children}</Fragment>;
-};
-
-// const preLoadModule = async (scope: string, module: string, processor?: (item: any) => string, skipCache = false) => {
-//   const { manifestLocation } = getAppData(scope);
-//   const cachedModule = getCachedModule(scope, module, skipCache);
-//   let modulePromise = getPendingLoading(scope, module);
-//   if (!modulePromise && !cachedModule && manifestLocation) {
-//     modulePromise = processManifest(manifestLocation, scope, scope, processor).then(() => asyncLoader(scope, module));
-//   }
-//   return setPendingLoading('preLoad', './PreLoadedModule', Promise.resolve(modulePromise));
-// };
-
-const LoadingComponent: React.FC = () => {
-  useEffect(() => {
-    console.log('Loading component mounted');
-  }, []);
-  return <div>Super duper loading</div>;
 };
 
 const ContentStuff = () => {
@@ -40,8 +26,8 @@ const ContentStuff = () => {
   return (
     <>
       <div>
-        <button onMouseEnter={handlePreload} onClick={() => setShowPreLoadedModule((prev) => !prev)}>
-          Hower over this to pre-load; Click to show
+        <button id="render-preload-module" onMouseEnter={handlePreload} onClick={() => setShowPreLoadedModule((prev) => !prev)}>
+          Hover over this to pre-load; Click to show
         </button>
       </div>
       <ScalprumComponent LoadingComponent={LoadingComponent} appName="testApp" scope="testApp" module="./ModuleOne" />
@@ -68,9 +54,18 @@ const Entry = () => {
         },
       }}
     >
-      <Initializer>
-        <ContentStuff />
-      </Initializer>
+      <BrowserRouter>
+        <Initializer>
+          <Switch>
+            <Route path="/runtime-error">
+              <RuntimeErrorRoute />
+            </Route>
+            <Route path="/">
+              <ContentStuff />
+            </Route>
+          </Switch>
+        </Initializer>
+      </BrowserRouter>
     </ScalprumProvider>
   );
 };

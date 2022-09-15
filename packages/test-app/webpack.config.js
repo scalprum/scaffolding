@@ -17,6 +17,7 @@ const TestAppFederation = new ModuleFederationPlugin({
   exposes: {
     './ModuleOne': path.resolve(__dirname, './src/modules/moduleOne.tsx'),
     './ModuleTwo': path.resolve(__dirname, './src/modules/moduleTwo.tsx'),
+    './ErrorModule': path.resolve(__dirname, './src/modules/errorModule.tsx'),
   },
   shared: [
     {
@@ -124,6 +125,7 @@ module.exports = {
   },
   optimization: {
     minimizer: [new TerserPlugin()],
+    chunkIds: 'named',
   },
   devServer: {
     historyApiFallback: true,
