@@ -5,7 +5,7 @@ import { loadComponent } from './async-loader';
 import DefaultErrorComponent from './default-error-component';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type ScalprumComponentProps<API = Record<string, unknown>, Props extends Record<string, any> = {}> = Props & {
+export type ScalprumComponentProps<API extends Record<string, any> = {}, Props extends Record<string, any> = {}> = Props & {
   fallback?: NonNullable<React.ReactNode> | null;
   appName: string;
   api?: API;
