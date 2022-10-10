@@ -10,13 +10,13 @@ export interface ScalprumState<T = Record<string, unknown>> {
   api?: T;
 }
 
-export interface ScalprumProviderProps<T = Record<string, unknown>> {
+export interface ScalprumProviderProps<T extends Record<string, any> = Record<string, any>> {
   config: ScalprumFeed;
   api?: T;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export function ScalprumProvider<T = Record<string, unknown>>({
+export function ScalprumProvider<T extends Record<string, any> = Record<string, any>>({
   config,
   children,
   api,
