@@ -36,8 +36,8 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   const { scriptLocation, manifestLocation } = getAppData(appName);
   const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
-  const cachedModule = getCachedModule(scope, module, skipCache);
   useEffect(() => {
+    const cachedModule = getCachedModule(scope, module, skipCache);
     let isMounted = true;
     const handleLoadingError = () => isMounted && setComponent(() => (props: any) => <ErrorComponent {...props} />);
     /**
@@ -83,7 +83,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [appName, scope, cachedModule, skipCache, reRender]);
+  }, [appName, scope, skipCache, reRender]);
 
   return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
 };
