@@ -134,13 +134,18 @@ export const initialize = <T = unknown>({
 
 export const getAppData = (name: string): AppMetadata => window[GLOBAL_NAMESPACE].appsConfig[name];
 
+const shouldInjectScript = (src: string) => document.querySelectorAll(`script[src="${src}"]`)?.length === 0;
+
 export const injectScript = (
   appName: string,
   scriptLocation: string,
   skipPending: boolean | undefined = false
-): Promise<[unknown, HTMLScriptElement | undefined]> => {
+): Promise<[any, HTMLScriptElement | undefined]> => {
   let s: HTMLScriptElement | undefined = undefined;
-  const injectionPromise: Promise<[unknown, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
+  if (!shouldInjectScript(scriptLocation)) {
+    return Promise.resolve([appName, document.querySelectorAll(`script[src="${scriptLocation}"]`)?.[0] as HTMLScriptElement]);
+  }
+  const injectionPromise: Promise<[any, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
     s = document.createElement('script');
     s.src = scriptLocation;
     s.id = appName;
