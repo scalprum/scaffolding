@@ -55,25 +55,32 @@ declare let __webpack_share_scopes__: any;
 
 export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
 export const getCachedModule = (scope: string, module: string, skipCache = false): any | undefined => {
-  const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
-  if (!factory) {
-    return undefined;
-  }
-  /**
-   * Invalidate module after 2 minutes
-   */
-  const isExpired = skipCache || (new Date().getTime() - factory.expiration.getTime()) / 1000 > window[GLOBAL_NAMESPACE].scalprumOptions.cacheTimeout;
-  if (isExpired) {
-    delete window[GLOBAL_NAMESPACE].factories[scope];
-    return undefined;
-  }
+  try {
+    const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
+    if (!factory || !factory.expiration) {
+      return undefined;
+    }
+    /**
+     * Invalidate module after 2 minutes
+     */
+    const isExpired =
+      skipCache || (new Date().getTime() - factory.expiration.getTime()) / 1000 > window[GLOBAL_NAMESPACE].scalprumOptions.cacheTimeout;
+    if (isExpired) {
+      delete window[GLOBAL_NAMESPACE].factories[scope];
+      return undefined;
+    }
 
-  const cachedModule = factory.modules[module];
-  if (!module) {
+    const cachedModule = factory.modules[module];
+    if (!module) {
+      return undefined;
+    }
+
+    return cachedModule;
+  } catch (error) {
+    // If something goes wrong during the cache retrieval, reload module.
+    console.warn(`Unable to retriev cached module ${scope} ${module}. New module will be loaded.`, error);
     return undefined;
   }
-
-  return cachedModule;
 };
 
 export const setPendingInjection = (id: string, callback: () => void): void => {
