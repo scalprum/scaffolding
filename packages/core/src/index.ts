@@ -83,8 +83,16 @@ export const getCachedModule = (scope: string, module: string, skipCache = false
   }
 };
 
-export const setPendingInjection = (id: string, callback: () => void): void => {
-  window[GLOBAL_NAMESPACE].pendingInjections[id] = callback;
+export const setPendingInjection = (id: string, injectionLock: Promise<any>): void => {
+  window[GLOBAL_NAMESPACE].pendingInjections[id] = injectionLock;
+};
+
+export const getPendingInjection = (id: string): Promise<any> | undefined => {
+  return window[GLOBAL_NAMESPACE].pendingInjections[id];
+};
+
+export const resolvePendingInjection = (id: string) => {
+  delete window[GLOBAL_NAMESPACE].pendingInjections[id];
 };
 
 export const setPendingLoading = (scope: string, module: string, promise: Promise<any>): Promise<any> => {
@@ -143,11 +151,7 @@ export const getAppData = (name: string): AppMetadata => window[GLOBAL_NAMESPACE
 
 const shouldInjectScript = (src: string) => document.querySelectorAll(`script[src="${src}"]`)?.length === 0;
 
-export const injectScript = (
-  appName: string,
-  scriptLocation: string,
-  skipPending: boolean | undefined = false
-): Promise<[any, HTMLScriptElement | undefined]> => {
+export const injectScript = (appName: string, scriptLocation: string): Promise<[any, HTMLScriptElement | undefined]> => {
   let s: HTMLScriptElement | undefined = undefined;
   if (!shouldInjectScript(scriptLocation)) {
     return Promise.resolve([appName, document.querySelectorAll(`script[src="${scriptLocation}"]`)?.[0] as HTMLScriptElement]);
@@ -155,21 +159,13 @@ export const injectScript = (
   const injectionPromise: Promise<[any, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
     s = document.createElement('script');
     s.src = scriptLocation;
-    s.id = appName;
-    if (skipPending) {
-      s.onload = () => {
-        res([appName, s]);
-      };
-    } else {
-      setPendingInjection(appName, () => res([appName, s]));
-    }
+    s.id = `container_entry_${appName}`;
+    s.onload = () => {
+      res([appName, s]);
+    };
     s.onerror = (...args) => {
       console.log(args);
-      if (skipPending) {
-        rej([args, s]);
-      } else {
-        setPendingInjection(appName, () => rej([args, s]));
-      }
+      rej([args, s]);
     };
   });
   if (typeof s !== 'undefined') {
@@ -195,12 +191,27 @@ export async function processManifest(
       headers,
     })
   ).json();
-  return Promise.all(
+  const pendingInjection = getPendingInjection(scope);
+  if (pendingInjection) {
+    return pendingInjection;
+  }
+
+  const injectionPromise = Promise.all(
     Object.entries(manifest)
       .filter(([key]) => (scope ? key === scope : true))
       .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
-      .map((scriptLocation: string) => injectScript(appName, scriptLocation, true))
+      .map(async (scriptLocation: string) => {
+        const data = await injectScript(appName, scriptLocation);
+        resolvePendingInjection(scope);
+        return data;
+      })
   );
+  setPendingInjection(scope, injectionPromise);
+  injectionPromise.then((res) => {
+    resolvePendingInjection(scope);
+    return res;
+  });
+  return injectionPromise;
 }
 
 export async function asyncLoader(scope: string, module: string): Promise<IModule> {
