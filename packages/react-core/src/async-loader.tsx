@@ -1,18 +1,15 @@
 import React from 'react';
 import { asyncLoader } from '@scalprum/core';
-import DefaultErrorComponent from './default-error-component';
 
-export function loadComponent(scope: string, module: string, ErrorComponent: React.ComponentType<any> = DefaultErrorComponent) {
-  return async (): Promise<{ default: React.ComponentType<any> }> => {
-    let Module;
-    try {
-      Module = await asyncLoader(scope, module);
-    } catch (e: any) {
-      Module = {
-        default: (props: Record<string, any>) => <ErrorComponent {...props} error={e} />,
-      };
-    }
-
-    return Module;
-  };
+export async function loadComponent(
+  scope: string,
+  module: string
+): Promise<{ prefetch: Promise<any> | undefined; component: React.ComponentType<any> }> {
+  {
+    const mod = await asyncLoader(scope, module);
+    return {
+      prefetch: mod.prefetch,
+      component: mod.default,
+    };
+  }
 }

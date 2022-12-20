@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React, { useEffect } from 'react';
+import React, { ComponentType, useEffect } from 'react';
 import * as asyncComponent from './async-loader';
 import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
 import { render, cleanup, act, screen } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
 import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
+import TestComponent from './TestComponent';
+
+const flushPromise = () => Promise.resolve(setTimeout);
+const ErrorComponent = () => {
+  return <h1>Custom error component</h1>;
+};
 
 describe('<ScalprumComponent />', () => {
   const mockInitScalprumConfig: AppsConfig = {
@@ -31,8 +37,16 @@ describe('<ScalprumComponent />', () => {
   const processManifestSpy = jest.spyOn(ScalprumCore, 'processManifest');
   let loadComponentSpy: jest.SpyInstance;
 
+  beforeAll(() => {
+    global.fetch = () =>
+      Promise.resolve({
+        json: () => Promise.resolve({}),
+      }) as unknown as Promise<Response>;
+  });
+
   beforeEach(() => {
-    loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(() => import('./TestComponent'));
+    const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
+    loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(componentPromise);
   });
 
   afterEach(() => {
@@ -68,7 +82,11 @@ describe('<ScalprumComponent />', () => {
       return Promise.resolve(['', undefined]);
     });
     await act(async () => {
-      render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
+      await render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
+    });
+
+    await act(async () => {
+      await flushPromise();
     });
     expect(injectScriptSpy).toHaveBeenCalledWith('appOne', '/bar.js');
   });
@@ -143,9 +161,11 @@ describe('<ScalprumComponent />', () => {
     /**
      * We need the async component "hang" to render the fallback
      */
-    jest
-      .spyOn(asyncComponent, 'loadComponent')
-      .mockReturnValueOnce(() => new Promise((res) => setTimeout(() => res(import('./TestComponent')), 500)));
+
+    const componentPromise = new Promise<{ prefetch: Promise<any> | undefined; component: ComponentType<any> }>((res) =>
+      setTimeout(() => res({ prefetch: undefined, component: TestComponent }), 500)
+    );
+    jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(componentPromise);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     injectScriptSpy.mockImplementationOnce(() => {
       ScalprumCore.setPendingInjection('appOne', Promise.resolve());
@@ -174,10 +194,14 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should render error component', async () => {
-    jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(() =>
-      import('./TestComponent').then(() => {
-        throw 'foo';
-      })
+    const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
+    jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(
+      componentPromise.then(() => ({
+        prefetch: undefined,
+        component: () => {
+          throw 'foo';
+        },
+      }))
     );
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     injectScriptSpy.mockImplementationOnce(() => {
@@ -189,7 +213,7 @@ describe('<ScalprumComponent />', () => {
       appName: 'appOne',
       scope: 'some',
       module: 'test',
-      ErrorComponent: <h1>Custom error component</h1>,
+      ErrorComponent: <ErrorComponent />,
     };
     let container;
     await act(async () => {
@@ -202,6 +226,7 @@ describe('<ScalprumComponent />', () => {
     const cachedModule = {
       __esModule: true,
       default: () => <div data-testid="cached-component">Cached component</div>,
+      prefetch: () => Promise.resolve(),
     };
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     // @ts-ignore
@@ -226,9 +251,9 @@ describe('<ScalprumComponent />', () => {
     await act(async () => {
       container = render(<ScalprumComponent {...props} />).container;
     });
+    expect(loadComponentSpy).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();
     expect(screen.getAllByTestId('cached-component')).toHaveLength(1);
-    expect(loadComponentSpy).not.toHaveBeenCalled();
   });
 
   test('should skip scalprum cache', async () => {
@@ -240,6 +265,7 @@ describe('<ScalprumComponent />', () => {
     const cachedModule = {
       __esModule: true,
       default: () => <div data-testid="cached-component">Cached component</div>,
+      prefetch: () => Promise.resolve(),
     };
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     // @ts-ignore
@@ -262,23 +288,31 @@ describe('<ScalprumComponent />', () => {
     };
     let container;
     await act(async () => {
-      container = render(<ScalprumComponent {...props} skipCache />).container;
+      container = await render(<ScalprumComponent {...props} skipCache />).container;
     });
 
-    expect(container).toMatchSnapshot();
-    expect(() => screen.getAllByTestId('cached-component')).toThrow();
+    await act(async () => {
+      await flushPromise();
+    });
+
     expect(loadComponentSpy).toHaveBeenCalled();
+    expect(() => screen.getAllByTestId('cached-component')).toThrow();
+    expect(container).toMatchSnapshot();
   });
 
   test('should try and re-render original component on first error', async () => {
+    const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
     jest
       .spyOn(asyncComponent, 'loadComponent')
-      .mockReturnValueOnce(() =>
-        import('./TestComponent').then(() => {
-          throw 'foo';
-        })
+      .mockReturnValueOnce(
+        componentPromise.then(() => ({
+          prefetch: undefined,
+          component: () => {
+            throw 'foo';
+          },
+        }))
       )
-      .mockReturnValueOnce(() => import('./TestComponent'));
+      .mockReturnValueOnce(componentPromise);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     injectScriptSpy.mockImplementationOnce(() => {
       ScalprumCore.setPendingInjection('appOne', Promise.resolve());
@@ -289,19 +323,28 @@ describe('<ScalprumComponent />', () => {
       appName: 'appOne',
       scope: 'some',
       module: 'test',
-      ErrorComponent: <h1>Custom error component</h1>,
+      ErrorComponent: <ErrorComponent />,
     };
     let container;
     await act(async () => {
       container = render(<ScalprumComponent {...props} />).container;
     });
+
+    await act(async () => {
+      await flushPromise();
+    });
+
     expect(container).toMatchSnapshot();
   });
 
   test('should render error component if self-repair attempt fails', async () => {
+    // uncomment if you want to see scalprum errors and warnings
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     jest.useFakeTimers();
-    loadComponentSpy.mockReturnValue(() =>
-      import('./TestComponent').then(() => ({
+    const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
+    loadComponentSpy.mockReturnValue(
+      componentPromise.then(() => ({
         __esModule: true,
         default: () => {
           useEffect(() => {
@@ -309,6 +352,7 @@ describe('<ScalprumComponent />', () => {
           }, []);
           return <div>Mocked testing component</div>;
         },
+        prefetch: () => Promise.resolve(),
       }))
     );
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
@@ -319,7 +363,7 @@ describe('<ScalprumComponent />', () => {
     let container;
     await act(async () => {
       container = render(
-        <ScalprumComponent ErrorComponent={<h1>Custom error component</h1>} module="./TestComponent" scope="appOne" appName="appOne" />
+        <ScalprumComponent ErrorComponent={<ErrorComponent />} module="./TestComponent" scope="appOne" appName="appOne" />
       ).container;
     });
 
