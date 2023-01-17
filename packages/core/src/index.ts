@@ -153,8 +153,8 @@ export const preloadModule = async (scope: string, module: string, processor?: (
   let modulePromise = getPendingLoading(scope, module);
 
   // lock preloading if module exists or is already being loaded
-  if (!modulePromise && !cachedModule && manifestLocation) {
-    modulePromise = processManifest(manifestLocation, scope, scope, processor).then(() => asyncLoader(scope, module));
+  if (!modulePromise && Object.keys(cachedModule || {}).length == 0 && manifestLocation) {
+    modulePromise = processManifest(manifestLocation, scope, processor).then(() => asyncLoader(scope, module));
   }
 
   // add scalprum API later
