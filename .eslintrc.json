@@ -24,5 +24,8 @@
     "browser": true,
     "node": true,
     "jest": true
+  },
+  "rules": {
+    "@typescript-eslint/ban-types": "off"
   }
 }

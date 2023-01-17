@@ -1,6 +1,17 @@
 import React from 'react';
 
-const DefaultErrorComponent = ({ error, errorInfo }: { error?: any; errorInfo?: any }) => {
+const DefaultErrorComponent = ({
+  error,
+  errorInfo,
+}: {
+  error?: {
+    message?: React.ReactNode;
+    stack?: React.ReactNode;
+  };
+  errorInfo?: {
+    componentStack?: React.ReactNode;
+  };
+}) => {
   return (
     <div>
       <h2>Error loading component</h2>
