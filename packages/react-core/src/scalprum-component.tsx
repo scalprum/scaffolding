@@ -18,7 +18,6 @@ import { useScalprum } from './use-scalprum';
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type ScalprumComponentProps<API extends Record<string, any> = {}, Props extends Record<string, any> = {}> = Props & {
   fallback?: NonNullable<React.ReactNode> | null;
-  appName: string;
   api?: API;
   scope: string;
   module: string;
@@ -53,7 +52,6 @@ async function setComponentFromModule(
 
 const LoadModule: React.ComponentType<LoadModuleProps> = ({
   fallback = 'loading',
-  appName,
   scope,
   module,
   ErrorComponent,
@@ -62,7 +60,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   skipCache = false,
   ...props
 }) => {
-  const { scriptLocation, manifestLocation } = getAppData(appName);
+  const { scriptLocation, manifestLocation } = getAppData(scope);
   const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> } & Record<string, any>> | undefined>(undefined);
   const [prefetchPromise, setPrefetchPromise] = useState<Promise<any>>();
@@ -103,7 +101,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
        */
       if (!cachedModule) {
         if (scriptLocation) {
-          const injectionPromise = injectScript(appName, scriptLocation)
+          const injectionPromise = injectScript(scope, scriptLocation)
             .then(() => {
               pref = setComponentFromModule(scope, module, isMounted, setComponent);
               if (pref) {
@@ -122,7 +120,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
           // lock module preload
           setPendingLoading(scope, module, injectionPromise);
         } else if (manifestLocation) {
-          const processPromise = processManifest(manifestLocation, appName, scope, processor)
+          const processPromise = processManifest(manifestLocation, scope, processor)
             .then(() => {
               pref = setComponentFromModule(scope, module, isMounted, setComponent);
               pref.then((result) => {
@@ -160,12 +158,12 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
       isMounted = false;
       setLoadingError(undefined);
     };
-  }, [appName, scope, skipCache, reRender]);
+  }, [scope, skipCache, reRender]);
 
   // clear prefetchPromise (from factory)
   useEffect(() => {
     setPrefetchPromise(undefined);
-  }, [appName, scope, module]);
+  }, [scope, module]);
 
   return (
     <PrefetchProvider prefetchPromise={prefetchPromise}>

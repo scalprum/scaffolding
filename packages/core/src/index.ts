@@ -195,17 +195,17 @@ export const getAppData = (name: string): AppMetadata => window[GLOBAL_NAMESPACE
 
 const shouldInjectScript = (src: string) => document.querySelectorAll(`script[src="${src}"]`)?.length === 0;
 
-export const injectScript = (appName: string, scriptLocation: string): Promise<[any, HTMLScriptElement | undefined]> => {
+export const injectScript = (scope: string, scriptLocation: string): Promise<[any, HTMLScriptElement | undefined]> => {
   let s: HTMLScriptElement | undefined = undefined;
   if (!shouldInjectScript(scriptLocation)) {
-    return Promise.resolve([appName, document.querySelectorAll(`script[src="${scriptLocation}"]`)?.[0] as HTMLScriptElement]);
+    return Promise.resolve([scope, document.querySelectorAll(`script[src="${scriptLocation}"]`)?.[0] as HTMLScriptElement]);
   }
   const injectionPromise: Promise<[any, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
     s = document.createElement('script');
     s.src = scriptLocation;
-    s.id = `container_entry_${appName}`;
+    s.id = `container_entry_${scope}`;
     s.onload = () => {
-      res([appName, s]);
+      res([scope, s]);
     };
     s.onerror = (...args) => {
       rej([args, s]);
@@ -220,7 +220,6 @@ export const injectScript = (appName: string, scriptLocation: string): Promise<[
 
 export async function processManifest(
   url: string,
-  appName: string,
   scope: string,
   processor: ((value: any) => string) | undefined
 ): Promise<[unknown, HTMLScriptElement | undefined][]> {
@@ -244,7 +243,7 @@ export async function processManifest(
       .filter(([key]) => (scope ? key === scope : true))
       .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
       .map(async (scriptLocation: string) => {
-        const data = await injectScript(appName, scriptLocation);
+        const data = await injectScript(scope, scriptLocation);
         resolvePendingInjection(scope);
         return data;
       })

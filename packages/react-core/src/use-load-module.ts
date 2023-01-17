@@ -2,14 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { asyncLoader, getCachedModule, IModule, getAppData, injectScript, processManifest } from '@scalprum/core';
 
 export type ModuleDefinition = {
-  appName?: string;
   scope: string;
   module: string;
   processor?: (item: any) => string;
 };
 
 export function useLoadModule(
-  { appName, scope, module, processor }: ModuleDefinition,
+  { scope, module, processor }: ModuleDefinition,
   defaultState: any,
   options: {
     skipCache?: boolean;
@@ -19,7 +18,7 @@ export function useLoadModule(
     skipCache: false,
     ...options,
   };
-  const { scriptLocation, manifestLocation } = getAppData(appName || scope);
+  const { scriptLocation, manifestLocation } = getAppData(scope);
   const [data, setData] = useState<IModule>(defaultState);
   const [error, setError] = useState<Error>();
   const cachedModule = getCachedModule(scope, module, defaultOptions.skipCache);
@@ -28,7 +27,7 @@ export function useLoadModule(
     if (isMounted.current) {
       if (!cachedModule) {
         if (scriptLocation) {
-          injectScript(appName || scope, scriptLocation)
+          injectScript(scope, scriptLocation)
             .then(async () => {
               const Module: IModule = await asyncLoader(scope, module);
               setData(() => Module);
@@ -37,7 +36,7 @@ export function useLoadModule(
               setError(() => e);
             });
         } else if (manifestLocation) {
-          processManifest(manifestLocation, appName || scope, scope, processor)
+          processManifest(manifestLocation, scope, processor)
             .then(async () => {
               const Module: IModule = await asyncLoader(scope, module);
               setData(() => Module);
@@ -60,7 +59,7 @@ export function useLoadModule(
     return () => {
       isMounted.current = false;
     };
-  }, [appName, scope, cachedModule, defaultOptions.skipCache]);
+  }, [scope, cachedModule, defaultOptions.skipCache]);
 
   return [data, error];
 }
