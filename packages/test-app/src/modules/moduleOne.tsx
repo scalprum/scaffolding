@@ -23,7 +23,7 @@ export const prefetch: Prefetch = (scalprumApi) => {
   });
 };
 
-const ModuleOne = ({ prefetchPromise }: { prefetchPromise?: Promise<any> }) => {
+const ModuleOne = () => {
   const { data, ready, error } = usePrefetch();
   return (
     <div>

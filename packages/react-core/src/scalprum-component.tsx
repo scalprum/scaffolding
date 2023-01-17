@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, useState, ReactNode, useReducer } from 'react';
+import React, { useEffect, Suspense, useState, ReactNode, useReducer, useRef } from 'react';
 import {
   getCachedModule,
   handlePrefetchPromise,
@@ -8,6 +8,7 @@ import {
   getPendingLoading,
   setPendingLoading,
   getPendingPrefetch,
+  PrefetchFunction,
 } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
@@ -18,7 +19,6 @@ import { useScalprum } from './use-scalprum';
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type ScalprumComponentProps<API extends Record<string, any> = {}, Props extends Record<string, any> = {}> = Props & {
   fallback?: NonNullable<React.ReactNode> | null;
-  appName: string;
   api?: API;
   scope: string;
   module: string;
@@ -45,7 +45,7 @@ async function setComponentFromModule(
       | undefined
     >
   >
-): Promise<(...args: any[]) => Promise<any> | undefined> {
+): Promise<PrefetchFunction | undefined> {
   const { prefetch, component } = await loadComponent(scope, module);
   isMounted && setComponent(() => component);
   return prefetch;
@@ -53,7 +53,6 @@ async function setComponentFromModule(
 
 const LoadModule: React.ComponentType<LoadModuleProps> = ({
   fallback = 'loading',
-  appName,
   scope,
   module,
   ErrorComponent,
@@ -62,7 +61,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   skipCache = false,
   ...props
 }) => {
-  const { scriptLocation, manifestLocation } = getAppData(appName);
+  const { scriptLocation, manifestLocation } = getAppData(scope);
   const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> } & Record<string, any>> | undefined>(undefined);
   const [prefetchPromise, setPrefetchPromise] = useState<Promise<any>>();
@@ -73,7 +72,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
     throw loadingError;
   }
 
-  const { api: scalprumApi } = useScalprum();
+  const scalprumApi = useScalprum();
 
   useEffect(() => {
     const prefetchID = `${scope}#${module}`;
@@ -103,7 +102,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
        */
       if (!cachedModule) {
         if (scriptLocation) {
-          const injectionPromise = injectScript(appName, scriptLocation)
+          const injectionPromise = injectScript(scope, scriptLocation)
             .then(() => {
               pref = setComponentFromModule(scope, module, isMounted, setComponent);
               if (pref) {
@@ -122,7 +121,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
           // lock module preload
           setPendingLoading(scope, module, injectionPromise);
         } else if (manifestLocation) {
-          const processPromise = processManifest(manifestLocation, appName, scope, processor)
+          const processPromise = processManifest(manifestLocation, scope, processor)
             .then(() => {
               pref = setComponentFromModule(scope, module, isMounted, setComponent);
               pref.then((result) => {
@@ -147,7 +146,6 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
           if (pref) {
             const prefetch = getPendingPrefetch(prefetchID) || pref(scalprumApi);
             setPrefetchPromise(prefetch);
-            prefetch.then(console.error);
             handlePrefetchPromise(prefetchID, prefetch);
           }
         } catch (e) {
@@ -160,12 +158,16 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
       isMounted = false;
       setLoadingError(undefined);
     };
-  }, [appName, scope, skipCache, reRender]);
+  }, [scope, skipCache, reRender]);
 
   // clear prefetchPromise (from factory)
+  const initialPrefetch = useRef(false);
   useEffect(() => {
-    setPrefetchPromise(undefined);
-  }, [appName, scope, module]);
+    if (initialPrefetch.current) {
+      setPrefetchPromise(undefined);
+    }
+    initialPrefetch.current = true;
+  }, [scope, module]);
 
   return (
     <PrefetchProvider prefetchPromise={prefetchPromise}>

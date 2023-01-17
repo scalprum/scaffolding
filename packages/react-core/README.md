@@ -16,7 +16,7 @@ Example:
 import React, { Suspense } from 'react';
 
 const MyCmp = () => {
-  const { default: SomeConst, someExport } = useModule('appName', './SomeModule', {}, {});
+  const { default: SomeConst, someExport } = useModule('scope', './SomeModule', {}, {});
   const calculatedValue = someExport();
 
   return <Suspense fallback="loading">
@@ -27,7 +27,7 @@ const MyCmp = () => {
 export default MyCmp;
 ```
 
-Module `SomeModule` from `appName` scope is exporting 2 memebers `default` (a component) and `someExport` (a function to calculate something).
+Module `SomeModule` from `scope` scope is exporting 2 memebers `default` (a component) and `someExport` (a function to calculate something).
 
 #### Arguments
 
@@ -47,8 +47,7 @@ import React, { Suspense } from 'react';
 
 const MyCmp = () => {
   const [{ default: SomeConst, someExport }, error] = useLoadModule({
-    //appName: 'appName', // optional
-    scope: 'appName',
+    scope: 'scope',
     module: './SomeModule',
     // processor: (val) => val, // optional
   }, {}, {});
@@ -62,13 +61,12 @@ const MyCmp = () => {
 export default MyCmp;
 ```
 
-Module `SomeModule` from `appName` scope is exporting 2 memebers `default` (a component) and `someExport` (a function to calculate something).
+Module `SomeModule` from `scope` scope is exporting 2 memebers `default` (a component) and `someExport` (a function to calculate something).
 
 #### Arguments
 
 This hook accepts 3 parameters:
 * moduleDefinition - an object to describe which module from provider and the scope we want to import.
-  * appName - app container's name to load the module from (can be omited, scope will be used as fallback)
   * scope - scope from the container to pull module from
   * module - name of the module we'll use to import the exports from
   * processor - function to further process the manifest (optional).\

@@ -45,9 +45,9 @@ const ContentStuff = () => {
           Hover over this to pre-load and prefetch; Click to show
         </button>
       </div>
-      <ScalprumComponent LoadingComponent={LoadingComponent} appName="testApp" scope="testApp" module="./ModuleOne" />
-      {showPreLoadedModule && <ScalprumComponent LoadingComponent={LoadingComponent} appName="preLoad" scope="preLoad" module="./PreLoadedModule" />}
-      {showPreLoadedModuleWPF && <ScalprumComponent LoadingComponent={LoadingComponent} appName="testApp" scope="testApp" module="./ModuleOne" />}
+      <ScalprumComponent LoadingComponent={LoadingComponent} scope="testApp" module="./ModuleOne" />
+      {showPreLoadedModule && <ScalprumComponent LoadingComponent={LoadingComponent} scope="preLoad" module="./PreLoadedModule" />}
+      {showPreLoadedModuleWPF && <ScalprumComponent LoadingComponent={LoadingComponent} scope="testApp" module="./ModuleOne" />}
     </>
   );
 };

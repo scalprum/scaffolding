@@ -4,7 +4,7 @@ import * as asyncComponent from './async-loader';
 import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
 import { render, cleanup, act, screen } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
-import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
+import { AppsConfig, GLOBAL_NAMESPACE, Scalprum } from '@scalprum/core';
 import TestComponent from './TestComponent';
 
 const flushPromise = () => Promise.resolve(setTimeout);
@@ -51,7 +51,7 @@ describe('<ScalprumComponent />', () => {
 
   afterEach(() => {
     cleanup();
-    window[GLOBAL_NAMESPACE] = undefined;
+    window[GLOBAL_NAMESPACE] = undefined as unknown as Scalprum<Record<string, any>>;
     getAppDataSpy.mockClear();
     injectScriptSpy.mockClear();
     processManifestSpy.mockClear();
@@ -61,7 +61,7 @@ describe('<ScalprumComponent />', () => {
   test('should retrieve script location', () => {
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-    render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
+    render(<ScalprumComponent scope="appOne" module="test" />);
 
     expect(getAppDataSpy).toHaveBeenCalledWith('appOne');
   });
@@ -70,7 +70,7 @@ describe('<ScalprumComponent />', () => {
     getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     ScalprumCore.initialize({ appsConfig: mockInitScalpumConfigManifest });
     ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-    render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
+    render(<ScalprumComponent scope="appOne" module="test" />);
 
     expect(getAppDataSpy).toHaveBeenCalledWith('appOne');
   });
@@ -82,7 +82,7 @@ describe('<ScalprumComponent />', () => {
       return Promise.resolve(['', undefined]);
     });
     await act(async () => {
-      await render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
+      await render(<ScalprumComponent scope="appOne" module="test" />);
     });
 
     await act(async () => {
@@ -99,10 +99,10 @@ describe('<ScalprumComponent />', () => {
       return Promise.resolve([['', undefined]]);
     });
     await act(async () => {
-      render(<ScalprumComponent appName="appOne" scope="some" module="test" />);
+      render(<ScalprumComponent scope="appOne" module="test" />);
     });
 
-    expect(processManifestSpy).toHaveBeenCalledWith('/bar.json', 'appOne', 'some', undefined);
+    expect(processManifestSpy).toHaveBeenCalledWith('/bar.json', 'appOne', undefined);
   });
 
   test('should render test component', async () => {
@@ -115,8 +115,7 @@ describe('<ScalprumComponent />', () => {
 
     const props: ScalprumComponentProps<{ apiProp: () => void }, { testProp: number }> = {
       testProp: 5,
-      appName: 'appOne',
-      scope: 'some',
+      scope: 'appOne',
       module: 'test',
       api: {
         apiProp: () => undefined,
@@ -141,7 +140,7 @@ describe('<ScalprumComponent />', () => {
     });
     let container;
     await act(async () => {
-      container = render(<ScalprumComponent appName="appOne" scope="some" module="test" />)?.container;
+      container = render(<ScalprumComponent scope="appOne" module="test" />)?.container;
     });
 
     expect(loadComponentSpy).toHaveBeenCalled();
@@ -162,7 +161,7 @@ describe('<ScalprumComponent />', () => {
      * We need the async component "hang" to render the fallback
      */
 
-    const componentPromise = new Promise<{ prefetch: Promise<any> | undefined; component: ComponentType<any> }>((res) =>
+    const componentPromise = new Promise<{ prefetch: (() => Promise<any>) | undefined; component: ComponentType<any> }>((res) =>
       setTimeout(() => res({ prefetch: undefined, component: TestComponent }), 500)
     );
     jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(componentPromise);
@@ -173,8 +172,7 @@ describe('<ScalprumComponent />', () => {
     });
 
     const props: ScalprumComponentProps = {
-      appName: 'appOne',
-      scope: 'some',
+      scope: 'appOne',
       module: 'test',
       LoadingComponent: () => <h1>Loading</h1>,
       fallback: <h1>Suspense fallback</h1>,
@@ -210,8 +208,7 @@ describe('<ScalprumComponent />', () => {
     });
 
     const props: ScalprumComponentProps = {
-      appName: 'appOne',
-      scope: 'some',
+      scope: 'appOne',
       module: 'test',
       ErrorComponent: <ErrorComponent />,
     };
@@ -243,7 +240,6 @@ describe('<ScalprumComponent />', () => {
     await ScalprumCore.asyncLoader('cachedScope', './test');
 
     const props: ScalprumComponentProps = {
-      appName: 'appOne',
       scope: 'cachedScope',
       module: './test',
     };
@@ -282,7 +278,6 @@ describe('<ScalprumComponent />', () => {
     await ScalprumCore.asyncLoader('cachedScope', './test');
 
     const props: ScalprumComponentProps = {
-      appName: 'appOne',
       scope: 'cachedScope',
       module: './test',
     };
@@ -320,8 +315,7 @@ describe('<ScalprumComponent />', () => {
     });
 
     const props: ScalprumComponentProps = {
-      appName: 'appOne',
-      scope: 'some',
+      scope: 'appOne',
       module: 'test',
       ErrorComponent: <ErrorComponent />,
     };
@@ -362,9 +356,7 @@ describe('<ScalprumComponent />', () => {
     });
     let container;
     await act(async () => {
-      container = render(
-        <ScalprumComponent ErrorComponent={<ErrorComponent />} module="./TestComponent" scope="appOne" appName="appOne" />
-      ).container;
+      container = render(<ScalprumComponent ErrorComponent={<ErrorComponent />} module="./TestComponent" scope="appOne" />).container;
     });
 
     await act(async () => {

@@ -11,13 +11,17 @@ export interface AppsConfig {
   [key: string]: AppMetadata;
 }
 
-export interface Factory {
+export type PrefetchFunction<T = any> = (ScalprumApi: Record<string, any> | undefined) => Promise<T>;
+export type ExposedScalprumModule<T = any, P = any> = { default: T; prefetch?: PrefetchFunction<P> };
+export type ScalprumModule<T = any, P = any> = {
+  cachedModule?: ExposedScalprumModule<T, P>;
+  prefetchPromise?: ReturnType<PrefetchFunction>;
+};
+
+export interface Factory<T = any, P = any> {
   init: (sharing: any) => void;
   modules: {
-    [key: string]: {
-      default: any;
-      prefetch?: (scalprumApi: Scalprum) => Promise<unknown>;
-    };
+    [key: string]: ExposedScalprumModule<T, P>;
   };
   expiration: Date;
 }
@@ -26,13 +30,13 @@ export interface ScalprumOptions {
   cacheTimeout: number;
 }
 
-export type Scalprum<T = any> = T & {
+export type Scalprum<T extends Record<string, any> = Record<string, any>> = {
   appsConfig: AppsConfig;
   pendingInjections: {
-    [key: string]: () => void;
+    [key: string]: Promise<any>;
   };
   pendingLoading: {
-    [key: string]: Promise<IModule>;
+    [key: string]: Promise<ScalprumModule>;
   };
   pendingPrefetch: {
     [key: string]: Promise<unknown>;
@@ -41,14 +45,10 @@ export type Scalprum<T = any> = T & {
     [key: string]: Factory;
   };
   scalprumOptions: ScalprumOptions;
+  api: T;
 };
 
 export type Container = Window & Factory;
-
-export interface IModule {
-  default: any;
-  prefetch?: Promise<any>;
-}
 
 declare global {
   // eslint-disable-next-line no-unused-vars
@@ -60,15 +60,17 @@ declare global {
 declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
 
-export const handlePrefetchPromise = (id: string, prefetch: any) => {
-  setPendingPrefetch(id, prefetch);
-  prefetch.finally(() => {
-    removePrefetch(id);
-  });
+export const handlePrefetchPromise = (id: string, prefetch?: Promise<any>) => {
+  if (prefetch) {
+    setPendingPrefetch(id, prefetch);
+    prefetch.finally(() => {
+      removePrefetch(id);
+    });
+  }
 };
 
-export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
-export const getCachedModule = (scope: string, module: string, skipCache = false): any | undefined => {
+export const getScalprum = () => window[GLOBAL_NAMESPACE];
+export const getCachedModule = (scope: string, module: string, skipCache = false): ScalprumModule => {
   try {
     const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
     if (!factory || !factory.expiration) {
@@ -95,7 +97,7 @@ export const getCachedModule = (scope: string, module: string, skipCache = false
       return { cachedModule, prefetchPromise };
     }
     if (cachedModule?.prefetch) {
-      handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum()));
+      handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum().api));
       return { cachedModule, prefetchPromise: getPendingPrefetch(prefetchID) };
     }
     return { cachedModule };
@@ -149,25 +151,25 @@ export const getPendingLoading = (scope: string, module: string): Promise<any> |
 
 export const preloadModule = async (scope: string, module: string, processor?: (item: any) => string, skipCache = false) => {
   const { manifestLocation } = getAppData(scope);
-  const cachedModule = getCachedModule(scope, module, skipCache);
+  const { cachedModule } = getCachedModule(scope, module, skipCache);
   let modulePromise = getPendingLoading(scope, module);
 
   // lock preloading if module exists or is already being loaded
-  if (!modulePromise && !cachedModule && manifestLocation) {
-    modulePromise = processManifest(manifestLocation, scope, scope, processor).then(() => asyncLoader(scope, module));
+  if (!modulePromise && Object.keys(cachedModule || {}).length == 0 && manifestLocation) {
+    modulePromise = processManifest(manifestLocation, scope, processor).then(() => asyncLoader(scope, module));
   }
 
   // add scalprum API later
   const prefetchID = `${scope}#${module}`;
 
   if (!getPendingPrefetch(prefetchID) && cachedModule?.prefetch) {
-    handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum()));
+    handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum().api));
   }
 
   return setPendingLoading(scope, module, Promise.resolve(modulePromise));
 };
 
-export const initialize = <T = unknown>({
+export const initialize = <T extends Record<string, any> = Record<string, any>>({
   appsConfig,
   api,
   options,
@@ -187,7 +189,7 @@ export const initialize = <T = unknown>({
     pendingPrefetch: {},
     factories: {},
     scalprumOptions: defaultOptions,
-    ...api,
+    api: api || {},
   };
 };
 
@@ -195,17 +197,17 @@ export const getAppData = (name: string): AppMetadata => window[GLOBAL_NAMESPACE
 
 const shouldInjectScript = (src: string) => document.querySelectorAll(`script[src="${src}"]`)?.length === 0;
 
-export const injectScript = (appName: string, scriptLocation: string): Promise<[any, HTMLScriptElement | undefined]> => {
+export const injectScript = (scope: string, scriptLocation: string): Promise<[any, HTMLScriptElement | undefined]> => {
   let s: HTMLScriptElement | undefined = undefined;
   if (!shouldInjectScript(scriptLocation)) {
-    return Promise.resolve([appName, document.querySelectorAll(`script[src="${scriptLocation}"]`)?.[0] as HTMLScriptElement]);
+    return Promise.resolve([scope, document.querySelectorAll(`script[src="${scriptLocation}"]`)?.[0] as HTMLScriptElement]);
   }
   const injectionPromise: Promise<[any, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
     s = document.createElement('script');
     s.src = scriptLocation;
-    s.id = `container_entry_${appName}`;
+    s.id = `container_entry_${scope}`;
     s.onload = () => {
-      res([appName, s]);
+      res([scope, s]);
     };
     s.onerror = (...args) => {
       rej([args, s]);
@@ -220,7 +222,6 @@ export const injectScript = (appName: string, scriptLocation: string): Promise<[
 
 export async function processManifest(
   url: string,
-  appName: string,
   scope: string,
   processor: ((value: any) => string) | undefined
 ): Promise<[unknown, HTMLScriptElement | undefined][]> {
@@ -244,7 +245,7 @@ export async function processManifest(
       .filter(([key]) => (scope ? key === scope : true))
       .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
       .map(async (scriptLocation: string) => {
-        const data = await injectScript(appName, scriptLocation);
+        const data = await injectScript(scope, scriptLocation);
         resolvePendingInjection(scope);
         return data;
       })
@@ -257,7 +258,7 @@ export async function processManifest(
   return injectionPromise;
 }
 
-export async function asyncLoader(scope: string, module: string): Promise<IModule> {
+export async function asyncLoader<T = any, P = any>(scope: string, module: string): Promise<ExposedScalprumModule<T, P>> {
   if (typeof scope === 'undefined' || scope.length === 0) {
     throw new Error("Scope can't be undefined or empty");
   }
@@ -275,7 +276,7 @@ export async function asyncLoader(scope: string, module: string): Promise<IModul
   const factory = await (window as { [key: string]: any })[scope].get(module);
 
   if (!window[GLOBAL_NAMESPACE].factories[scope]) {
-    window[GLOBAL_NAMESPACE].factories[scope] = {};
+    window[GLOBAL_NAMESPACE].factories[scope] = {} as any;
   }
 
   const moduleFactory = factory();
