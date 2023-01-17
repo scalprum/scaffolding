@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, useState, ReactNode, useReducer } from 'react';
+import React, { useEffect, Suspense, useState, ReactNode, useReducer, useRef } from 'react';
 import {
   getCachedModule,
   handlePrefetchPromise,
@@ -72,7 +72,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
     throw loadingError;
   }
 
-  const { api: scalprumApi } = useScalprum();
+  const scalprumApi = useScalprum();
 
   useEffect(() => {
     const prefetchID = `${scope}#${module}`;
@@ -146,7 +146,6 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
           if (pref) {
             const prefetch = getPendingPrefetch(prefetchID) || pref(scalprumApi);
             setPrefetchPromise(prefetch);
-            prefetch.then(console.error);
             handlePrefetchPromise(prefetchID, prefetch);
           }
         } catch (e) {
@@ -162,8 +161,12 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   }, [scope, skipCache, reRender]);
 
   // clear prefetchPromise (from factory)
+  const initialPrefetch = useRef(false);
   useEffect(() => {
-    setPrefetchPromise(undefined);
+    if (initialPrefetch.current) {
+      setPrefetchPromise(undefined);
+    }
+    initialPrefetch.current = true;
   }, [scope, module]);
 
   return (

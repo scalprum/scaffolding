@@ -30,10 +30,10 @@ export interface ScalprumOptions {
   cacheTimeout: number;
 }
 
-export type Scalprum<T = any> = T & {
+export type Scalprum<T extends Record<string, any> = Record<string, any>> = {
   appsConfig: AppsConfig;
   pendingInjections: {
-    [key: string]: () => void;
+    [key: string]: Promise<any>;
   };
   pendingLoading: {
     [key: string]: Promise<ScalprumModule>;
@@ -45,6 +45,7 @@ export type Scalprum<T = any> = T & {
     [key: string]: Factory;
   };
   scalprumOptions: ScalprumOptions;
+  api: T;
 };
 
 export type Container = Window & Factory;
@@ -68,7 +69,7 @@ export const handlePrefetchPromise = (id: string, prefetch?: Promise<any>) => {
   }
 };
 
-export const getScalprum = <T = Record<string, any>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
+export const getScalprum = () => window[GLOBAL_NAMESPACE];
 export const getCachedModule = (scope: string, module: string, skipCache = false): ScalprumModule => {
   try {
     const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
@@ -96,7 +97,7 @@ export const getCachedModule = (scope: string, module: string, skipCache = false
       return { cachedModule, prefetchPromise };
     }
     if (cachedModule?.prefetch) {
-      handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum()));
+      handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum().api));
       return { cachedModule, prefetchPromise: getPendingPrefetch(prefetchID) };
     }
     return { cachedModule };
@@ -162,13 +163,13 @@ export const preloadModule = async (scope: string, module: string, processor?: (
   const prefetchID = `${scope}#${module}`;
 
   if (!getPendingPrefetch(prefetchID) && cachedModule?.prefetch) {
-    handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum()));
+    handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum().api));
   }
 
   return setPendingLoading(scope, module, Promise.resolve(modulePromise));
 };
 
-export const initialize = <T = unknown>({
+export const initialize = <T extends Record<string, any> = Record<string, any>>({
   appsConfig,
   api,
   options,
@@ -188,7 +189,7 @@ export const initialize = <T = unknown>({
     pendingPrefetch: {},
     factories: {},
     scalprumOptions: defaultOptions,
-    ...api,
+    api: api || {},
   };
 };
 
@@ -275,7 +276,7 @@ export async function asyncLoader<T = any, P = any>(scope: string, module: strin
   const factory = await (window as { [key: string]: any })[scope].get(module);
 
   if (!window[GLOBAL_NAMESPACE].factories[scope]) {
-    window[GLOBAL_NAMESPACE].factories[scope] = {};
+    window[GLOBAL_NAMESPACE].factories[scope] = {} as any;
   }
 
   const moduleFactory = factory();

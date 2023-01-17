@@ -4,7 +4,7 @@ import { ScalprumContext } from './scalprum-context';
 
 export type ScalprumFeed = AppsConfig | (() => AppsConfig) | (() => Promise<AppsConfig>);
 
-export interface ScalprumState<T = Record<string, any>> {
+export interface ScalprumState<T extends Record<string, any> = Record<string, any>> {
   initialized: boolean;
   config: AppsConfig;
   api?: T;
@@ -20,24 +20,24 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
   config,
   children,
   api,
-}: ScalprumProviderProps): React.ReactElement | React.ReactElement {
+}: ScalprumProviderProps<T>): React.ReactElement | React.ReactElement {
   const mounted = useRef(false);
   const [state, setState] = useState<ScalprumState<T>>({
     initialized: false,
     config: {},
-    api: api as T,
+    api,
   });
   useEffect(() => {
     if (typeof config === 'object') {
-      initialize<T>({ appsConfig: config as AppsConfig, api: api as T });
-      setState((prev) => ({ ...prev, initialized: true, config: config as AppsConfig }));
+      initialize<T>({ appsConfig: config, api: api as T });
+      setState((prev) => ({ ...prev, initialized: true, config }));
       mounted.current = true;
     }
 
     if (typeof config === 'function') {
       Promise.resolve(config()).then((config) => {
-        setState((prev) => ({ ...prev, initialized: true, config: config as AppsConfig }));
-        initialize<T>({ appsConfig: config as AppsConfig, api: api as T });
+        setState((prev) => ({ ...prev, initialized: true, config }));
+        initialize<T>({ appsConfig: config, api: api as T });
         mounted.current = true;
       });
     }
@@ -47,7 +47,7 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
     if (mounted.current) {
       setState((prev) => ({
         ...prev,
-        api: api as T,
+        api,
       }));
     }
   }, [api]);

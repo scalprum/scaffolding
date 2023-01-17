@@ -4,7 +4,7 @@ import * as asyncComponent from './async-loader';
 import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
 import { render, cleanup, act, screen } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
-import { AppsConfig, GLOBAL_NAMESPACE } from '@scalprum/core';
+import { AppsConfig, GLOBAL_NAMESPACE, Scalprum } from '@scalprum/core';
 import TestComponent from './TestComponent';
 
 const flushPromise = () => Promise.resolve(setTimeout);
@@ -51,7 +51,7 @@ describe('<ScalprumComponent />', () => {
 
   afterEach(() => {
     cleanup();
-    window[GLOBAL_NAMESPACE] = undefined;
+    window[GLOBAL_NAMESPACE] = undefined as unknown as Scalprum<Record<string, any>>;
     getAppDataSpy.mockClear();
     injectScriptSpy.mockClear();
     processManifestSpy.mockClear();
