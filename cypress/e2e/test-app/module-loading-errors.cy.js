@@ -16,7 +16,7 @@ describe('Module error loading handling', () => {
     const button = cy.get('#render-preload-module');
     button.click();
 
-    cy.get('p').contains('Loading chunk src_modules_preLoad_tsx failed.').should('exist');
+    cy.contains('Loading chunk src_modules_preLoad_tsx failed.').should('exist');
   });
 
   it('should try self healing and render on second try', () => {

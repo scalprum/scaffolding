@@ -51,6 +51,7 @@ describe('scalprum', () => {
       factories: {},
       pendingInjections: {},
       pendingLoading: {},
+      pendingPrefetch: {},
       scalprumOptions: {
         cacheTimeout: 120,
       },
@@ -62,8 +63,8 @@ describe('scalprum', () => {
 
   test('getScalprum should return the scalprum object', () => {
     initialize(mockInititliazeConfig);
-    const restult = getScalprum();
-    expect(restult).toEqual(expect.any(Object));
+    const result = getScalprum();
+    expect(result).toEqual(expect.any(Object));
   });
 
   test('async loader should cache the webpack container factory', async () => {
@@ -71,7 +72,7 @@ describe('scalprum', () => {
       testScope: {
         init: expect.any(Function),
         modules: {
-          './testModule': expect.any(Function),
+          './testModule': expect.any(Object),
         },
         expiration: expect.any(Date),
       },
@@ -109,12 +110,12 @@ describe('scalprum', () => {
     };
     await asyncLoader('testScope', './testModule');
     // @ts-ignore
-    expect(getCachedModule('testScope', './testModule')).toEqual(expect.any(Function));
+    expect(getCachedModule('testScope', './testModule')).toHaveProperty('cachedModule');
     /**
      * Advance time by 120s + 1ms
      */
     jest.advanceTimersByTime(120 * 1000 + 1);
-    expect(getCachedModule('testScope', './testModule')).toEqual(undefined);
+    expect(getCachedModule('testScope', './testModule')).toEqual({});
   });
 
   test('getCachedModule should skip factory cache', async () => {
@@ -133,7 +134,7 @@ describe('scalprum', () => {
     };
     await asyncLoader('testScope', './testModule');
     // @ts-ignore
-    expect(getCachedModule('testScope', './testModule', true)).toEqual(undefined);
+    expect(getCachedModule('testScope', './testModule', true)).toEqual({});
   });
 
   test('getCachedModule should invalidate cache after 300s', async () => {
@@ -157,16 +158,16 @@ describe('scalprum', () => {
     };
     await asyncLoader('testScope', './testModule');
     // @ts-ignore
-    expect(getCachedModule('testScope', './testModule')).toEqual(expect.any(Function));
+    expect(getCachedModule('testScope', './testModule')).toHaveProperty('cachedModule');
     /**
      * Advance time by 120s + 1ms
      */
     jest.advanceTimersByTime(120 * 1000 + 1);
-    expect(getCachedModule('testScope', './testModule')).toEqual(expect.any(Function));
+    expect(getCachedModule('testScope', './testModule')).toHaveProperty('cachedModule');
     /**
      * Advance time by 180s + 1ms
      */
     jest.advanceTimersByTime(180 * 1000 + 1);
-    expect(getCachedModule('testScope', './testModule')).toEqual(undefined);
+    expect(getCachedModule('testScope', './testModule')).toEqual({});
   });
 });

@@ -16,9 +16,19 @@ const Initializer: React.ComponentType = ({ children }) => {
 
 const ContentStuff = () => {
   const [showPreLoadedModule, setShowPreLoadedModule] = useState(false);
+  const [showPreLoadedModuleWPF, setShowPreLoadedModuleWPF] = useState(false);
+
   const handlePreload = async () => {
     try {
       await preloadModule('preLoad', './PreLoadedModule');
+    } catch (error) {
+      console.log('Unable to preload module: ', error);
+    }
+  };
+
+  const handlePreloadPF = async () => {
+    try {
+      await preloadModule('testApp', './ModuleOne');
     } catch (error) {
       console.log('Unable to preload module: ', error);
     }
@@ -30,8 +40,14 @@ const ContentStuff = () => {
           Hover over this to pre-load; Click to show
         </button>
       </div>
+      <div>
+        <button id="render-prefetch-module" onMouseEnter={handlePreloadPF} onClick={() => setShowPreLoadedModuleWPF((prev) => !prev)}>
+          Hover over this to pre-load and prefetch; Click to show
+        </button>
+      </div>
       <ScalprumComponent LoadingComponent={LoadingComponent} appName="testApp" scope="testApp" module="./ModuleOne" />
       {showPreLoadedModule && <ScalprumComponent LoadingComponent={LoadingComponent} appName="preLoad" scope="preLoad" module="./PreLoadedModule" />}
+      {showPreLoadedModuleWPF && <ScalprumComponent LoadingComponent={LoadingComponent} appName="testApp" scope="testApp" module="./ModuleOne" />}
     </>
   );
 };
@@ -39,6 +55,12 @@ const ContentStuff = () => {
 const Entry = () => {
   return (
     <ScalprumProvider
+      api={{
+        chrome: {
+          foo: 'bar',
+          isBeta: () => true,
+        },
+      }}
       config={{
         testApp: {
           name: 'testApp',

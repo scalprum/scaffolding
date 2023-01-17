@@ -1,8 +1,19 @@
 import React, { useEffect, Suspense, useState, ReactNode, useReducer } from 'react';
-import { getCachedModule, getAppData, injectScript, processManifest, getPendingLoading, setPendingLoading } from '@scalprum/core';
+import {
+  getCachedModule,
+  handlePrefetchPromise,
+  getAppData,
+  injectScript,
+  processManifest,
+  getPendingLoading,
+  setPendingLoading,
+  getPendingPrefetch,
+} from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
 import DefaultErrorComponent from './default-error-component';
+import { PrefetchProvider } from './prefetch-context';
+import { useScalprum } from './use-scalprum';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type ScalprumComponentProps<API extends Record<string, any> = {}, Props extends Record<string, any> = {}> = Props & {
@@ -22,6 +33,24 @@ interface LoadModuleProps extends Omit<ScalprumComponentProps, 'ErrorComponent'>
   ErrorComponent: React.ComponentType;
 }
 
+async function setComponentFromModule(
+  scope: string,
+  module: string,
+  isMounted: boolean,
+  setComponent: React.Dispatch<
+    React.SetStateAction<
+      | React.ComponentType<{
+          ref?: React.Ref<unknown> | undefined;
+        }>
+      | undefined
+    >
+  >
+): Promise<(...args: any[]) => Promise<any> | undefined> {
+  const { prefetch, component } = await loadComponent(scope, module);
+  isMounted && setComponent(() => component);
+  return prefetch;
+}
+
 const LoadModule: React.ComponentType<LoadModuleProps> = ({
   fallback = 'loading',
   appName,
@@ -35,11 +64,30 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
 }) => {
   const { scriptLocation, manifestLocation } = getAppData(appName);
   const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
-  const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> }> | undefined>(undefined);
+  const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> } & Record<string, any>> | undefined>(undefined);
+  const [prefetchPromise, setPrefetchPromise] = useState<Promise<any>>();
+  const [loadingError, setLoadingError] = useState<Error | undefined>();
+
+  if (loadingError) {
+    // Error has to be thrown during render loop. Promise based errors won't be catched by error boundary.
+    throw loadingError;
+  }
+
+  const { api: scalprumApi } = useScalprum();
+
   useEffect(() => {
-    const cachedModule = getCachedModule(scope, module, skipCache);
+    const prefetchID = `${scope}#${module}`;
+    const { cachedModule, prefetchPromise } = getCachedModule(scope, module, skipCache);
+    setPrefetchPromise(prefetchPromise);
+
     let isMounted = true;
-    const handleLoadingError = () => isMounted && setComponent(() => (props: any) => <ErrorComponent {...props} />);
+    const handleLoadingError = (error?: Error) => {
+      if (isMounted) {
+        setLoadingError(error);
+        setComponent(() => (props: any) => <ErrorComponent error={error} {...props} />);
+      }
+    };
+    let pref;
     /**
      * Check if module is being pre-loaded
      */
@@ -55,37 +103,75 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
        */
       if (!cachedModule) {
         if (scriptLocation) {
-          const injecttionPromise = injectScript(appName, scriptLocation)
+          const injectionPromise = injectScript(appName, scriptLocation)
             .then(() => {
-              isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+              pref = setComponentFromModule(scope, module, isMounted, setComponent);
+              if (pref) {
+                pref.then((result) => {
+                  if (result) {
+                    const prefetch = getPendingPrefetch(prefetchID) || result(scalprumApi);
+                    setPrefetchPromise(prefetch);
+                    handlePrefetchPromise(prefetchID, prefetch);
+                  }
+                });
+              }
+              return pref;
             })
             .catch(handleLoadingError);
+
           // lock module preload
-          setPendingLoading(scope, module, injecttionPromise);
+          setPendingLoading(scope, module, injectionPromise);
         } else if (manifestLocation) {
           const processPromise = processManifest(manifestLocation, appName, scope, processor)
             .then(() => {
-              isMounted && setComponent(() => React.lazy(loadComponent(scope, module, ErrorComponent)));
+              pref = setComponentFromModule(scope, module, isMounted, setComponent);
+              pref.then((result) => {
+                if (result) {
+                  const prefetch = getPendingPrefetch(prefetchID) || result(scalprumApi);
+                  setPrefetchPromise(prefetch);
+                  handlePrefetchPromise(prefetchID, prefetch);
+                }
+              });
+              return pref;
             })
             .catch(handleLoadingError);
+
           // lock module preload
           setPendingLoading(scope, module, processPromise);
         }
       } else {
         try {
           isMounted && setComponent(() => cachedModule.default);
-        } catch {
-          handleLoadingError();
+
+          pref = cachedModule.prefetch;
+          if (pref) {
+            const prefetch = getPendingPrefetch(prefetchID) || pref(scalprumApi);
+            setPrefetchPromise(prefetch);
+            prefetch.then(console.error);
+            handlePrefetchPromise(prefetchID, prefetch);
+          }
+        } catch (e) {
+          handleLoadingError(e as Error);
         }
       }
     }
 
     return () => {
       isMounted = false;
+      setLoadingError(undefined);
     };
   }, [appName, scope, skipCache, reRender]);
 
-  return <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>;
+  // clear prefetchPromise (from factory)
+  useEffect(() => {
+    setPrefetchPromise(undefined);
+  }, [appName, scope, module]);
+
+  return (
+    <PrefetchProvider prefetchPromise={prefetchPromise}>
+      <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>
+    </PrefetchProvider>
+  );
 };
 
 interface BaseScalprumComponentState {

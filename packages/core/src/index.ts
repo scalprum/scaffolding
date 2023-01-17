@@ -14,7 +14,10 @@ export interface AppsConfig {
 export interface Factory {
   init: (sharing: any) => void;
   modules: {
-    [key: string]: any;
+    [key: string]: {
+      default: any;
+      prefetch?: (scalprumApi: Scalprum) => Promise<unknown>;
+    };
   };
   expiration: Date;
 }
@@ -31,6 +34,9 @@ export type Scalprum<T = any> = T & {
   pendingLoading: {
     [key: string]: Promise<IModule>;
   };
+  pendingPrefetch: {
+    [key: string]: Promise<unknown>;
+  };
   factories: {
     [key: string]: Factory;
   };
@@ -41,6 +47,7 @@ export type Container = Window & Factory;
 
 export interface IModule {
   default: any;
+  prefetch?: Promise<any>;
 }
 
 declare global {
@@ -53,12 +60,19 @@ declare global {
 declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
 
+export const handlePrefetchPromise = (id: string, prefetch: any) => {
+  setPendingPrefetch(id, prefetch);
+  prefetch.finally(() => {
+    removePrefetch(id);
+  });
+};
+
 export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
 export const getCachedModule = (scope: string, module: string, skipCache = false): any | undefined => {
   try {
     const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
     if (!factory || !factory.expiration) {
-      return undefined;
+      return {};
     }
     /**
      * Invalidate module after 2 minutes
@@ -67,19 +81,28 @@ export const getCachedModule = (scope: string, module: string, skipCache = false
       skipCache || (new Date().getTime() - factory.expiration.getTime()) / 1000 > window[GLOBAL_NAMESPACE].scalprumOptions.cacheTimeout;
     if (isExpired) {
       delete window[GLOBAL_NAMESPACE].factories[scope];
-      return undefined;
+      return {};
     }
 
     const cachedModule = factory.modules[module];
     if (!module) {
-      return undefined;
+      return {};
     }
 
-    return cachedModule;
+    const prefetchID = `${scope}#${module}`;
+    const prefetchPromise = getPendingPrefetch(prefetchID);
+    if (prefetchPromise) {
+      return { cachedModule, prefetchPromise };
+    }
+    if (cachedModule?.prefetch) {
+      handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum()));
+      return { cachedModule, prefetchPromise: getPendingPrefetch(prefetchID) };
+    }
+    return { cachedModule };
   } catch (error) {
     // If something goes wrong during the cache retrieval, reload module.
-    console.warn(`Unable to retriev cached module ${scope} ${module}. New module will be loaded.`, error);
-    return undefined;
+    console.warn(`Unable to retrieve cached module ${scope} ${module}. New module will be loaded.`, error);
+    return {};
   }
 };
 
@@ -89,6 +112,18 @@ export const setPendingInjection = (id: string, injectionLock: Promise<any>): vo
 
 export const getPendingInjection = (id: string): Promise<any> | undefined => {
   return window[GLOBAL_NAMESPACE].pendingInjections[id];
+};
+
+export const setPendingPrefetch = (id: string, prefetch: Promise<any>): void => {
+  window[GLOBAL_NAMESPACE].pendingPrefetch[id] = prefetch;
+};
+
+export const getPendingPrefetch = (id: string): Promise<any> | undefined => {
+  return window[GLOBAL_NAMESPACE].pendingPrefetch?.[id];
+};
+
+export const removePrefetch = (id: string) => {
+  delete window[GLOBAL_NAMESPACE].pendingPrefetch[id];
 };
 
 export const resolvePendingInjection = (id: string) => {
@@ -116,11 +151,19 @@ export const preloadModule = async (scope: string, module: string, processor?: (
   const { manifestLocation } = getAppData(scope);
   const cachedModule = getCachedModule(scope, module, skipCache);
   let modulePromise = getPendingLoading(scope, module);
+
   // lock preloading if module exists or is already being loaded
   if (!modulePromise && !cachedModule && manifestLocation) {
     modulePromise = processManifest(manifestLocation, scope, scope, processor).then(() => asyncLoader(scope, module));
   }
-  // add preloading information to registry
+
+  // add scalprum API later
+  const prefetchID = `${scope}#${module}`;
+
+  if (!getPendingPrefetch(prefetchID) && cachedModule?.prefetch) {
+    handlePrefetchPromise(prefetchID, cachedModule.prefetch(getScalprum()));
+  }
+
   return setPendingLoading(scope, module, Promise.resolve(modulePromise));
 };
 
@@ -141,6 +184,7 @@ export const initialize = <T = unknown>({
     appsConfig,
     pendingInjections: {},
     pendingLoading: {},
+    pendingPrefetch: {},
     factories: {},
     scalprumOptions: defaultOptions,
     ...api,
@@ -164,7 +208,6 @@ export const injectScript = (appName: string, scriptLocation: string): Promise<[
       res([appName, s]);
     };
     s.onerror = (...args) => {
-      console.log(args);
       rej([args, s]);
     };
   });
@@ -235,11 +278,14 @@ export async function asyncLoader(scope: string, module: string): Promise<IModul
     window[GLOBAL_NAMESPACE].factories[scope] = {};
   }
 
+  const moduleFactory = factory();
   const factoryCache: Factory = {
     init: container.init,
     modules: {
       ...window[GLOBAL_NAMESPACE].factories[scope].modules,
-      [module]: factory(),
+      [module]: {
+        ...moduleFactory,
+      },
     },
     expiration: new Date(),
   };

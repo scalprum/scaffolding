@@ -66,12 +66,16 @@ exports[`<ScalprumComponent /> should retrieve module from scalprum cache 1`] = 
 
 exports[`<ScalprumComponent /> should skip scalprum cache 1`] = `
 <div>
-  loading
+  <span>
+    Test
+  </span>
 </div>
 `;
 
 exports[`<ScalprumComponent /> should try and re-render original component on first error 1`] = `
 <div>
-  loading
+  <span>
+    Test
+  </span>
 </div>
 `;
