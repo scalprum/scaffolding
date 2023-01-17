@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { asyncLoader, getCachedModule, IModule } from '@scalprum/core';
+import { asyncLoader, getCachedModule, ExposedScalprumModule } from '@scalprum/core';
 
 export function useModule(
   scope: string,
@@ -8,15 +8,15 @@ export function useModule(
   options: {
     skipCache?: boolean;
   } = {}
-): IModule | undefined {
+): ExposedScalprumModule | undefined {
   const defaultOptions = {
     skipCache: false,
     ...options,
   };
-  const [data, setData] = useState<IModule>(defaultState);
+  const [data, setData] = useState<ExposedScalprumModule>(defaultState);
   const fetchModule = useCallback(async () => {
-    const cachedModule = getCachedModule(scope, module, defaultOptions.skipCache);
-    let Module: IModule;
+    const { cachedModule } = getCachedModule(scope, module, defaultOptions.skipCache);
+    let Module: ExposedScalprumModule;
     if (!cachedModule) {
       try {
         Module = await asyncLoader(scope, module);

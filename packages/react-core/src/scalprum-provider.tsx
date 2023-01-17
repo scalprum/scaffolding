@@ -4,7 +4,7 @@ import { ScalprumContext } from './scalprum-context';
 
 export type ScalprumFeed = AppsConfig | (() => AppsConfig) | (() => Promise<AppsConfig>);
 
-export interface ScalprumState<T = Record<string, unknown>> {
+export interface ScalprumState<T = Record<string, any>> {
   initialized: boolean;
   config: AppsConfig;
   api?: T;
@@ -52,5 +52,5 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
     }
   }, [api]);
 
-  return <ScalprumContext.Provider value={state as ScalprumState<Record<string, unknown>>}>{children}</ScalprumContext.Provider>;
+  return <ScalprumContext.Provider value={state as ScalprumState<Record<string, any>>}>{children}</ScalprumContext.Provider>;
 }

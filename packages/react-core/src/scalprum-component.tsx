@@ -8,6 +8,7 @@ import {
   getPendingLoading,
   setPendingLoading,
   getPendingPrefetch,
+  PrefetchFunction,
 } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
@@ -44,7 +45,7 @@ async function setComponentFromModule(
       | undefined
     >
   >
-): Promise<(...args: any[]) => Promise<any> | undefined> {
+): Promise<PrefetchFunction | undefined> {
   const { prefetch, component } = await loadComponent(scope, module);
   isMounted && setComponent(() => component);
   return prefetch;

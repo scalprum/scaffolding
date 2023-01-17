@@ -11,13 +11,17 @@ export interface AppsConfig {
   [key: string]: AppMetadata;
 }
 
-export interface Factory {
+export type PrefetchFunction<T = any> = (ScalprumApi: Record<string, any> | undefined) => Promise<T>;
+export type ExposedScalprumModule<T = any, P = any> = { default: T; prefetch?: PrefetchFunction<P> };
+export type ScalprumModule<T = any, P = any> = {
+  cachedModule?: ExposedScalprumModule<T, P>;
+  prefetchPromise?: ReturnType<PrefetchFunction>;
+};
+
+export interface Factory<T = any, P = any> {
   init: (sharing: any) => void;
   modules: {
-    [key: string]: {
-      default: any;
-      prefetch?: (scalprumApi: Scalprum) => Promise<unknown>;
-    };
+    [key: string]: ExposedScalprumModule<T, P>;
   };
   expiration: Date;
 }
@@ -32,7 +36,7 @@ export type Scalprum<T = any> = T & {
     [key: string]: () => void;
   };
   pendingLoading: {
-    [key: string]: Promise<IModule>;
+    [key: string]: Promise<ScalprumModule>;
   };
   pendingPrefetch: {
     [key: string]: Promise<unknown>;
@@ -45,11 +49,6 @@ export type Scalprum<T = any> = T & {
 
 export type Container = Window & Factory;
 
-export interface IModule {
-  default: any;
-  prefetch?: Promise<any>;
-}
-
 declare global {
   // eslint-disable-next-line no-unused-vars
   interface Window {
@@ -60,15 +59,17 @@ declare global {
 declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
 
-export const handlePrefetchPromise = (id: string, prefetch: any) => {
-  setPendingPrefetch(id, prefetch);
-  prefetch.finally(() => {
-    removePrefetch(id);
-  });
+export const handlePrefetchPromise = (id: string, prefetch?: Promise<any>) => {
+  if (prefetch) {
+    setPendingPrefetch(id, prefetch);
+    prefetch.finally(() => {
+      removePrefetch(id);
+    });
+  }
 };
 
-export const getScalprum = <T = Record<string, unknown>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
-export const getCachedModule = (scope: string, module: string, skipCache = false): any | undefined => {
+export const getScalprum = <T = Record<string, any>>(): Scalprum<T> => window[GLOBAL_NAMESPACE];
+export const getCachedModule = (scope: string, module: string, skipCache = false): ScalprumModule => {
   try {
     const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
     if (!factory || !factory.expiration) {
@@ -149,7 +150,7 @@ export const getPendingLoading = (scope: string, module: string): Promise<any> |
 
 export const preloadModule = async (scope: string, module: string, processor?: (item: any) => string, skipCache = false) => {
   const { manifestLocation } = getAppData(scope);
-  const cachedModule = getCachedModule(scope, module, skipCache);
+  const { cachedModule } = getCachedModule(scope, module, skipCache);
   let modulePromise = getPendingLoading(scope, module);
 
   // lock preloading if module exists or is already being loaded
@@ -256,7 +257,7 @@ export async function processManifest(
   return injectionPromise;
 }
 
-export async function asyncLoader(scope: string, module: string): Promise<IModule> {
+export async function asyncLoader<T = any, P = any>(scope: string, module: string): Promise<ExposedScalprumModule<T, P>> {
   if (typeof scope === 'undefined' || scope.length === 0) {
     throw new Error("Scope can't be undefined or empty");
   }

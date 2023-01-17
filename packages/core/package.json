@@ -16,5 +16,5 @@
     "build:typings": "node ../../scripts/create-typings.js",
     "start:esm": "npm run build:esm -- -w",
     "start:cjs": "npm run build:cjs -- -w"
-  }  
+  }
 }

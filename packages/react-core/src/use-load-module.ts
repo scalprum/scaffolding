@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { asyncLoader, getCachedModule, IModule, getAppData, injectScript, processManifest } from '@scalprum/core';
+import { asyncLoader, getCachedModule, ExposedScalprumModule, getAppData, injectScript, processManifest } from '@scalprum/core';
 
 export type ModuleDefinition = {
   scope: string;
@@ -13,13 +13,13 @@ export function useLoadModule(
   options: {
     skipCache?: boolean;
   } = {}
-): [IModule | undefined, Error | undefined] {
+): [ExposedScalprumModule | undefined, Error | undefined] {
   const defaultOptions = {
     skipCache: false,
     ...options,
   };
   const { scriptLocation, manifestLocation } = getAppData(scope);
-  const [data, setData] = useState<IModule>(defaultState);
+  const [data, setData] = useState<ExposedScalprumModule>(defaultState);
   const [error, setError] = useState<Error>();
   const cachedModule = getCachedModule(scope, module, defaultOptions.skipCache);
   const isMounted = useRef(true);
@@ -29,7 +29,7 @@ export function useLoadModule(
         if (scriptLocation) {
           injectScript(scope, scriptLocation)
             .then(async () => {
-              const Module: IModule = await asyncLoader(scope, module);
+              const Module: ExposedScalprumModule = await asyncLoader(scope, module);
               setData(() => Module);
             })
             .catch((e) => {
@@ -38,7 +38,7 @@ export function useLoadModule(
         } else if (manifestLocation) {
           processManifest(manifestLocation, scope, processor)
             .then(async () => {
-              const Module: IModule = await asyncLoader(scope, module);
+              const Module: ExposedScalprumModule = await asyncLoader(scope, module);
               setData(() => Module);
             })
             .catch((e) => {
@@ -47,7 +47,7 @@ export function useLoadModule(
         }
       } else {
         try {
-          asyncLoader(scope, module).then((Module: IModule) => {
+          asyncLoader(scope, module).then((Module: ExposedScalprumModule) => {
             setData(() => Module);
           });
         } catch (e) {

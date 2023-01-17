@@ -161,7 +161,7 @@ describe('<ScalprumComponent />', () => {
      * We need the async component "hang" to render the fallback
      */
 
-    const componentPromise = new Promise<{ prefetch: Promise<any> | undefined; component: ComponentType<any> }>((res) =>
+    const componentPromise = new Promise<{ prefetch: (() => Promise<any>) | undefined; component: ComponentType<any> }>((res) =>
       setTimeout(() => res({ prefetch: undefined, component: TestComponent }), 500)
     );
     jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(componentPromise);
