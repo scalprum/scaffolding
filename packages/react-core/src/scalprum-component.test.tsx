@@ -58,19 +58,23 @@ describe('<ScalprumComponent />', () => {
     loadComponentSpy.mockReset();
   });
 
-  test('should retrieve script location', () => {
+  test('should retrieve script location', async () => {
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-    render(<ScalprumComponent scope="appOne" module="test" />);
+    await act(async () => {
+      await render(<ScalprumComponent scope="appOne" module="test" />);
+    });
 
     expect(getAppDataSpy).toHaveBeenCalledWith('appOne');
   });
 
-  test('should retrieve manifest location', () => {
+  test('should retrieve manifest location', async () => {
     getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     ScalprumCore.initialize({ appsConfig: mockInitScalpumConfigManifest });
     ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-    render(<ScalprumComponent scope="appOne" module="test" />);
+    await act(async () => {
+      await render(<ScalprumComponent scope="appOne" module="test" />);
+    });
 
     expect(getAppDataSpy).toHaveBeenCalledWith('appOne');
   });

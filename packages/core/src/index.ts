@@ -229,12 +229,26 @@ export async function processManifest(
   headers.append('Pragma', 'no-cache');
   headers.append('Cache-Control', 'no-cache');
   headers.append('expires', '0');
-  const manifest = await (
-    await fetch(url, {
-      method: 'GET',
-      headers,
-    })
-  ).json();
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  });
+
+  // handle network errors
+  if (!response.ok) {
+    let error = 'Unable to process manifest';
+    try {
+      error = await response.json();
+    } catch {
+      // try text error if json fails
+      error = await response.text();
+    }
+
+    throw error;
+  }
+
+  // response is OK get manifest payload
+  const manifest = await response.json();
   const pendingInjection = getPendingInjection(scope);
   if (pendingInjection) {
     return pendingInjection;

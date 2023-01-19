@@ -21,7 +21,7 @@ export function useLoadModule(
   const { scriptLocation, manifestLocation } = getAppData(scope);
   const [data, setData] = useState<ExposedScalprumModule>(defaultState);
   const [error, setError] = useState<Error>();
-  const cachedModule = getCachedModule(scope, module, defaultOptions.skipCache);
+  const { cachedModule } = getCachedModule(scope, module, defaultOptions.skipCache);
   const isMounted = useRef(true);
   useEffect(() => {
     if (isMounted.current) {
