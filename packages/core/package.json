@@ -1,10 +1,12 @@
 {
   "name": "@scalprum/core",
-  "version": "0.3.2",
+  "version": "0.4.0-beta.1",
   "description": "Includes core functions for scalprum scaffolding.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "typings": "dist/index.d.ts",
   "repository": "https://github.com/scalprum/scaffloding.git",
   "author": "Martin Marosi <marvusm.mmi@gmail.com>",
@@ -16,5 +18,8 @@
     "build:typings": "node ../../scripts/create-typings.js",
     "start:esm": "npm run build:esm -- -w",
     "start:cjs": "npm run build:cjs -- -w"
+  },
+  "dependencies": {
+    "@openshift/dynamic-plugin-sdk": "^2.0.0"
   }
 }

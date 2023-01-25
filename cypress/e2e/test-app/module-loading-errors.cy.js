@@ -1,5 +1,5 @@
 describe('Module error loading handling', () => {
-  it('should show cunk loading error message', () => {
+  it('should show chunk loading error message', () => {
     cy.visit('http://localhost:8123');
 
     // intercept webpack chunk and return 500 response
@@ -16,7 +16,7 @@ describe('Module error loading handling', () => {
     const button = cy.get('#render-preload-module');
     button.click();
 
-    cy.contains('Loading chunk src_modules_preLoad_tsx failed.').should('exist');
+    cy.contains(`Failed to load module './PreLoadedModule' of plugin preLoad`).should('exist');
   });
 
   it('should try self healing and render on second try', () => {

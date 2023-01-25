@@ -1,9 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 const LoadingComponent: React.FC = () => {
-  useEffect(() => {
-    console.log('Loading component mounted');
-  }, []);
   return <div>Super duper loading</div>;
 };
 

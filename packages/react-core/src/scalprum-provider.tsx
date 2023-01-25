@@ -1,8 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { initialize, AppsConfig } from '@scalprum/core';
+import React, { useRef } from 'react';
+import { initialize, AppsConfig, Scalprum } from '@scalprum/core';
 import { ScalprumContext } from './scalprum-context';
+import { PluginStoreProvider } from '@openshift/dynamic-plugin-sdk';
 
-export type ScalprumFeed = AppsConfig | (() => AppsConfig) | (() => Promise<AppsConfig>);
+/**
+ * @deprecated
+ */
+export type ScalprumFeed = AppsConfig;
 
 export interface ScalprumState<T extends Record<string, any> = Record<string, any>> {
   initialized: boolean;
@@ -11,7 +15,7 @@ export interface ScalprumState<T extends Record<string, any> = Record<string, an
 }
 
 export interface ScalprumProviderProps<T extends Record<string, any> = Record<string, any>> {
-  config: ScalprumFeed;
+  config: AppsConfig;
   api?: T;
   children?: React.ReactNode;
 }
@@ -21,36 +25,17 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
   children,
   api,
 }: ScalprumProviderProps<T>): React.ReactElement | React.ReactElement {
-  const mounted = useRef(false);
-  const [state, setState] = useState<ScalprumState<T>>({
-    initialized: false,
-    config: {},
-    api,
-  });
-  useEffect(() => {
-    if (typeof config === 'object') {
-      initialize<T>({ appsConfig: config, api: api as T });
-      setState((prev) => ({ ...prev, initialized: true, config }));
-      mounted.current = true;
-    }
+  const state = useRef<Scalprum<T>>(initialize<T>({ appsConfig: config, api: api as T }));
 
-    if (typeof config === 'function') {
-      Promise.resolve(config()).then((config) => {
-        setState((prev) => ({ ...prev, initialized: true, config }));
-        initialize<T>({ appsConfig: config, api: api as T });
-        mounted.current = true;
-      });
-    }
-  }, [config]);
-
-  useEffect(() => {
-    if (mounted.current) {
-      setState((prev) => ({
-        ...prev,
+  return (
+    <ScalprumContext.Provider
+      value={{
+        config,
         api,
-      }));
-    }
-  }, [api]);
-
-  return <ScalprumContext.Provider value={state as ScalprumState<Record<string, any>>}>{children}</ScalprumContext.Provider>;
+        initialized: true,
+      }}
+    >
+      <PluginStoreProvider store={state.current.pluginStore}>{children}</PluginStoreProvider>
+    </ScalprumContext.Provider>
+  );
 }

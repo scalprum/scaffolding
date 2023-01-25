@@ -33,6 +33,10 @@ const TestAppFederation = new ModuleFederationPlugin({
         singleton: true,
         eager: true,
       },
+      '@openshift/dynamic-plugin-sdk': {
+        singleton: true,
+        eager: true,
+      },
     },
   ],
 });

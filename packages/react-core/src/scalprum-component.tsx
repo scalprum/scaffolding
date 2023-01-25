@@ -3,12 +3,12 @@ import {
   getCachedModule,
   handlePrefetchPromise,
   getAppData,
-  injectScript,
   processManifest,
   getPendingLoading,
   setPendingLoading,
   getPendingPrefetch,
   PrefetchFunction,
+  getScalprum,
 } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
@@ -25,7 +25,7 @@ export type ScalprumComponentProps<API extends Record<string, any> = {}, Props e
   ErrorComponent?: React.ReactElement;
   LoadingComponent?: React.ComponentType;
   innerRef?: React.Ref<unknown>;
-  processor?: (item: any) => string;
+  processor?: (item: any) => string[];
   skipCache?: boolean;
 };
 
@@ -61,7 +61,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   skipCache = false,
   ...props
 }) => {
-  const { scriptLocation, manifestLocation } = getAppData(scope);
+  const { manifestLocation } = getAppData(scope);
   const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> } & Record<string, any>> | undefined>(undefined);
   const [prefetchPromise, setPrefetchPromise] = useState<Promise<any>>();
@@ -76,7 +76,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
 
   useEffect(() => {
     const prefetchID = `${scope}#${module}`;
-    const { cachedModule, prefetchPromise } = getCachedModule(scope, module, skipCache);
+    const { cachedModule, prefetchPromise } = getCachedModule(scope, module);
     setPrefetchPromise(prefetchPromise);
 
     let isMounted = true;
@@ -101,27 +101,8 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
        * Here will be registry check
        */
       if (!cachedModule) {
-        if (scriptLocation) {
-          const injectionPromise = injectScript(scope, scriptLocation)
-            .then(() => {
-              pref = setComponentFromModule(scope, module, isMounted, setComponent);
-              if (pref) {
-                pref.then((result) => {
-                  if (result) {
-                    const prefetch = getPendingPrefetch(prefetchID) || result(scalprumApi);
-                    setPrefetchPromise(prefetch);
-                    handlePrefetchPromise(prefetchID, prefetch);
-                  }
-                });
-              }
-              return pref;
-            })
-            .catch(handleLoadingError);
-
-          // lock module preload
-          setPendingLoading(scope, module, injectionPromise);
-        } else if (manifestLocation) {
-          const processPromise = processManifest(manifestLocation, scope, processor)
+        if (manifestLocation) {
+          const processPromise = processManifest(manifestLocation, scope, module, processor)
             .then(() => {
               pref = setComponentFromModule(scope, module, isMounted, setComponent);
               pref.then((result) => {

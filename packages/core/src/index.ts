@@ -1,3 +1,5 @@
+import { PluginLoader, PluginStore, FeatureFlags } from '@openshift/dynamic-plugin-sdk';
+
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
   name: string;
@@ -41,24 +43,45 @@ export type Scalprum<T extends Record<string, any> = Record<string, any>> = {
   pendingPrefetch: {
     [key: string]: Promise<unknown>;
   };
-  factories: {
-    [key: string]: Factory;
+  exposedModules: {
+    [moduleId: string]: ExposedScalprumModule;
   };
   scalprumOptions: ScalprumOptions;
   api: T;
+  pluginStore: PluginStore;
 };
 
 export type Container = Window & Factory;
 
-declare global {
-  // eslint-disable-next-line no-unused-vars
-  interface Window {
-    [GLOBAL_NAMESPACE]: Scalprum;
-  }
-}
-
 declare function __webpack_init_sharing__(scope: string): void;
 declare let __webpack_share_scopes__: any;
+
+const SHARED_SCOPE_NAME = 'default';
+
+let scalprum: Scalprum;
+
+const getModuleIdentifier = (scope: string, module: string) => `${scope}#${module}`;
+
+export const getScalprum = () => {
+  if (!scalprum) {
+    throw new Error('Scalprum was not initialize! Call the initialize function first.');
+  }
+
+  return scalprum;
+};
+
+export const initSharedScope = async () => __webpack_init_sharing__(SHARED_SCOPE_NAME);
+
+/**
+ * Get the webpack share scope object.
+ */
+export const getSharedScope = () => {
+  if (!Object.keys(__webpack_share_scopes__).includes(SHARED_SCOPE_NAME)) {
+    throw new Error('Attempt to access share scope object before its initialization');
+  }
+
+  return __webpack_share_scopes__[SHARED_SCOPE_NAME];
+};
 
 export const handlePrefetchPromise = (id: string, prefetch?: Promise<any>) => {
   if (prefetch) {
@@ -69,24 +92,10 @@ export const handlePrefetchPromise = (id: string, prefetch?: Promise<any>) => {
   }
 };
 
-export const getScalprum = () => window[GLOBAL_NAMESPACE];
-export const getCachedModule = (scope: string, module: string, skipCache = false): ScalprumModule => {
+export const getCachedModule = <T = any, P = any>(scope: string, module: string): ScalprumModule<T, P> => {
+  const moduleId = getModuleIdentifier(scope, module);
   try {
-    const factory: Factory = window[GLOBAL_NAMESPACE].factories[scope];
-    if (!factory || !factory.expiration) {
-      return {};
-    }
-    /**
-     * Invalidate module after 2 minutes
-     */
-    const isExpired =
-      skipCache || (new Date().getTime() - factory.expiration.getTime()) / 1000 > window[GLOBAL_NAMESPACE].scalprumOptions.cacheTimeout;
-    if (isExpired) {
-      delete window[GLOBAL_NAMESPACE].factories[scope];
-      return {};
-    }
-
-    const cachedModule = factory.modules[module];
+    const cachedModule = getScalprum().exposedModules[moduleId];
     if (!module) {
       return {};
     }
@@ -108,55 +117,47 @@ export const getCachedModule = (scope: string, module: string, skipCache = false
   }
 };
 
-export const setPendingInjection = (id: string, injectionLock: Promise<any>): void => {
-  window[GLOBAL_NAMESPACE].pendingInjections[id] = injectionLock;
-};
-
-export const getPendingInjection = (id: string): Promise<any> | undefined => {
-  return window[GLOBAL_NAMESPACE].pendingInjections[id];
-};
-
 export const setPendingPrefetch = (id: string, prefetch: Promise<any>): void => {
-  window[GLOBAL_NAMESPACE].pendingPrefetch[id] = prefetch;
+  getScalprum().pendingPrefetch[id] = prefetch;
 };
 
 export const getPendingPrefetch = (id: string): Promise<any> | undefined => {
-  return window[GLOBAL_NAMESPACE].pendingPrefetch?.[id];
+  return getScalprum().pendingPrefetch?.[id];
 };
 
 export const removePrefetch = (id: string) => {
-  delete window[GLOBAL_NAMESPACE].pendingPrefetch[id];
+  delete getScalprum().pendingPrefetch[id];
 };
 
 export const resolvePendingInjection = (id: string) => {
-  delete window[GLOBAL_NAMESPACE].pendingInjections[id];
+  delete getScalprum().pendingInjections[id];
 };
 
 export const setPendingLoading = (scope: string, module: string, promise: Promise<any>): Promise<any> => {
-  window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`] = promise;
+  getScalprum().pendingLoading[`${scope}#${module}`] = promise;
   promise
     .then((data) => {
-      delete window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`];
+      delete getScalprum().pendingLoading[`${scope}#${module}`];
       return data;
     })
     .catch(() => {
-      delete window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`];
+      delete getScalprum().pendingLoading[`${scope}#${module}`];
     });
   return promise;
 };
 
 export const getPendingLoading = (scope: string, module: string): Promise<any> | undefined => {
-  return window[GLOBAL_NAMESPACE].pendingLoading[`${scope}#${module}`];
+  return getScalprum().pendingLoading[`${scope}#${module}`];
 };
 
-export const preloadModule = async (scope: string, module: string, processor?: (item: any) => string, skipCache = false) => {
+export const preloadModule = async (scope: string, module: string, processor?: (manifest: any) => string[]) => {
   const { manifestLocation } = getAppData(scope);
-  const { cachedModule } = getCachedModule(scope, module, skipCache);
+  const { cachedModule } = getCachedModule(scope, module);
   let modulePromise = getPendingLoading(scope, module);
 
   // lock preloading if module exists or is already being loaded
   if (!modulePromise && Object.keys(cachedModule || {}).length == 0 && manifestLocation) {
-    modulePromise = processManifest(manifestLocation, scope, processor).then(() => asyncLoader(scope, module));
+    modulePromise = processManifest(manifestLocation, scope, module, processor).then(() => getScalprum().pluginStore.getExposedModule(scope, module));
   }
 
   // add scalprum API later
@@ -173,58 +174,51 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   appsConfig,
   api,
   options,
+  pluginStoreFeatureFlags = {},
 }: {
   appsConfig: AppsConfig;
   api?: T;
   options?: Partial<ScalprumOptions>;
-}): void => {
+  pluginStoreFeatureFlags?: FeatureFlags;
+}): Scalprum<T> => {
   const defaultOptions: ScalprumOptions = {
     cacheTimeout: 120,
     ...options,
   };
-  window[GLOBAL_NAMESPACE] = {
+
+  // Create new plugin loader instance
+  const pluginLoader = new PluginLoader({
+    sharedScope: getSharedScope(),
+    getPluginEntryModule: ({ name }) => (window as { [key: string]: any })[name],
+  });
+
+  // Create new plugin store
+  const pluginStore = new PluginStore();
+  pluginLoader.registerPluginEntryCallback();
+  pluginStore.setLoader(pluginLoader);
+  pluginStore.setFeatureFlags(pluginStoreFeatureFlags);
+
+  scalprum = {
     appsConfig,
     pendingInjections: {},
     pendingLoading: {},
     pendingPrefetch: {},
-    factories: {},
+    exposedModules: {},
     scalprumOptions: defaultOptions,
     api: api || {},
+    pluginStore,
   };
+
+  return scalprum as Scalprum<T>;
 };
 
-export const getAppData = (name: string): AppMetadata => window[GLOBAL_NAMESPACE].appsConfig[name];
+export const getAppData = (name: string): AppMetadata => getScalprum().appsConfig[name];
 
-const shouldInjectScript = (src: string) => document.querySelectorAll(`script[src="${src}"]`)?.length === 0;
-
-export const injectScript = (scope: string, scriptLocation: string): Promise<[any, HTMLScriptElement | undefined]> => {
-  let s: HTMLScriptElement | undefined = undefined;
-  if (!shouldInjectScript(scriptLocation)) {
-    return Promise.resolve([scope, document.querySelectorAll(`script[src="${scriptLocation}"]`)?.[0] as HTMLScriptElement]);
-  }
-  const injectionPromise: Promise<[any, HTMLScriptElement | undefined]> = new Promise((res, rej) => {
-    s = document.createElement('script');
-    s.src = scriptLocation;
-    s.id = `container_entry_${scope}`;
-    s.onload = () => {
-      res([scope, s]);
-    };
-    s.onerror = (...args) => {
-      rej([args, s]);
-    };
-  });
-  if (typeof s !== 'undefined') {
-    document.body.appendChild(s);
-  }
-
-  return injectionPromise;
+const setExposedModule = (moduleId: string, exposedModule: ExposedScalprumModule) => {
+  getScalprum().exposedModules[moduleId] = exposedModule;
 };
 
-export async function processManifest(
-  url: string,
-  scope: string,
-  processor: ((value: any) => string) | undefined
-): Promise<[unknown, HTMLScriptElement | undefined][]> {
+export async function processManifest(url: string, scope: string, module: string, processor?: (manifrst: any) => string[]): Promise<void> {
   const headers = new Headers();
   headers.append('Pragma', 'no-cache');
   headers.append('Cache-Control', 'no-cache');
@@ -249,62 +243,17 @@ export async function processManifest(
 
   // response is OK get manifest payload
   const manifest = await response.json();
-  const pendingInjection = getPendingInjection(scope);
-  if (pendingInjection) {
-    return pendingInjection;
-  }
+  const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
+  const { pluginStore } = getScalprum();
 
-  const injectionPromise = Promise.all(
-    Object.entries(manifest)
-      .filter(([key]) => (scope ? key === scope : true))
-      .flatMap(processor || ((value: any) => (value[1] as { entry: string }).entry || value))
-      .map(async (scriptLocation: string) => {
-        const data = await injectScript(scope, scriptLocation);
-        resolvePendingInjection(scope);
-        return data;
-      })
-  );
-  setPendingInjection(scope, injectionPromise);
-  injectionPromise.then((res) => {
-    resolvePendingInjection(scope);
-    return res;
+  await pluginStore.loadPlugin(document.location.origin, {
+    extensions: [],
+    loadScripts,
+    name: scope,
+    registrationMethod: 'custom',
+    version: '1.0.0',
   });
-  return injectionPromise;
-}
 
-export async function asyncLoader<T = any, P = any>(scope: string, module: string): Promise<ExposedScalprumModule<T, P>> {
-  if (typeof scope === 'undefined' || scope.length === 0) {
-    throw new Error("Scope can't be undefined or empty");
-  }
-  if (typeof module === 'undefined' || module.length === 0) {
-    throw new Error("Module can't be undefined or empty");
-  }
-
-  if (!module.startsWith('./')) {
-    console.warn(`Your module ${module} doesn't start with './' this indicates an error`);
-  }
-
-  await __webpack_init_sharing__('default');
-  const container: Container = (window as { [key: string]: any })[scope];
-  await container.init(__webpack_share_scopes__.default);
-  const factory = await (window as { [key: string]: any })[scope].get(module);
-
-  if (!window[GLOBAL_NAMESPACE].factories[scope]) {
-    window[GLOBAL_NAMESPACE].factories[scope] = {} as any;
-  }
-
-  const moduleFactory = factory();
-  const factoryCache: Factory = {
-    init: container.init,
-    modules: {
-      ...window[GLOBAL_NAMESPACE].factories[scope].modules,
-      [module]: {
-        ...moduleFactory,
-      },
-    },
-    expiration: new Date(),
-  };
-
-  window[GLOBAL_NAMESPACE].factories[scope] = factoryCache;
-  return factory();
+  const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
+  setExposedModule(getModuleIdentifier(scope, module), exposedModule);
 }

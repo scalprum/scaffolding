@@ -1,44 +1,29 @@
 import { useEffect, useState, useRef } from 'react';
-import { asyncLoader, getCachedModule, ExposedScalprumModule, getAppData, injectScript, processManifest } from '@scalprum/core';
+import { getCachedModule, ExposedScalprumModule, getAppData, processManifest, getScalprum } from '@scalprum/core';
 
 export type ModuleDefinition = {
   scope: string;
   module: string;
-  processor?: (item: any) => string;
+  processor?: (item: any) => string[];
 };
 
 export function useLoadModule(
   { scope, module, processor }: ModuleDefinition,
-  defaultState: any,
-  options: {
-    skipCache?: boolean;
-  } = {}
+  defaultState: any
 ): [ExposedScalprumModule | undefined, Error | undefined] {
-  const defaultOptions = {
-    skipCache: false,
-    ...options,
-  };
-  const { scriptLocation, manifestLocation } = getAppData(scope);
+  const { manifestLocation } = getAppData(scope);
   const [data, setData] = useState<ExposedScalprumModule>(defaultState);
   const [error, setError] = useState<Error>();
-  const { cachedModule } = getCachedModule(scope, module, defaultOptions.skipCache);
+  const { cachedModule } = getCachedModule(scope, module);
   const isMounted = useRef(true);
+  const { pluginStore } = getScalprum();
   useEffect(() => {
     if (isMounted.current) {
       if (!cachedModule) {
-        if (scriptLocation) {
-          injectScript(scope, scriptLocation)
+        if (manifestLocation) {
+          processManifest(manifestLocation, scope, module, processor)
             .then(async () => {
-              const Module: ExposedScalprumModule = await asyncLoader(scope, module);
-              setData(() => Module);
-            })
-            .catch((e) => {
-              setError(() => e);
-            });
-        } else if (manifestLocation) {
-          processManifest(manifestLocation, scope, processor)
-            .then(async () => {
-              const Module: ExposedScalprumModule = await asyncLoader(scope, module);
+              const Module: ExposedScalprumModule = await pluginStore.getExposedModule(scope, module);
               setData(() => Module);
             })
             .catch((e) => {
@@ -47,7 +32,7 @@ export function useLoadModule(
         }
       } else {
         try {
-          asyncLoader(scope, module).then((Module: ExposedScalprumModule) => {
+          pluginStore.getExposedModule<ExposedScalprumModule>(scope, module).then((Module) => {
             setData(() => Module);
           });
         } catch (e) {
@@ -59,7 +44,7 @@ export function useLoadModule(
     return () => {
       isMounted.current = false;
     };
-  }, [scope, cachedModule, defaultOptions.skipCache]);
+  }, [scope, cachedModule]);
 
   return [data, error];
 }

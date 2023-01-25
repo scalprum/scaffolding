@@ -4,8 +4,9 @@ import * as asyncComponent from './async-loader';
 import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
 import { render, cleanup, act, screen } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
-import { AppsConfig, GLOBAL_NAMESPACE, Scalprum } from '@scalprum/core';
+import { AppsConfig } from '@scalprum/core';
 import TestComponent from './TestComponent';
+import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
 
 const flushPromise = () => Promise.resolve(setTimeout);
 const ErrorComponent = () => {
@@ -13,13 +14,28 @@ const ErrorComponent = () => {
 };
 
 describe('<ScalprumComponent />', () => {
+  const testManifest: PluginManifest = {
+    extensions: [],
+    loadScripts: [],
+    name: 'testApp',
+    registrationMethod: 'custom',
+    version: '1.0.0',
+  };
   const mockInitScalprumConfig: AppsConfig = {
     appOne: {
       name: 'appOne',
       appId: 'appOne',
       rootLocation: '/foo',
-      scriptLocation: '/bar.js',
+      manifestLocation: '/bar.js',
       elementId: 'id',
+    },
+    error: {
+      name: 'error',
+      manifestLocation: '/bar.js',
+    },
+    errorSelfRepair: {
+      name: 'errorSelfRepair',
+      manifestLocation: '/errorSelfRepair.js',
     },
   };
 
@@ -31,16 +47,38 @@ describe('<ScalprumComponent />', () => {
       manifestLocation: '/bar.json',
       elementId: 'id',
     },
+    error: {
+      name: 'error',
+      manifestLocation: '/bar.js',
+    },
+    errorSelfRepair: {
+      name: 'errorSelfRepair',
+      manifestLocation: '/errorSelfRepair.js',
+    },
   };
   const getAppDataSpy = jest.spyOn(ScalprumCore, 'getAppData').mockReturnValue(mockInitScalprumConfig.appOne);
-  const injectScriptSpy = jest.spyOn(ScalprumCore, 'injectScript');
   const processManifestSpy = jest.spyOn(ScalprumCore, 'processManifest');
   let loadComponentSpy: jest.SpyInstance;
 
   beforeAll(() => {
+    // @ts-ignore
+    global.__webpack_share_scopes__ = {
+      default: {},
+    };
+    // @ts-ignore
+    global.__webpack_init_sharing__ = () => undefined;
     global.fetch = () =>
       Promise.resolve({
-        json: () => Promise.resolve({}),
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            appOne: {
+              entry: [],
+            },
+            errorSelfRepair: {
+              entry: [],
+            },
+          }),
       }) as unknown as Promise<Response>;
   });
 
@@ -51,16 +89,13 @@ describe('<ScalprumComponent />', () => {
 
   afterEach(() => {
     cleanup();
-    window[GLOBAL_NAMESPACE] = undefined as unknown as Scalprum<Record<string, any>>;
     getAppDataSpy.mockClear();
-    injectScriptSpy.mockClear();
     processManifestSpy.mockClear();
     loadComponentSpy.mockReset();
   });
 
   test('should retrieve script location', async () => {
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    ScalprumCore.setPendingInjection('appOne', Promise.resolve());
     await act(async () => {
       await render(<ScalprumComponent scope="appOne" module="test" />);
     });
@@ -71,7 +106,6 @@ describe('<ScalprumComponent />', () => {
   test('should retrieve manifest location', async () => {
     getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     ScalprumCore.initialize({ appsConfig: mockInitScalpumConfigManifest });
-    ScalprumCore.setPendingInjection('appOne', Promise.resolve());
     await act(async () => {
       await render(<ScalprumComponent scope="appOne" module="test" />);
     });
@@ -79,42 +113,22 @@ describe('<ScalprumComponent />', () => {
     expect(getAppDataSpy).toHaveBeenCalledWith('appOne');
   });
 
-  test('should inject script and mount app if it was not initialized before', async () => {
-    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    injectScriptSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.resolve(['', undefined]);
-    });
-    await act(async () => {
-      await render(<ScalprumComponent scope="appOne" module="test" />);
-    });
-
-    await act(async () => {
-      await flushPromise();
-    });
-    expect(injectScriptSpy).toHaveBeenCalledWith('appOne', '/bar.js');
-  });
-
   test('should inject manifest and mount app if it was not initialized before', async () => {
     getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     ScalprumCore.initialize({ appsConfig: mockInitScalpumConfigManifest });
     processManifestSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.resolve([['', undefined]]);
+      return Promise.resolve();
     });
     await act(async () => {
       render(<ScalprumComponent scope="appOne" module="test" />);
     });
 
-    expect(processManifestSpy).toHaveBeenCalledWith('/bar.json', 'appOne', undefined);
+    expect(processManifestSpy).toHaveBeenCalledWith('/bar.json', 'appOne', 'test', undefined);
   });
 
   test('should render test component', async () => {
+    processManifestSpy.mockImplementationOnce(() => Promise.resolve());
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    injectScriptSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.resolve(['', undefined]);
-    });
     let container;
 
     const props: ScalprumComponentProps<{ apiProp: () => void }, { testProp: number }> = {
@@ -139,8 +153,7 @@ describe('<ScalprumComponent />', () => {
     getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     processManifestSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.resolve([['', undefined]]);
+      return Promise.resolve();
     });
     let container;
     await act(async () => {
@@ -160,6 +173,22 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should render fallback component', async () => {
+    jest.spyOn(global, 'fetch').mockImplementationOnce(
+      () =>
+        new Promise((res) => {
+          setTimeout(() => {
+            res({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  appOne: {
+                    entry: [],
+                  },
+                }),
+            } as unknown as Promise<Response>);
+          }, 500);
+        })
+    );
     jest.useFakeTimers();
     /**
      * We need the async component "hang" to render the fallback
@@ -170,10 +199,6 @@ describe('<ScalprumComponent />', () => {
     );
     jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(componentPromise);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    injectScriptSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.resolve(['', undefined]);
-    });
 
     const props: ScalprumComponentProps = {
       scope: 'appOne',
@@ -206,13 +231,9 @@ describe('<ScalprumComponent />', () => {
       }))
     );
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    injectScriptSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.reject(['', undefined]);
-    });
 
     const props: ScalprumComponentProps = {
-      scope: 'appOne',
+      scope: 'error',
       module: 'test',
       ErrorComponent: <ErrorComponent />,
     };
@@ -224,24 +245,15 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should retrieve module from scalprum cache', async () => {
+    processManifestSpy.mockImplementation(() => Promise.resolve());
     const cachedModule = {
       __esModule: true,
       default: () => <div data-testid="cached-component">Cached component</div>,
       prefetch: () => Promise.resolve(),
     };
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    // @ts-ignore
-    global.__webpack_init_sharing__ = jest.fn();
-    // @ts-ignore
-    global.__webpack_share_scopes__ = {
-      default: jest.fn(),
-    };
-    // @ts-ignore
-    global.cachedScope = {
-      init: jest.fn(),
-      get: jest.fn().mockReturnValue(() => cachedModule),
-    };
-    await ScalprumCore.asyncLoader('cachedScope', './test');
+    ScalprumCore.getScalprum().exposedModules[`cachedScope#./test`] = cachedModule;
+    await ScalprumCore.getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
 
     const props: ScalprumComponentProps = {
       scope: 'cachedScope',
@@ -256,50 +268,9 @@ describe('<ScalprumComponent />', () => {
     expect(screen.getAllByTestId('cached-component')).toHaveLength(1);
   });
 
-  test('should skip scalprum cache', async () => {
-    jest.useFakeTimers();
-    injectScriptSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.resolve(['', undefined]);
-    });
-    const cachedModule = {
-      __esModule: true,
-      default: () => <div data-testid="cached-component">Cached component</div>,
-      prefetch: () => Promise.resolve(),
-    };
-    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    // @ts-ignore
-    global.__webpack_init_sharing__ = jest.fn();
-    // @ts-ignore
-    global.__webpack_share_scopes__ = {
-      default: jest.fn(),
-    };
-    // @ts-ignore
-    global.cachedScope = {
-      init: jest.fn(),
-      get: jest.fn().mockReturnValue(() => cachedModule),
-    };
-    await ScalprumCore.asyncLoader('cachedScope', './test');
-
-    const props: ScalprumComponentProps = {
-      scope: 'cachedScope',
-      module: './test',
-    };
-    let container;
-    await act(async () => {
-      container = await render(<ScalprumComponent {...props} skipCache />).container;
-    });
-
-    await act(async () => {
-      await flushPromise();
-    });
-
-    expect(loadComponentSpy).toHaveBeenCalled();
-    expect(() => screen.getAllByTestId('cached-component')).toThrow();
-    expect(container).toMatchSnapshot();
-  });
-
   test('should try and re-render original component on first error', async () => {
+    // we need two mocks for reload attempt
+    processManifestSpy.mockImplementationOnce(() => Promise.resolve()).mockImplementationOnce(() => Promise.resolve());
     const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
     jest
       .spyOn(asyncComponent, 'loadComponent')
@@ -313,10 +284,6 @@ describe('<ScalprumComponent />', () => {
       )
       .mockReturnValueOnce(componentPromise);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    injectScriptSpy.mockImplementationOnce(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.resolve(['', undefined]);
-    });
 
     const props: ScalprumComponentProps = {
       scope: 'appOne',
@@ -339,9 +306,9 @@ describe('<ScalprumComponent />', () => {
     // uncomment if you want to see scalprum errors and warnings
     jest.spyOn(console, 'error').mockImplementation(() => undefined);
     jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    jest.useFakeTimers();
+    processManifestSpy.mockImplementation(() => Promise.reject('Initial fail'));
     const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
-    loadComponentSpy.mockReturnValue(
+    loadComponentSpy.mockReturnValueOnce(
       componentPromise.then(() => ({
         __esModule: true,
         default: () => {
@@ -354,17 +321,9 @@ describe('<ScalprumComponent />', () => {
       }))
     );
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-    injectScriptSpy.mockImplementation(() => {
-      ScalprumCore.setPendingInjection('appOne', Promise.resolve());
-      return Promise.reject(['', undefined]);
-    });
     let container;
     await act(async () => {
-      container = render(<ScalprumComponent ErrorComponent={<ErrorComponent />} module="./TestComponent" scope="appOne" />).container;
-    });
-
-    await act(async () => {
-      jest.advanceTimersToNextTimer();
+      container = await render(<ScalprumComponent ErrorComponent={<ErrorComponent />} module="./TestComponent" scope="errorSelfRepair" />).container;
     });
 
     expect(container).toMatchSnapshot();
