@@ -189,7 +189,7 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     if (this.selfRepairAttempt === true) {
-      console.error('Scalprum encountered an error!', error.message);
+      console.error('Scalprum encountered an error!', error?.message || error);
       this.setState({ error, errorInfo });
     } else {
       console.warn('Scalprum failed to render component. Attempting to skip module cache.');

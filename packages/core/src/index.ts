@@ -1,4 +1,4 @@
-import { PluginLoader, PluginStore, FeatureFlags } from '@openshift/dynamic-plugin-sdk';
+import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginEventType } from '@openshift/dynamic-plugin-sdk';
 
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
@@ -175,12 +175,17 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   api,
   options,
   pluginStoreFeatureFlags = {},
+  pluginLoaderOptions = {},
 }: {
   appsConfig: AppsConfig;
   api?: T;
   options?: Partial<ScalprumOptions>;
   pluginStoreFeatureFlags?: FeatureFlags;
+  pluginLoaderOptions?: Partial<PluginLoaderOptions>;
 }): Scalprum<T> => {
+  if (scalprum) {
+    return scalprum as Scalprum<T>;
+  }
   const defaultOptions: ScalprumOptions = {
     cacheTimeout: 120,
     ...options,
@@ -188,6 +193,7 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
 
   // Create new plugin loader instance
   const pluginLoader = new PluginLoader({
+    ...pluginLoaderOptions,
     sharedScope: getSharedScope(),
     getPluginEntryModule: ({ name }) => (window as { [key: string]: any })[name],
   });
@@ -218,42 +224,73 @@ const setExposedModule = (moduleId: string, exposedModule: ExposedScalprumModule
   getScalprum().exposedModules[moduleId] = exposedModule;
 };
 
+const clearPendingInjection = (scope: string) => {
+  delete getScalprum().pendingInjections[scope];
+};
+
+const setPendingInjection = (scope: string, promise: Promise<any>) => {
+  getScalprum().pendingInjections[scope] = promise;
+};
+
+const getPendingInjection = (scope: string): Promise<any> | undefined => getScalprum().pendingInjections[scope];
+
 export async function processManifest(url: string, scope: string, module: string, processor?: (manifrst: any) => string[]): Promise<void> {
-  const headers = new Headers();
-  headers.append('Pragma', 'no-cache');
-  headers.append('Cache-Control', 'no-cache');
-  headers.append('expires', '0');
-  const response = await fetch(url, {
-    method: 'GET',
-    headers,
-  });
-
-  // handle network errors
-  if (!response.ok) {
-    let error = 'Unable to process manifest';
-    try {
-      error = await response.json();
-    } catch {
-      // try text error if json fails
-      error = await response.text();
-    }
-
-    throw error;
+  let pendingInjection = getPendingInjection(scope);
+  const { pluginStore } = getScalprum();
+  if (pendingInjection) {
+    await pendingInjection;
+    const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
+    setExposedModule(getModuleIdentifier(scope, module), exposedModule);
+    return;
   }
 
-  // response is OK get manifest payload
-  const manifest = await response.json();
-  const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
-  const { pluginStore } = getScalprum();
+  // eslint-disable-next-line no-async-promise-executor
+  pendingInjection = new Promise<void>(async (res, rej) => {
+    const headers = new Headers();
+    headers.append('Pragma', 'no-cache');
+    headers.append('Cache-Control', 'no-cache');
+    headers.append('expires', '0');
+    const manifestPromise = fetch(url, {
+      method: 'GET',
+      headers,
+    });
+    const response = await manifestPromise;
 
-  await pluginStore.loadPlugin(document.location.origin, {
-    extensions: [],
-    loadScripts,
-    name: scope,
-    registrationMethod: 'custom',
-    version: '1.0.0',
+    // handle network errors
+    if (!response.ok) {
+      let error = 'Unable to process manifest';
+      try {
+        error = await response.json();
+      } catch {
+        // try text error if json fails
+        error = await response.text();
+      }
+
+      return rej(error);
+    }
+    // response is OK get manifest payload
+    const manifest = await response.json();
+    const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
+
+    const injectionScript = pluginStore.loadPlugin(document.location.origin, {
+      extensions: [],
+      loadScripts,
+      name: scope,
+      registrationMethod: 'custom',
+      version: '1.0.0',
+    });
+    await injectionScript;
+
+    try {
+      const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
+      setExposedModule(getModuleIdentifier(scope, module), exposedModule);
+    } catch (error) {
+      clearPendingInjection(scope);
+      return rej(error);
+    }
+    res();
   });
-
-  const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
-  setExposedModule(getModuleIdentifier(scope, module), exposedModule);
+  setPendingInjection(scope, pendingInjection);
+  await pendingInjection;
+  clearPendingInjection(scope);
 }

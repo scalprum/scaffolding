@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { initialize, AppsConfig, Scalprum } from '@scalprum/core';
 import { ScalprumContext } from './scalprum-context';
 import { PluginStoreProvider } from '@openshift/dynamic-plugin-sdk';
@@ -25,7 +25,14 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
   children,
   api,
 }: ScalprumProviderProps<T>): React.ReactElement | React.ReactElement {
-  const state = useRef<Scalprum<T>>(initialize<T>({ appsConfig: config, api: api as T }));
+  const state = useMemo(
+    () =>
+      initialize<T>({
+        appsConfig: config,
+        api: api as T,
+      }),
+    []
+  );
 
   return (
     <ScalprumContext.Provider
@@ -35,7 +42,7 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
         initialized: true,
       }}
     >
-      <PluginStoreProvider store={state.current.pluginStore}>{children}</PluginStoreProvider>
+      <PluginStoreProvider store={state.pluginStore}>{children}</PluginStoreProvider>
     </ScalprumContext.Provider>
   );
 }

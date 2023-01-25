@@ -7,7 +7,7 @@ export async function loadComponent<P = {}>(
 ): Promise<{ prefetch?: PrefetchFunction; component: React.ComponentType<P> }> {
   {
     const { pluginStore } = getScalprum();
-    let mod;
+    let mod: ExposedScalprumModule | undefined;
     const { cachedModule } = getCachedModule<React.ComponentType<P>, PrefetchFunction>(scope, module);
     mod = cachedModule;
     if (!mod) {
