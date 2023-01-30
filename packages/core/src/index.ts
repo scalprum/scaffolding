@@ -1,4 +1,4 @@
-import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginEventType } from '@openshift/dynamic-plugin-sdk';
+import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions } from '@openshift/dynamic-plugin-sdk';
 
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
@@ -176,12 +176,14 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   options,
   pluginStoreFeatureFlags = {},
   pluginLoaderOptions = {},
+  pluginStoreOptions = {},
 }: {
   appsConfig: AppsConfig;
   api?: T;
   options?: Partial<ScalprumOptions>;
   pluginStoreFeatureFlags?: FeatureFlags;
   pluginLoaderOptions?: Partial<PluginLoaderOptions>;
+  pluginStoreOptions?: Partial<PluginStoreOptions>;
 }): Scalprum<T> => {
   if (scalprum) {
     return scalprum as Scalprum<T>;
@@ -199,7 +201,7 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   });
 
   // Create new plugin store
-  const pluginStore = new PluginStore();
+  const pluginStore = new PluginStore(pluginStoreOptions);
   pluginLoader.registerPluginEntryCallback();
   pluginStore.setLoader(pluginLoader);
   pluginStore.setFeatureFlags(pluginStoreFeatureFlags);
@@ -272,6 +274,7 @@ export async function processManifest(url: string, scope: string, module: string
     const manifest = await response.json();
     const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
 
+    // TODO: Add option to change base URL
     const injectionScript = pluginStore.loadPlugin(document.location.origin, {
       extensions: [],
       loadScripts,

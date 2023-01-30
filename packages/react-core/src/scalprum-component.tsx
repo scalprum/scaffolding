@@ -8,7 +8,6 @@ import {
   setPendingLoading,
   getPendingPrefetch,
   PrefetchFunction,
-  getScalprum,
 } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';

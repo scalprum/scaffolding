@@ -7,7 +7,7 @@ type Prefetch<T = any, A extends Record<string, any> = Record<string, any>> = (s
 // @ts-ignore
 window.prefetchCounter = 0;
 
-export const prefetch: Prefetch = (scalprumApi) => {
+export const prefetch: Prefetch = (_scalprumApi) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   window.prefetchCounter += 1;

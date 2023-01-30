@@ -20,7 +20,7 @@ const ContentStuff = () => {
 
   const handlePreload = async () => {
     try {
-      // await preloadModule('preLoad', './PreLoadedModule');
+      await preloadModule('preLoad', './PreLoadedModule');
     } catch (error) {
       console.log('Unable to preload module: ', error);
     }
@@ -28,7 +28,7 @@ const ContentStuff = () => {
 
   const handlePreloadPF = async () => {
     try {
-      // await preloadModule('testApp', './ModuleOne');
+      await preloadModule('testApp', './ModuleOne');
     } catch (error) {
       console.log('Unable to preload module: ', error);
     }

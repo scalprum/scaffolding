@@ -1,7 +1,7 @@
-import React, { useMemo, useRef } from 'react';
-import { initialize, AppsConfig, Scalprum } from '@scalprum/core';
+import React, { useMemo } from 'react';
+import { initialize, AppsConfig } from '@scalprum/core';
 import { ScalprumContext } from './scalprum-context';
-import { PluginStoreProvider } from '@openshift/dynamic-plugin-sdk';
+import { FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginStoreProvider } from '@openshift/dynamic-plugin-sdk';
 
 /**
  * @deprecated
@@ -18,18 +18,25 @@ export interface ScalprumProviderProps<T extends Record<string, any> = Record<st
   config: AppsConfig;
   api?: T;
   children?: React.ReactNode;
+  pluginSDKOptions?: {
+    pluginStoreFeatureFlags?: FeatureFlags;
+    pluginLoaderOptions?: Partial<PluginLoaderOptions>;
+    pluginStoreOptions?: Partial<PluginStoreOptions>;
+  };
 }
 
 export function ScalprumProvider<T extends Record<string, any> = Record<string, any>>({
   config,
   children,
   api,
+  pluginSDKOptions,
 }: ScalprumProviderProps<T>): React.ReactElement | React.ReactElement {
   const state = useMemo(
     () =>
       initialize<T>({
         appsConfig: config,
-        api: api as T,
+        api,
+        ...pluginSDKOptions,
       }),
     []
   );
