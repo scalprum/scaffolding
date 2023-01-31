@@ -20,8 +20,8 @@ export interface ScalprumProviderProps<T extends Record<string, any> = Record<st
   children?: React.ReactNode;
   pluginSDKOptions?: {
     pluginStoreFeatureFlags?: FeatureFlags;
-    pluginLoaderOptions?: Partial<PluginLoaderOptions>;
-    pluginStoreOptions?: Partial<PluginStoreOptions>;
+    pluginLoaderOptions?: PluginLoaderOptions;
+    pluginStoreOptions?: PluginStoreOptions;
   };
 }
 

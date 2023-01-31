@@ -64,7 +64,7 @@ const getModuleIdentifier = (scope: string, module: string) => `${scope}#${modul
 
 export const getScalprum = () => {
   if (!scalprum) {
-    throw new Error('Scalprum was not initialize! Call the initialize function first.');
+    throw new Error('Scalprum was not initialized! Call the initialize function first.');
   }
 
   return scalprum;
@@ -182,8 +182,8 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   api?: T;
   options?: Partial<ScalprumOptions>;
   pluginStoreFeatureFlags?: FeatureFlags;
-  pluginLoaderOptions?: Partial<PluginLoaderOptions>;
-  pluginStoreOptions?: Partial<PluginStoreOptions>;
+  pluginLoaderOptions?: PluginLoaderOptions;
+  pluginStoreOptions?: PluginStoreOptions;
 }): Scalprum<T> => {
   if (scalprum) {
     return scalprum as Scalprum<T>;
