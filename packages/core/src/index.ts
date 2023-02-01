@@ -58,7 +58,7 @@ declare let __webpack_share_scopes__: any;
 
 const SHARED_SCOPE_NAME = 'default';
 
-let scalprum: Scalprum;
+let scalprum: Scalprum | undefined;
 
 const getModuleIdentifier = (scope: string, module: string) => `${scope}#${module}`;
 
@@ -195,9 +195,9 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
 
   // Create new plugin loader instance
   const pluginLoader = new PluginLoader({
-    ...pluginLoaderOptions,
     sharedScope: getSharedScope(),
     getPluginEntryModule: ({ name }) => (window as { [key: string]: any })[name],
+    ...pluginLoaderOptions,
   });
 
   // Create new plugin store
@@ -218,6 +218,10 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   };
 
   return scalprum as Scalprum<T>;
+};
+
+export const removeScalprum = () => {
+  scalprum = undefined;
 };
 
 export const getAppData = (name: string): AppMetadata => getScalprum().appsConfig[name];
@@ -261,11 +265,13 @@ export async function processManifest(url: string, scope: string, module: string
     // handle network errors
     if (!response.ok) {
       let error = 'Unable to process manifest';
+      const resClone = response.clone();
+      console.log('LINKED BITDS');
       try {
-        error = await response.json();
+        error = await resClone.json();
       } catch {
         // try text error if json fails
-        error = await response.text();
+        error = await resClone.text();
       }
 
       return rej(error);

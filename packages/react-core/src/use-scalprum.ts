@@ -1,6 +1,5 @@
 import { useContext } from 'react';
-import { ScalprumContext } from './scalprum-context';
-import { ScalprumState } from './scalprum-provider';
+import { ScalprumContext, ScalprumState } from './scalprum-context';
 
 export function useScalprum<T = ScalprumState<Record<string, any>>>(selector?: (state: ScalprumState) => T): T {
   const state = useContext(ScalprumContext);

@@ -8,12 +8,6 @@ import { FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginStoreProvi
  */
 export type ScalprumFeed = AppsConfig;
 
-export interface ScalprumState<T extends Record<string, any> = Record<string, any>> {
-  initialized: boolean;
-  config: AppsConfig;
-  api?: T;
-}
-
 export interface ScalprumProviderProps<T extends Record<string, any> = Record<string, any>> {
   config: AppsConfig;
   api?: T;
@@ -47,6 +41,7 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
         config,
         api,
         initialized: true,
+        pluginStore: state.pluginStore,
       }}
     >
       <PluginStoreProvider store={state.pluginStore}>{children}</PluginStoreProvider>
