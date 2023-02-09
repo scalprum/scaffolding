@@ -17,6 +17,7 @@ const TestAppFederation = new ModuleFederationPlugin({
   exposes: {
     './ModuleOne': path.resolve(__dirname, './src/modules/moduleOne.tsx'),
     './ModuleTwo': path.resolve(__dirname, './src/modules/moduleTwo.tsx'),
+    './ModuleThree': path.resolve(__dirname, './src/modules/moduleThree.tsx'),
     './ErrorModule': path.resolve(__dirname, './src/modules/errorModule.tsx'),
   },
   shared: [
@@ -33,6 +34,10 @@ const TestAppFederation = new ModuleFederationPlugin({
         singleton: true,
         eager: true,
       },
+      '@openshift/dynamic-plugin-sdk': {
+        singleton: true,
+        eager: true,
+      },
     },
   ],
 });
@@ -46,6 +51,7 @@ const TestPreLoadFederation = new ModuleFederationPlugin({
   },
   exposes: {
     './PreLoadedModule': path.resolve(__dirname, './src/modules/preLoad.tsx'),
+    './NestedModule': path.resolve(__dirname, './src/modules/nestedModule.tsx'),
   },
   shared: [
     {

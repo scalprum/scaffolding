@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { initialize, GLOBAL_NAMESPACE, getScalprum, asyncLoader, getCachedModule } from '.';
+import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
+import { initialize, getScalprum, getCachedModule, initSharedScope } from '.';
 
 describe('scalprum', () => {
+  const testManifest: PluginManifest = {
+    extensions: [],
+    loadScripts: [],
+    name: 'testScope',
+    registrationMethod: 'custom',
+    version: '1.0.0',
+  };
   const mockInititliazeConfig = {
     appsConfig: {
       appOne: {
@@ -28,9 +36,17 @@ describe('scalprum', () => {
     },
   };
 
-  afterEach(() => {
+  beforeAll(() => {
     // @ts-ignore
-    global[GLOBAL_NAMESPACE] = undefined;
+    global.__webpack_share_scopes__ = {
+      default: {},
+    };
+    // @ts-ignore
+    global.__webpack_init_sharing__ = () => undefined;
+  });
+
+  beforeEach(() => {
+    initSharedScope();
   });
 
   test('should initialize scalprum with apps config', () => {
@@ -48,7 +64,7 @@ describe('scalprum', () => {
           manifestLocation: '/appThree/url',
         },
       },
-      factories: {},
+      exposedModules: {},
       pendingInjections: {},
       pendingLoading: {},
       pendingPrefetch: {},
@@ -56,10 +72,11 @@ describe('scalprum', () => {
       scalprumOptions: {
         cacheTimeout: 120,
       },
+      pluginStore: expect.any(Object),
     };
 
     // @ts-ignore
-    expect(global[GLOBAL_NAMESPACE]).toEqual(expectedResult);
+    expect(getScalprum()).toEqual(expectedResult);
   });
 
   test('getScalprum should return the scalprum object', () => {
@@ -69,47 +86,28 @@ describe('scalprum', () => {
   });
 
   test('async loader should cache the webpack container factory', async () => {
-    const expectFactories = {
-      testScope: {
-        init: expect.any(Function),
-        modules: {
-          './testModule': expect.any(Object),
-        },
-        expiration: expect.any(Date),
-      },
-    };
+    const expectedPlugins = [
+      { disableReason: undefined, enabled: true, metadata: { name: 'testScope', version: '1.0.0' }, pluginName: 'testScope', status: 'loaded' },
+    ];
     initialize(mockInititliazeConfig);
-    // @ts-ignore
-    global.__webpack_init_sharing__ = jest.fn();
-    // @ts-ignore
-    global.__webpack_share_scopes__ = {
-      default: jest.fn(),
-    };
     // @ts-ignore
     global.testScope = {
       init: jest.fn(),
       get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
     };
-    await asyncLoader('testScope', './testModule');
-    // @ts-ignore
-    expect(global[GLOBAL_NAMESPACE].factories).toEqual(expectFactories);
+    await getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
+    expect(getScalprum().pluginStore.getPluginInfo()).toEqual(expectedPlugins);
   });
 
   test('getCachedModule should invalidate cache after 120s', async () => {
     jest.useFakeTimers();
     initialize(mockInititliazeConfig);
     // @ts-ignore
-    global.__webpack_init_sharing__ = jest.fn();
-    // @ts-ignore
-    global.__webpack_share_scopes__ = {
-      default: jest.fn(),
-    };
-    // @ts-ignore
     global.testScope = {
       init: jest.fn(),
       get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
     };
-    await asyncLoader('testScope', './testModule');
+    await getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
     // @ts-ignore
     expect(getCachedModule('testScope', './testModule')).toHaveProperty('cachedModule');
     /**
@@ -123,52 +121,12 @@ describe('scalprum', () => {
     jest.useFakeTimers();
     initialize(mockInititliazeConfig);
     // @ts-ignore
-    global.__webpack_init_sharing__ = jest.fn();
-    // @ts-ignore
-    global.__webpack_share_scopes__ = {
-      default: jest.fn(),
-    };
-    // @ts-ignore
     global.testScope = {
       init: jest.fn(),
       get: jest.fn().mockReturnValue(jest.fn()),
     };
-    await asyncLoader('testScope', './testModule');
+    await getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
     // @ts-ignore
     expect(getCachedModule('testScope', './testModule', true)).toEqual({});
-  });
-
-  test('getCachedModule should invalidate cache after 300s', async () => {
-    jest.useFakeTimers();
-    initialize({
-      ...mockInititliazeConfig,
-      options: {
-        cacheTimeout: 300,
-      },
-    });
-    // @ts-ignore
-    global.__webpack_init_sharing__ = jest.fn();
-    // @ts-ignore
-    global.__webpack_share_scopes__ = {
-      default: jest.fn(),
-    };
-    // @ts-ignore
-    global.testScope = {
-      init: jest.fn(),
-      get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
-    };
-    await asyncLoader('testScope', './testModule');
-    // @ts-ignore
-    expect(getCachedModule('testScope', './testModule')).toHaveProperty('cachedModule');
-    /**
-     * Advance time by 120s + 1ms
-     */
-    jest.advanceTimersByTime(120 * 1000 + 1);
-    expect(getCachedModule('testScope', './testModule')).toHaveProperty('cachedModule');
-    /**
-     * Advance time by 180s + 1ms
-     */
-    jest.advanceTimersByTime(180 * 1000 + 1);
-    expect(getCachedModule('testScope', './testModule')).toEqual({});
   });
 });

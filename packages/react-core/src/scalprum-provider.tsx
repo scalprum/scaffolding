@@ -1,56 +1,50 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { initialize, AppsConfig } from '@scalprum/core';
 import { ScalprumContext } from './scalprum-context';
+import { FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginStoreProvider } from '@openshift/dynamic-plugin-sdk';
 
-export type ScalprumFeed = AppsConfig | (() => AppsConfig) | (() => Promise<AppsConfig>);
-
-export interface ScalprumState<T extends Record<string, any> = Record<string, any>> {
-  initialized: boolean;
-  config: AppsConfig;
-  api?: T;
-}
+/**
+ * @deprecated
+ */
+export type ScalprumFeed = AppsConfig;
 
 export interface ScalprumProviderProps<T extends Record<string, any> = Record<string, any>> {
-  config: ScalprumFeed;
+  config: AppsConfig;
   api?: T;
   children?: React.ReactNode;
+  pluginSDKOptions?: {
+    pluginStoreFeatureFlags?: FeatureFlags;
+    pluginLoaderOptions?: PluginLoaderOptions;
+    pluginStoreOptions?: PluginStoreOptions;
+  };
 }
 
 export function ScalprumProvider<T extends Record<string, any> = Record<string, any>>({
   config,
   children,
   api,
+  pluginSDKOptions,
 }: ScalprumProviderProps<T>): React.ReactElement | React.ReactElement {
-  const mounted = useRef(false);
-  const [state, setState] = useState<ScalprumState<T>>({
-    initialized: false,
-    config: {},
-    api,
-  });
-  useEffect(() => {
-    if (typeof config === 'object') {
-      initialize<T>({ appsConfig: config, api: api as T });
-      setState((prev) => ({ ...prev, initialized: true, config }));
-      mounted.current = true;
-    }
-
-    if (typeof config === 'function') {
-      Promise.resolve(config()).then((config) => {
-        setState((prev) => ({ ...prev, initialized: true, config }));
-        initialize<T>({ appsConfig: config, api: api as T });
-        mounted.current = true;
-      });
-    }
-  }, [config]);
-
-  useEffect(() => {
-    if (mounted.current) {
-      setState((prev) => ({
-        ...prev,
+  const state = useMemo(
+    () =>
+      initialize<T>({
+        appsConfig: config,
         api,
-      }));
-    }
-  }, [api]);
+        ...pluginSDKOptions,
+      }),
+    []
+  );
 
-  return <ScalprumContext.Provider value={state as ScalprumState<Record<string, any>>}>{children}</ScalprumContext.Provider>;
+  return (
+    <ScalprumContext.Provider
+      value={{
+        config,
+        api,
+        initialized: true,
+        pluginStore: state.pluginStore,
+      }}
+    >
+      <PluginStoreProvider store={state.pluginStore}>{children}</PluginStoreProvider>
+    </ScalprumContext.Provider>
+  );
 }
