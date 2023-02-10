@@ -1,6 +1,6 @@
 describe('Module error loading handling', () => {
   it('should show chunk loading error message', () => {
-    cy.visit('http://localhost:8123');
+    cy.visit('http://localhost:8123/legacy');
 
     // intercept webpack chunk and return 500 response
     cy.intercept('GET', '/src_modules_preLoad_tsx.js', {
@@ -21,7 +21,7 @@ describe('Module error loading handling', () => {
 
   it('should try self healing and render on second try', () => {
     let c = 0;
-    cy.visit('http://localhost:8123');
+    cy.visit('http://localhost:8123/legacy');
 
     // intercept webpack chunk and return 500 response
     cy.intercept('GET', '/src_modules_preLoad_tsx.js', (res) => {
