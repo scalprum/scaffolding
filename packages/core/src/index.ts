@@ -1,4 +1,4 @@
-import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions } from '@openshift/dynamic-plugin-sdk';
+import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
 
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
@@ -266,7 +266,6 @@ export async function processManifest(url: string, scope: string, module: string
     if (!response.ok) {
       let error = 'Unable to process manifest';
       const resClone = response.clone();
-      console.log('LINKED BITDS');
       try {
         error = await resClone.json();
       } catch {
@@ -278,16 +277,23 @@ export async function processManifest(url: string, scope: string, module: string
     }
     // response is OK get manifest payload
     const manifest = await response.json();
-    const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
+    let sdkManifest: PluginManifest;
 
-    // TODO: Add option to change base URL
-    const injectionScript = pluginStore.loadPlugin(document.location.origin, {
-      extensions: [],
-      loadScripts,
-      name: scope,
-      registrationMethod: 'custom',
-      version: '1.0.0',
-    });
+    // FIXME: Use extra config to identify config type of a plugin chrome/sdk
+    if (typeof manifest.name === 'string' && Array.isArray(manifest.extensions)) {
+      sdkManifest = manifest;
+    } else {
+      const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
+      sdkManifest = {
+        extensions: [],
+        loadScripts,
+        name: scope,
+        registrationMethod: 'custom',
+        version: '1.0.0',
+      };
+    }
+    // FIXME: host condig config is required, will ne custom properties in SDK
+    const injectionScript = pluginStore.loadPlugin(document.location.origin, sdkManifest);
     await injectionScript;
 
     try {
