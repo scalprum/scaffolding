@@ -52,6 +52,11 @@ describe('Module error loading handling', () => {
   });
 
   it('should handle runtime module error', () => {
+    cy.on('uncaught:exception', () => {
+      // exceptions are expected during this test
+      // returning false here prevents Cypress from failing the test
+      return false;
+    });
     cy.visit('http://localhost:8123/runtime-error');
 
     // the react app is still active

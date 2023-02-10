@@ -33,7 +33,7 @@ function RootLayout() {
           </nav>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="md" component="main">
+      <Container maxWidth="md" component="main" sx={{ padding: 2 }}>
         <Outlet />
       </Container>
     </React.Fragment>
