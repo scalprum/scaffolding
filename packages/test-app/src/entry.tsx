@@ -1,25 +1,11 @@
 import React from 'react';
-import { ScalprumProvider, useScalprum } from '@scalprum/react-core';
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
+import { ScalprumProvider } from '@scalprum/react-core';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import RuntimeErrorRoute from './routes/RuntimeErrorRoute';
 import LegacyModules from './routes/LegacyModules';
 import RootLayout from './layouts/RootLayout';
 import RootRoute from './routes/RootRoute';
-
-const Initializer: React.ComponentType = ({ children }) => {
-  const { initialized } = useScalprum();
-  if (!initialized) {
-    return <h1>Scalprum is loading</h1>;
-  }
-
-  console.log({ children });
-  return (
-    <div>
-      <h1>Foo bar</h1>
-      <Outlet />
-    </div>
-  );
-};
+import SDKModules from './routes/SDKModules';
 
 const Entry = () => {
   return (
@@ -55,6 +41,7 @@ const Entry = () => {
             <Route path="/" element={<RootRoute />} />
             <Route path="/runtime-error" element={<RuntimeErrorRoute />} />
             <Route path="/legacy" element={<LegacyModules />} />
+            <Route path="/sdk" element={<SDKModules />} />
           </Route>
         </Routes>
       </BrowserRouter>
