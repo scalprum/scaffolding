@@ -1,0 +1,8 @@
+{
+  "name": "sdk-plugin",
+  "version": "1.0.0",
+  "exposedModules": {
+    "./SDKComponent": "./src/modules/SDKComponent.tsx"
+  },
+  "extensions": []
+}
