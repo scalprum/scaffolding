@@ -240,6 +240,16 @@ const setPendingInjection = (scope: string, promise: Promise<any>) => {
 
 const getPendingInjection = (scope: string): Promise<any> | undefined => getScalprum().pendingInjections[scope];
 
+// PluginManifest typeguard
+function isPluginManifest(manifest: any): manifest is PluginManifest {
+  return (
+    typeof manifest.name === 'string' &&
+    typeof manifest.version === 'string' &&
+    Array.isArray(manifest.extensions) &&
+    Array.isArray(manifest.loadScripts)
+  );
+}
+
 export async function processManifest(url: string, scope: string, module: string, processor?: (manifrst: any) => string[]): Promise<void> {
   let pendingInjection = getPendingInjection(scope);
   const { pluginStore } = getScalprum();
@@ -280,7 +290,7 @@ export async function processManifest(url: string, scope: string, module: string
     let sdkManifest: PluginManifest;
 
     // FIXME: Use extra config to identify config type of a plugin chrome/sdk
-    if (typeof manifest.name === 'string' && Array.isArray(manifest.extensions)) {
+    if (isPluginManifest(manifest)) {
       sdkManifest = manifest;
     } else {
       const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
@@ -292,7 +302,7 @@ export async function processManifest(url: string, scope: string, module: string
         version: '1.0.0',
       };
     }
-    // FIXME: host condig config is required, will ne custom properties in SDK
+    // FIXME: host config is required, will ne custom properties in SDK
     const injectionScript = pluginStore.loadPlugin(document.location.origin, sdkManifest);
     await injectionScript;
 
