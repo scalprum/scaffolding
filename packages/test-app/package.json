@@ -11,6 +11,7 @@
     "start:test": "webpack-dev-server"
   },
   "devDependencies": {
+    "@openshift/dynamic-plugin-sdk-webpack": "^2.0.0",
     "@scalprum/core": "*",
     "@scalprum/react-core": "*",
     "@types/history": "^4.7.9",
@@ -23,9 +24,13 @@
     "webpack-dev-server": "^4.4.0"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/material": "^5.11.8",
     "history": "^4.0.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-router-dom": "^5.2.0"
+    "react-router-dom": "^6.3.0"
   }
 }

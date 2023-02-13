@@ -1,11 +1,30 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const { DynamicRemotePlugin } = require('@openshift/dynamic-plugin-sdk-webpack');
 const {
   container: { ModuleFederationPlugin },
 } = webpack;
+
+const sharedModules = {
+  react: {
+    singleton: true,
+    eager: true,
+  },
+  'react-dom': {
+    singleton: true,
+    eager: true,
+  },
+  '@scalprum/react-core': {
+    singleton: true,
+    eager: true,
+  },
+  '@openshift/dynamic-plugin-sdk': {
+    singleton: true,
+    eager: true,
+  },
+};
 
 const TestAppFederation = new ModuleFederationPlugin({
   name: 'testApp',
@@ -53,19 +72,7 @@ const TestPreLoadFederation = new ModuleFederationPlugin({
     './PreLoadedModule': path.resolve(__dirname, './src/modules/preLoad.tsx'),
     './NestedModule': path.resolve(__dirname, './src/modules/nestedModule.tsx'),
   },
-  shared: [
-    {
-      react: {
-        singleton: true,
-      },
-      'react-dom': {
-        singleton: true,
-      },
-      '@scalprum/react-core': {
-        singleton: true,
-      },
-    },
-  ],
+  shared: [sharedModules],
 });
 
 const TestModuleFederation = new ModuleFederationPlugin({
@@ -79,28 +86,23 @@ const TestModuleFederation = new ModuleFederationPlugin({
     './ModuleThree': path.resolve(__dirname, './src/modules/moduleThree.tsx'),
     './ModuleFour': path.resolve(__dirname, './src/modules/moduleFour.tsx'),
   },
-  shared: [
-    {
-      react: {
-        singleton: true,
-        eager: true,
-      },
-      'react-dom': {
-        singleton: true,
-        eager: true,
-      },
-      '@scalprum/react-core': {
-        singleton: true,
-        eager: true,
-      },
-    },
-  ],
+  shared: [sharedModules],
+});
+
+const TestSDKPLugin = new DynamicRemotePlugin({
+  extensions: [],
+  sharedModules,
+  entryScriptFilename: 'sdk-plugin.[fullhash].js',
 });
 
 module.exports = {
   mode: 'development',
   entry: {
     scaffolding: './src/scaffolding.tsx',
+  },
+  output: {
+    publicPath: '/',
+    chunkFilename: '[name].js',
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
@@ -110,15 +112,7 @@ module.exports = {
       'react-router-dom': path.resolve(__dirname, '../../node_modules/react-router-dom'),
     },
   },
-  plugins: [
-    new webpack.ProgressPlugin(),
-    new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, './src/index.html'),
-    }),
-    TestAppFederation,
-    TestModuleFederation,
-    TestPreLoadFederation,
-  ],
+  plugins: [new webpack.ProgressPlugin(), TestSDKPLugin, TestAppFederation, TestModuleFederation, TestPreLoadFederation],
   module: {
     rules: [
       {
@@ -127,6 +121,10 @@ module.exports = {
         include: [path.resolve(__dirname, 'src')],
         exclude: [/node_modules/],
       },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
     ],
   },
   optimization: {
@@ -134,6 +132,10 @@ module.exports = {
     chunkIds: 'named',
   },
   devServer: {
+    hot: false,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
     historyApiFallback: true,
     client: {
       overlay: false,
