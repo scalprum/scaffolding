@@ -250,7 +250,7 @@ function isPluginManifest(manifest: any): manifest is PluginManifest {
   );
 }
 
-export async function processManifest(url: string, scope: string, module: string, processor?: (manifrst: any) => string[]): Promise<void> {
+export async function processManifest(url: string, scope: string, module: string, processor?: (manifest: any) => string[]): Promise<void> {
   let pendingInjection = getPendingInjection(scope);
   const { pluginStore } = getScalprum();
   if (pendingInjection) {
@@ -260,8 +260,9 @@ export async function processManifest(url: string, scope: string, module: string
     return;
   }
 
-  // eslint-disable-next-line no-async-promise-executor
-  pendingInjection = new Promise<void>(async (res, rej) => {
+  // we should not use async/await inside a promise constructor as the error can be lost
+  // thats why there is a lot of nested promises
+  pendingInjection = new Promise<void>((res, rej) => {
     const headers = new Headers();
     headers.append('Pragma', 'no-cache');
     headers.append('Cache-Control', 'no-cache');
@@ -270,50 +271,51 @@ export async function processManifest(url: string, scope: string, module: string
       method: 'GET',
       headers,
     });
-    const response = await manifestPromise;
-
-    // handle network errors
-    if (!response.ok) {
-      let error = 'Unable to process manifest';
-      const resClone = response.clone();
-      try {
-        error = await resClone.json();
-      } catch {
-        // try text error if json fails
-        error = await resClone.text();
+    return manifestPromise.then((response) => {
+      // handle network errors
+      if (!response.ok) {
+        const resClone = response.clone();
+        return resClone
+          .json()
+          .then((error) => {
+            rej(`Unable to load manifest files at ${url}! ${error}`);
+          })
+          .catch(() => {
+            rej(`Unable to load manifest files at ${url}! ${resClone.status}: ${resClone.statusText}`);
+          });
       }
-
-      return rej(error);
-    }
-    // response is OK get manifest payload
-    const manifest = await response.json();
-    let sdkManifest: PluginManifest;
-
-    // FIXME: Use extra config to identify config type of a plugin chrome/sdk
-    if (isPluginManifest(manifest)) {
-      sdkManifest = manifest;
-    } else {
-      const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
-      sdkManifest = {
-        extensions: [],
-        loadScripts,
-        name: scope,
-        registrationMethod: 'custom',
-        version: '1.0.0',
-      };
-    }
-    // FIXME: host config is required, will ne custom properties in SDK
-    const injectionScript = pluginStore.loadPlugin(document.location.origin, sdkManifest);
-    await injectionScript;
-
-    try {
-      const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
-      setExposedModule(getModuleIdentifier(scope, module), exposedModule);
-    } catch (error) {
-      clearPendingInjection(scope);
-      return rej(error);
-    }
-    res();
+      // response is OK get manifest payload
+      return response.json().then((manifest) => {
+        let sdkManifest: PluginManifest;
+        // FIXME: Use extra config to identify config type of a plugin chrome/sdk
+        if (isPluginManifest(manifest)) {
+          sdkManifest = manifest;
+        } else {
+          const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
+          sdkManifest = {
+            extensions: [],
+            loadScripts,
+            name: scope,
+            registrationMethod: 'custom',
+            version: '1.0.0',
+          };
+        }
+        // FIXME: host config is required, will ne custom properties in SDK
+        const injectionScript = pluginStore.loadPlugin(document.location.origin, sdkManifest);
+        return injectionScript.then(() => {
+          return pluginStore
+            .getExposedModule<ExposedScalprumModule>(scope, module)
+            .then((exposedModule) => {
+              setExposedModule(getModuleIdentifier(scope, module), exposedModule);
+              res();
+            })
+            .catch((error) => {
+              clearPendingInjection(scope);
+              return rej(error);
+            });
+        });
+      });
+    });
   });
   setPendingInjection(scope, pendingInjection);
   await pendingInjection;

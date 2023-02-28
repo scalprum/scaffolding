@@ -15,6 +15,7 @@ const DefaultErrorComponent = ({
   return (
     <div>
       <h2>Error loading component</h2>
+      {typeof error === 'string' && <p>{error}</p>}
       {error?.message && <p>{error.message}</p>}
       {errorInfo?.componentStack ? <pre>{errorInfo?.componentStack}</pre> : error?.stack && <pre>{error.stack}</pre>}
     </div>

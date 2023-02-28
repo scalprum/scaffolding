@@ -6,6 +6,7 @@ import LegacyModules from './routes/LegacyModules';
 import RootLayout from './layouts/RootLayout';
 import RootRoute from './routes/RootRoute';
 import SDKModules from './routes/SDKModules';
+import NotFoundError from './routes/NotFoundError';
 
 const Entry = () => {
   return (
@@ -17,6 +18,10 @@ const Entry = () => {
         },
       }}
       config={{
+        notFound: {
+          name: 'notFound',
+          manifestLocation: '/foo/bar/nonsense.json',
+        },
         testApp: {
           name: 'testApp',
           manifestLocation: '/test-app-fed-mods.json',
@@ -40,6 +45,7 @@ const Entry = () => {
           <Route element={<RootLayout />}>
             <Route path="/" element={<RootRoute />} />
             <Route path="/runtime-error" element={<RuntimeErrorRoute />} />
+            <Route path="/not-found-error" element={<NotFoundError />} />
             <Route path="/legacy" element={<LegacyModules />} />
             <Route path="/sdk" element={<SDKModules />} />
           </Route>
