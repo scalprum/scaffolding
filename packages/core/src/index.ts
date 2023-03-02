@@ -1,5 +1,5 @@
 import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
-
+import { warnDuplicatePkg } from './warnDuplicatePkg';
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
   name: string;
@@ -80,7 +80,10 @@ export const getSharedScope = () => {
     throw new Error('Attempt to access share scope object before its initialization');
   }
 
-  return __webpack_share_scopes__[SHARED_SCOPE_NAME];
+  const sharedScope = __webpack_share_scopes__[SHARED_SCOPE_NAME];
+  warnDuplicatePkg(sharedScope);
+
+  return sharedScope;
 };
 
 export const handlePrefetchPromise = (id: string, prefetch?: Promise<any>) => {
