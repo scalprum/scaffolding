@@ -20,9 +20,9 @@ export const warnDuplicatePkg = (packages: Packages) => {
     const instances = Object.keys(versions);
     if (instances.length > 1) {
       console.log(
-        `You have ${pkgName} package that is being loaded into browser multiple times. You might want to align your version with the chrome one.`
+        `[SCALPRUM]: You have ${pkgName} package that is being loaded into browser multiple times. You might want to align your version with the chrome one.`
       );
-      console.log(`All packages instances:`, versions);
+      console.log(`[SCALPRUM]: All packages instances:`, versions);
     }
   });
 };
