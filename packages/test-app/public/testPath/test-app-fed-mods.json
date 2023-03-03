@@ -1,7 +1,7 @@
 {
     "testApp": {
         "entry": [
-            "testApp.js"
+            "/testPath/testApp.js"
         ]
     }
 }

@@ -3,7 +3,7 @@ describe('Module error loading handling', () => {
     cy.visit('http://localhost:8123/legacy');
 
     // intercept webpack chunk and return 500 response
-    cy.intercept('GET', '/src_modules_preLoad_tsx.js', {
+    cy.intercept('GET', '/testPath/src_modules_preLoad_tsx.js', {
       statusCode: 500,
     });
 
@@ -24,7 +24,7 @@ describe('Module error loading handling', () => {
     cy.visit('http://localhost:8123/legacy');
 
     // intercept webpack chunk and return 500 response
-    cy.intercept('GET', '/src_modules_preLoad_tsx.js', (res) => {
+    cy.intercept('GET', '/testPath/src_modules_preLoad_tsx.js', (res) => {
       c += 1;
       if (c === 1) {
         // make sure the 500 request was sent
@@ -74,6 +74,6 @@ describe('Module error loading handling', () => {
     });
 
     cy.get('h2').contains('Error loading component').should('exist');
-    cy.get('p').contains('Unable to load manifest files at /foo/bar/nonsense.json! 404: Not Found').should('exist');
+    cy.get('p').contains('Unable to load manifest files at /testPath/foo/bar/nonsense.json! 404: Not Found').should('exist');
   });
 });

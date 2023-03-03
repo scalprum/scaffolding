@@ -108,7 +108,8 @@ module.exports = {
     scaffolding: './src/scaffolding.tsx',
   },
   output: {
-    publicPath: '/',
+    // use test public path to ensure the SDK URL is correctly structured
+    publicPath: '/testPath/',
     chunkFilename: '[name].js',
   },
   resolve: {

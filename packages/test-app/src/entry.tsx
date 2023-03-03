@@ -20,23 +20,23 @@ const Entry = () => {
       config={{
         notFound: {
           name: 'notFound',
-          manifestLocation: '/foo/bar/nonsense.json',
+          manifestLocation: '/testPath/foo/bar/nonsense.json',
         },
         testApp: {
           name: 'testApp',
-          manifestLocation: '/test-app-fed-mods.json',
+          manifestLocation: '/testPath/test-app-fed-mods.json',
         },
         testModule: {
           name: 'testModule',
-          manifestLocation: '/test-module-fed-mods.json',
+          manifestLocation: '/testPath/test-module-fed-mods.json',
         },
         preLoad: {
           name: 'preLoad',
-          manifestLocation: '/pre-load-module-fed-mods.json',
+          manifestLocation: '/testPath/pre-load-module-fed-mods.json',
         },
         'sdk-plugin': {
           name: 'sdk-plugin',
-          manifestLocation: '/plugin-manifest.json',
+          manifestLocation: '/testPath/plugin-manifest.json',
         },
       }}
     >

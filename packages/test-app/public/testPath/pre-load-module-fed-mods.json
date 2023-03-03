@@ -1,7 +1,7 @@
 {
   "preLoad": {
       "entry": [
-          "preLoad.js"
+          "/testPath/preLoad.js"
       ]
   }
 }
