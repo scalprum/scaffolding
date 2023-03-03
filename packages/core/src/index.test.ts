@@ -71,6 +71,7 @@ describe('scalprum', () => {
       api: {},
       scalprumOptions: {
         cacheTimeout: 120,
+        enableScopeWarning: false,
       },
       pluginStore: expect.any(Object),
     };

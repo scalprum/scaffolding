@@ -1,5 +1,5 @@
 import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
-
+import { warnDuplicatePkg } from './warnDuplicatePkg';
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
   name: string;
@@ -30,6 +30,7 @@ export interface Factory<T = any, P = any> {
 
 export interface ScalprumOptions {
   cacheTimeout: number;
+  enableScopeWarning: boolean;
 }
 
 export type Scalprum<T extends Record<string, any> = Record<string, any>> = {
@@ -75,12 +76,17 @@ export const initSharedScope = async () => __webpack_init_sharing__(SHARED_SCOPE
 /**
  * Get the webpack share scope object.
  */
-export const getSharedScope = () => {
+export const getSharedScope = (enableScopeWarning?: boolean) => {
   if (!Object.keys(__webpack_share_scopes__).includes(SHARED_SCOPE_NAME)) {
     throw new Error('Attempt to access share scope object before its initialization');
   }
 
-  return __webpack_share_scopes__[SHARED_SCOPE_NAME];
+  const sharedScope = __webpack_share_scopes__[SHARED_SCOPE_NAME];
+  if (enableScopeWarning) {
+    warnDuplicatePkg(sharedScope);
+  }
+
+  return sharedScope;
 };
 
 export const handlePrefetchPromise = (id: string, prefetch?: Promise<any>) => {
@@ -190,12 +196,13 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   }
   const defaultOptions: ScalprumOptions = {
     cacheTimeout: 120,
+    enableScopeWarning: process.env.NODE_ENV === 'development',
     ...options,
   };
 
   // Create new plugin loader instance
   const pluginLoader = new PluginLoader({
-    sharedScope: getSharedScope(),
+    sharedScope: getSharedScope(defaultOptions.enableScopeWarning),
     getPluginEntryModule: ({ name }) => (window as { [key: string]: any })[name],
     ...pluginLoaderOptions,
   });
