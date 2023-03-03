@@ -11,7 +11,7 @@
     "start:test": "webpack-dev-server"
   },
   "devDependencies": {
-    "@openshift/dynamic-plugin-sdk-webpack": "^2.0.0",
+    "@openshift/dynamic-plugin-sdk-webpack": "^3.0.0",
     "@scalprum/core": "*",
     "@scalprum/react-core": "*",
     "@types/history": "^4.7.9",

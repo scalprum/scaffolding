@@ -9,6 +9,7 @@ describe('scalprum', () => {
     name: 'testScope',
     registrationMethod: 'custom',
     version: '1.0.0',
+    baseURL: '/foo/bar',
   };
   const mockInititliazeConfig = {
     appsConfig: {
@@ -87,7 +88,13 @@ describe('scalprum', () => {
 
   test('async loader should cache the webpack container factory', async () => {
     const expectedPlugins = [
-      { disableReason: undefined, enabled: true, metadata: { name: 'testScope', version: '1.0.0' }, pluginName: 'testScope', status: 'loaded' },
+      {
+        disableReason: undefined,
+        enabled: true,
+        manifest: { baseURL: '/foo/bar', extensions: [], loadScripts: [], registrationMethod: 'custom', name: 'testScope', version: '1.0.0' },
+        pluginName: 'testScope',
+        status: 'loaded',
+      },
     ];
     initialize(mockInititliazeConfig);
     // @ts-ignore

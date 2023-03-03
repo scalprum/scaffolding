@@ -19,6 +19,7 @@ describe('<ScalprumComponent />', () => {
     name: 'testApp',
     registrationMethod: 'custom',
     version: '1.0.0',
+    baseURL: '/',
   };
   const mockInitScalprumConfig: AppsConfig = {
     appOne: {
