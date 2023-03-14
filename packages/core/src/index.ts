@@ -257,6 +257,14 @@ function isPluginManifest(manifest: any): manifest is PluginManifest {
   );
 }
 
+function extractBaseURL(path: string) {
+  const result = path.split('/');
+  // remove last section of pathname that inclides the JS filename
+  result.pop();
+  // make sure there is always at least leading / to satisfy sdk manifest validation
+  return result.join('/') || '/';
+}
+
 export async function processManifest(url: string, scope: string, module: string, processor?: (manifest: any) => string[]): Promise<void> {
   let pendingInjection = getPendingInjection(scope);
   const { pluginStore } = getScalprum();
@@ -299,16 +307,18 @@ export async function processManifest(url: string, scope: string, module: string
       sdkManifest = manifest;
     } else {
       const loadScripts: string[] = processor ? processor(manifest) : manifest[scope].entry;
+      const baseURL = extractBaseURL(loadScripts[0]);
       sdkManifest = {
         extensions: [],
-        loadScripts,
+        // remove base URL from script entry, baseURL is added by scalprum provider
+        loadScripts: loadScripts.map((script) => script.replace(baseURL, '')),
         name: scope,
         registrationMethod: 'custom',
         version: '1.0.0',
+        baseURL,
       };
     }
-    // FIXME: host config is required, will ne custom properties in SDK
-    await pluginStore.loadPlugin(document.location.origin, sdkManifest);
+    await pluginStore.loadPlugin(sdkManifest.baseURL, sdkManifest);
     try {
       const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
       setExposedModule(getModuleIdentifier(scope, module), exposedModule);

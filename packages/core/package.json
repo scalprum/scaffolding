@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/core",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Includes core functions for scalprum scaffolding.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -20,6 +20,6 @@
     "start:cjs": "npm run build:cjs -- -w"
   },
   "dependencies": {
-    "@openshift/dynamic-plugin-sdk": "^2.0.1"
+    "@openshift/dynamic-plugin-sdk": "^3.0.0"
   }
 }

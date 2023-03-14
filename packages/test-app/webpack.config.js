@@ -93,6 +93,13 @@ const TestSDKPLugin = new DynamicRemotePlugin({
   extensions: [],
   sharedModules,
   entryScriptFilename: 'sdk-plugin.[fullhash].js',
+  pluginMetadata: {
+    name: 'sdk-plugin',
+    version: '1.0.0',
+    exposedModules: {
+      './SDKComponent': './src/modules/SDKComponent.tsx',
+    },
+  },
 });
 
 module.exports = {
@@ -101,7 +108,8 @@ module.exports = {
     scaffolding: './src/scaffolding.tsx',
   },
   output: {
-    publicPath: '/',
+    // use test public path to ensure the SDK URL is correctly structured
+    publicPath: '/testPath/',
     chunkFilename: '[name].js',
   },
   resolve: {

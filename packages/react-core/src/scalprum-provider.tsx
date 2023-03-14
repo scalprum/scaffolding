@@ -30,6 +30,12 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
       initialize<T>({
         appsConfig: config,
         api,
+        pluginLoaderOptions: {
+          postProcessManifest(manifest) {
+            return { ...manifest, loadScripts: manifest.loadScripts.map((script) => `${manifest.baseURL}${script}`) };
+          },
+          ...pluginSDKOptions?.pluginLoaderOptions,
+        },
         ...pluginSDKOptions,
       }),
     []
