@@ -325,7 +325,7 @@ export async function processManifest(url: string, scope: string, module: string
       return;
     } catch (error) {
       clearPendingInjection(scope);
-      throw new Error(error as string);
+      throw error;
     }
   })();
 
