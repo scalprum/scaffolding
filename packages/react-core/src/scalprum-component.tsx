@@ -186,9 +186,10 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
     return !isEqual(nextProps, this.props) || !isEqual(nextState, this.state);
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  // TODO: Use ErrorWithCause once the type is avaiable
+  componentDidCatch(error: any, errorInfo: React.ErrorInfo) {
     if (this.selfRepairAttempt === true) {
-      console.error('Scalprum encountered an error!', error?.message || error);
+      console.error('Scalprum encountered an error!', error?.cause || error.message, error);
       this.setState({ error, errorInfo });
     } else {
       console.warn('Scalprum failed to render component. Attempting to skip module cache.');
