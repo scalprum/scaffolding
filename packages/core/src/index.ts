@@ -83,7 +83,7 @@ export const getSharedScope = (enableScopeWarning?: boolean) => {
 
   const sharedScope = __webpack_share_scopes__[SHARED_SCOPE_NAME];
   if (enableScopeWarning) {
-    warnDuplicatePkg(sharedScope);
+    warnDuplicatePkg();
   }
 
   return sharedScope;
