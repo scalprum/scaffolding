@@ -1,4 +1,4 @@
-import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
+import { PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
 import { warnDuplicatePkg } from './warnDuplicatePkg';
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export interface AppMetadata {
@@ -200,17 +200,15 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
     ...options,
   };
 
-  // Create new plugin loader instance
-  const pluginLoader = new PluginLoader({
-    sharedScope: getSharedScope(defaultOptions.enableScopeWarning),
-    getPluginEntryModule: ({ name }) => (window as { [key: string]: any })[name],
-    ...pluginLoaderOptions,
-  });
-
   // Create new plugin store
-  const pluginStore = new PluginStore(pluginStoreOptions);
-  pluginLoader.registerPluginEntryCallback();
-  pluginStore.setLoader(pluginLoader);
+  const pluginStore = new PluginStore({
+    ...pluginStoreOptions,
+    loaderOptions: {
+      sharedScope: getSharedScope(defaultOptions.enableScopeWarning),
+      getPluginEntryModule: ({ name }) => (window as { [key: string]: any })[name],
+      ...pluginLoaderOptions,
+    },
+  });
   pluginStore.setFeatureFlags(pluginStoreFeatureFlags);
 
   scalprum = {
@@ -318,7 +316,7 @@ export async function processManifest(url: string, scope: string, module: string
         baseURL,
       };
     }
-    await pluginStore.loadPlugin(sdkManifest.baseURL, sdkManifest);
+    await pluginStore.loadPlugin(sdkManifest);
     try {
       const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
       setExposedModule(getModuleIdentifier(scope, module), exposedModule);

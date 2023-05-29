@@ -275,7 +275,7 @@ describe('<ScalprumComponent />', () => {
     };
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     ScalprumCore.getScalprum().exposedModules[`cachedScope#./test`] = cachedModule;
-    await ScalprumCore.getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
+    await ScalprumCore.getScalprum().pluginStore.loadPlugin(testManifest);
 
     const props: ScalprumComponentProps = {
       scope: 'cachedScope',
@@ -288,34 +288,6 @@ describe('<ScalprumComponent />', () => {
     expect(loadComponentSpy).not.toHaveBeenCalled();
     expect(container).toMatchSnapshot();
     expect(screen.getAllByTestId('cached-component')).toHaveLength(1);
-  });
-
-  test('should try and re-render original component on first error', async () => {
-    // we need two mocks for reload attempt
-    processManifestSpy.mockImplementation(() => Promise.resolve());
-    const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
-    const asyncComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(
-      componentPromise.then(() => ({
-        prefetch: undefined,
-        component: () => {
-          throw 're-render initial error';
-        },
-      }))
-    );
-    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
-
-    const props: ScalprumComponentProps = {
-      scope: 'errorRepairSuccess',
-      module: 'test',
-      ErrorComponent: <ErrorComponent />,
-    };
-    let container;
-    await act(async () => {
-      container = render(<ScalprumComponent {...props} />).container;
-    });
-
-    expect(container).toMatchSnapshot();
-    asyncComponentSpy.mockRestore();
   });
 
   test('should render error component if self-repair attempt fails', async () => {

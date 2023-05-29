@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, useState, ReactNode, useReducer, useRef } from 'react';
+import React, { useEffect, Suspense, useState, ReactNode, useRef, useMemo } from 'react';
 import {
   getCachedModule,
   handlePrefetchPromise,
@@ -7,7 +7,6 @@ import {
   getPendingLoading,
   setPendingLoading,
   getPendingPrefetch,
-  PrefetchFunction,
 } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
@@ -28,117 +27,50 @@ export type ScalprumComponentProps<API extends Record<string, any> = {}, Props e
   skipCache?: boolean;
 };
 
-interface LoadModuleProps extends Omit<ScalprumComponentProps, 'ErrorComponent'> {
-  ErrorComponent: React.ComponentType;
-}
-
-async function setComponentFromModule(
-  scope: string,
-  module: string,
-  isMounted: boolean,
-  setComponent: React.Dispatch<
-    React.SetStateAction<
-      | React.ComponentType<{
-          ref?: React.Ref<unknown> | undefined;
-        }>
-      | undefined
-    >
-  >
-): Promise<PrefetchFunction | undefined> {
-  const { prefetch, component } = await loadComponent(scope, module);
-  isMounted && setComponent(() => component);
-  return prefetch;
-}
+type LoadModuleProps = Omit<ScalprumComponentProps, 'ErrorComponent'>;
 
 const LoadModule: React.ComponentType<LoadModuleProps> = ({
   fallback = 'loading',
   scope,
   module,
-  ErrorComponent,
   processor,
   innerRef,
   skipCache = false,
   ...props
 }) => {
   const { manifestLocation } = getAppData(scope);
-  const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
-  const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> } & Record<string, any>> | undefined>(undefined);
   const [prefetchPromise, setPrefetchPromise] = useState<Promise<any>>();
-  const [loadingError, setLoadingError] = useState<Error | undefined>();
-
-  if (loadingError) {
-    // Error has to be thrown during render loop. Promise based errors won't be catched by error boundary.
-    throw loadingError;
-  }
+  const { cachedModule } = getCachedModule(scope, module);
+  const prefetchID = `${scope}#${module}`;
 
   const scalprumApi = useScalprum();
 
-  useEffect(() => {
-    const prefetchID = `${scope}#${module}`;
+  const initComponent = async (): Promise<React.ComponentType<{ ref?: React.Ref<unknown> } & Record<string, any>>> => {
     const { cachedModule, prefetchPromise } = getCachedModule(scope, module);
-    setPrefetchPromise(prefetchPromise);
-
-    let isMounted = true;
-    const handleLoadingError = (error?: Error) => {
-      if (isMounted) {
-        setLoadingError(error);
-        setComponent(() => (props: any) => <ErrorComponent error={error} {...props} />);
-      }
-    };
-    let pref;
-    /**
-     * Check if module is being pre-loaded
-     */
-    const pendingLoading = getPendingLoading(scope, module);
-
-    if (!cachedModule && pendingLoading) {
-      pendingLoading.finally(() => {
-        forceRender();
-      });
-    } else {
-      /**
-       * Here will be registry check
-       */
-      if (!cachedModule) {
-        if (manifestLocation) {
-          const processPromise = processManifest(manifestLocation, scope, module, processor)
-            .then(() => {
-              pref = setComponentFromModule(scope, module, isMounted, setComponent);
-              pref.then((result) => {
-                if (result) {
-                  const prefetch = getPendingPrefetch(prefetchID) || result(scalprumApi);
-                  setPrefetchPromise(prefetch);
-                  handlePrefetchPromise(prefetchID, prefetch);
-                }
-              });
-              return pref;
-            })
-            .catch(handleLoadingError);
-
-          // lock module preload
-          setPendingLoading(scope, module, processPromise);
-        }
-      } else {
-        try {
-          isMounted && setComponent(() => cachedModule.default);
-
-          pref = cachedModule.prefetch;
-          if (pref) {
-            const prefetch = getPendingPrefetch(prefetchID) || pref(scalprumApi);
-            setPrefetchPromise(prefetch);
-            handlePrefetchPromise(prefetchID, prefetch);
-          }
-        } catch (e) {
-          handleLoadingError(e as Error);
-        }
-      }
+    if (!skipCache && cachedModule) {
+      setPrefetchPromise(prefetchPromise);
+      return cachedModule.default;
     }
-
-    return () => {
-      isMounted = false;
-      setLoadingError(undefined);
-    };
-  }, [scope, skipCache, reRender]);
+    const pendingLoading = getPendingLoading(scope, module);
+    if (pendingLoading) {
+      return pendingLoading.then(() => {
+        const { cachedModule } = getCachedModule(scope, module);
+        return cachedModule?.default;
+      });
+    }
+    const processPromise = processManifest(manifestLocation || '', scope, module, processor).then(() =>
+      loadComponent(scope, module).then(({ component, prefetch }) => {
+        if (prefetch) {
+          const prefetchResult = getPendingPrefetch(prefetchID) || prefetch(scalprumApi);
+          setPrefetchPromise(prefetchResult);
+          handlePrefetchPromise(prefetchID, prefetchResult);
+        }
+        return component;
+      })
+    );
+    setPendingLoading(module, scope, processPromise);
+    return processPromise;
+  };
 
   // clear prefetchPromise (from factory)
   const initialPrefetch = useRef(false);
@@ -146,12 +78,28 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
     if (initialPrefetch.current) {
       setPrefetchPromise(undefined);
     }
+    // handle promise prefetch for duplicate module
+    if (!prefetchPromise && cachedModule?.prefetch) {
+      const prefetchResult = getPendingPrefetch(prefetchID) || cachedModule.prefetch(scalprumApi);
+      setPrefetchPromise(prefetchResult);
+      handlePrefetchPromise(prefetchID, prefetchResult);
+    }
     initialPrefetch.current = true;
   }, [scope, module]);
 
+  const Component = useMemo(() => {
+    if (!skipCache && cachedModule?.default) {
+      return cachedModule.default;
+    }
+    return React.lazy(() =>
+      initComponent().then((r) => {
+        return { default: r };
+      })
+    );
+  }, [scope, module]);
   return (
     <PrefetchProvider prefetchPromise={prefetchPromise}>
-      <Suspense fallback={fallback}>{Component ? <Component ref={innerRef} {...props} /> : fallback}</Suspense>
+      <Suspense fallback={fallback}>{<Component ref={innerRef} {...props} />}</Suspense>
     </PrefetchProvider>
   );
 };
@@ -164,18 +112,16 @@ interface BaseScalprumComponentState {
 }
 
 class BaseScalprumComponent extends React.Component<ScalprumComponentProps, BaseScalprumComponentState> {
-  selfRepairAttempt: boolean;
   static defaultProps = {
     ErrorComponent: <DefaultErrorComponent />,
   };
   constructor(props: ScalprumComponentProps) {
     super(props);
     this.state = { hasError: false };
-    this.selfRepairAttempt = false;
   }
 
-  static getDerivedStateFromError(): BaseScalprumComponentState {
-    return { hasError: true };
+  static getDerivedStateFromError(error: any): BaseScalprumComponentState {
+    return { hasError: true, error };
   }
 
   shouldComponentUpdate(nextProps: ScalprumComponentProps, nextState: BaseScalprumComponentState) {
@@ -186,36 +132,18 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
     return !isEqual(nextProps, this.props) || !isEqual(nextState, this.state);
   }
 
-  // TODO: Use ErrorWithCause once the type is avaiable
   componentDidCatch(error: any, errorInfo: React.ErrorInfo) {
-    if (this.selfRepairAttempt === true) {
-      console.error('Scalprum encountered an error!', error?.cause || error.message, error);
-      this.setState({ error, errorInfo });
-    } else {
-      console.warn('Scalprum failed to render component. Attempting to skip module cache.');
-      this.setState({ repairAttempt: true });
-    }
+    console.error('Scalprum encountered an error!', error?.cause || error.message, error);
+    this.setState({ error, errorInfo });
   }
 
   render(): ReactNode {
     const { ErrorComponent = <DefaultErrorComponent {...this.state} />, ...props } = this.props;
 
-    const PreparedError: React.ComponentType = (props: any) => {
-      return React.cloneElement<typeof this.state>(ErrorComponent, { ...this.state, ...props });
-    };
-
-    if (this.state.repairAttempt && !this.selfRepairAttempt) {
-      /**
-       * Retry fetching module with disabled cache
-       */
-      this.selfRepairAttempt = true;
-      return <LoadModule {...props} skipCache ErrorComponent={PreparedError} />;
-    }
-
-    if (this.state.hasError && this.selfRepairAttempt) {
+    if (this.state.hasError) {
       return React.cloneElement(ErrorComponent as React.FunctionComponentElement<BaseScalprumComponentState>, { ...this.state });
     }
-    return <LoadModule {...props} ErrorComponent={PreparedError} />;
+    return <LoadModule {...props} />;
   }
 }
 

@@ -17,6 +17,7 @@
     "@types/history": "^4.7.9",
     "@types/react": "^17.0.31",
     "@types/react-dom": "^17.0.10",
+    "@types/react-grid-layout": "^1.3.2",
     "@types/react-router-dom": "^5.3.1",
     "html-webpack-plugin": "^5.5.0",
     "webpack": "^5.61.0",
@@ -31,6 +32,7 @@
     "history": "^4.0.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-grid-layout": "^1.3.4",
     "react-router-dom": "^6.3.0"
   }
 }
