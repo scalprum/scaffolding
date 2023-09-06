@@ -9,6 +9,6 @@ export interface PrefetchState {
 
 export const PrefetchContext = createContext<Promise<any> | undefined>(undefined);
 
-export const PrefetchProvider: React.FC<{ prefetchPromise: Promise<any> | undefined }> = ({ children, prefetchPromise }) => {
+export const PrefetchProvider: React.FC<React.PropsWithChildren<{ prefetchPromise: Promise<any> | undefined }>> = ({ children, prefetchPromise }) => {
   return <PrefetchContext.Provider value={prefetchPromise}>{children}</PrefetchContext.Provider>;
 };

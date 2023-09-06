@@ -63,11 +63,3 @@ exports[`<ScalprumComponent /> should retrieve module from scalprum cache 1`] = 
   </div>
 </div>
 `;
-
-exports[`<ScalprumComponent /> should try and re-render original component on first error 1`] = `
-<div>
-  <span>
-    Test
-  </span>
-</div>
-`;

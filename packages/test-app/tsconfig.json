@@ -1,6 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "react": [ "./node_modules/@types/react" ]
+    },
   }
 }

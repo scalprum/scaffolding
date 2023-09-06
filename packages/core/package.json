@@ -20,6 +20,6 @@
     "start:cjs": "npm run build:cjs -- -w"
   },
   "dependencies": {
-    "@openshift/dynamic-plugin-sdk": "^3.0.0"
+    "@openshift/dynamic-plugin-sdk": "file:../../../dynamic-plugin-sdk/packages/lib-core"
   }
 }
