@@ -1,16 +1,16 @@
 import { PluginLoader, PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
 import { warnDuplicatePkg } from './warnDuplicatePkg';
 export const GLOBAL_NAMESPACE = '__scalprum__';
-export interface AppMetadata {
+export type AppMetadata<T extends {} = {}> = T & {
   name: string;
   appId?: string;
   elementId?: string;
   rootLocation?: string;
   scriptLocation?: string;
   manifestLocation?: string;
-}
-export interface AppsConfig {
-  [key: string]: AppMetadata;
+};
+export interface AppsConfig<T extends {} = {}> {
+  [key: string]: AppMetadata<T>;
 }
 
 export type PrefetchFunction<T = any> = (ScalprumApi: Record<string, any> | undefined) => Promise<T>;
