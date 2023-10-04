@@ -93,7 +93,6 @@ describe('scalprum', () => {
         disableReason: undefined,
         enabled: true,
         manifest: { baseURL: '/foo/bar', extensions: [], loadScripts: [], registrationMethod: 'custom', name: 'testScope', version: '1.0.0' },
-        pluginName: 'testScope',
         status: 'loaded',
       },
     ];
@@ -103,7 +102,7 @@ describe('scalprum', () => {
       init: jest.fn(),
       get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
     };
-    await getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
+    await getScalprum().pluginStore.loadPlugin(testManifest);
     expect(getScalprum().pluginStore.getPluginInfo()).toEqual(expectedPlugins);
   });
 
@@ -115,7 +114,7 @@ describe('scalprum', () => {
       init: jest.fn(),
       get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(jest.fn())),
     };
-    await getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
+    await getScalprum().pluginStore.loadPlugin(testManifest);
     // @ts-ignore
     expect(getCachedModule('testScope', './testModule')).toHaveProperty('cachedModule');
     /**
@@ -133,7 +132,7 @@ describe('scalprum', () => {
       init: jest.fn(),
       get: jest.fn().mockReturnValue(jest.fn()),
     };
-    await getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
+    await getScalprum().pluginStore.loadPlugin(testManifest);
     // @ts-ignore
     expect(getCachedModule('testScope', './testModule', true)).toEqual({});
   });

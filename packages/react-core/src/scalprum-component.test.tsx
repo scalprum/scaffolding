@@ -19,7 +19,7 @@ describe('<ScalprumComponent />', () => {
     name: 'testApp',
     registrationMethod: 'custom',
     version: '1.0.0',
-    baseURL: '/',
+    baseURL: 'http://foobar/',
   };
   const mockInitScalprumConfig: AppsConfig = {
     appOne: {
@@ -275,7 +275,7 @@ describe('<ScalprumComponent />', () => {
     };
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     ScalprumCore.getScalprum().exposedModules[`cachedScope#./test`] = cachedModule;
-    await ScalprumCore.getScalprum().pluginStore.loadPlugin('http://foobar', testManifest);
+    await ScalprumCore.getScalprum().pluginStore.loadPlugin(testManifest);
 
     const props: ScalprumComponentProps = {
       scope: 'cachedScope',
