@@ -36,6 +36,16 @@ const config: AppsConfig<{ assetsHost?: string }> = {
 const Entry = () => {
   return (
     <ScalprumProvider
+      pluginSDKOptions={{
+        pluginLoaderOptions: {
+          postProcessManifest(manifest) {
+            return {
+              ...manifest,
+              loadScripts: manifest.loadScripts.map((script) => `${manifest.baseURL}/${script}`),
+            };
+          },
+        },
+      }}
       api={{
         chrome: {
           foo: 'bar',
