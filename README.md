@@ -543,6 +543,25 @@ const RemotelyLoadedComponent = () => {
 
 ```
 
+***importName***
+
+The `importName` prop is a string that is used to reference the module. It is a name of the exported component from the module. Should be used if other than `default` export is required.
+
+```jsx
+// Remote module definition
+export const NamedComponent = () => {
+  return (
+    <div>
+      <h2>Named component</h2>
+    </div>
+  )
+}
+
+// Consumer
+<ScalprumComponent {...props} importName="NamedComponent">
+```
+One module can have multiple exports.
+
 ***fallback***
 
 Similar to [React.Suspense](https://beta.reactjs.org/reference/react/Suspense). This component will be loaded before the module is ready.

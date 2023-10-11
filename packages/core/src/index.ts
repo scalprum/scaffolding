@@ -14,7 +14,7 @@ export interface AppsConfig<T extends {} = {}> {
 }
 
 export type PrefetchFunction<T = any> = (ScalprumApi: Record<string, any> | undefined) => Promise<T>;
-export type ExposedScalprumModule<T = any, P = any> = { default: T; prefetch?: PrefetchFunction<P> };
+export type ExposedScalprumModule<T = any, P = any> = { [importName: string]: T } & { prefetch?: PrefetchFunction<P> };
 export type ScalprumModule<T = any, P = any> = {
   cachedModule?: ExposedScalprumModule<T, P>;
   prefetchPromise?: ReturnType<PrefetchFunction>;
