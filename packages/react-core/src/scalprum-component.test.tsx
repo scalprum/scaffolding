@@ -38,6 +38,10 @@ describe('<ScalprumComponent />', () => {
       name: 'errorRepairSuccess',
       manifestLocation: '/errorRepairSuccess,js',
     },
+    testApp: {
+      name: 'testApp',
+      manifestLocation: '/testApp.js',
+    },
   };
 
   const mockInitScalpumConfigManifest: AppsConfig = {
@@ -343,5 +347,29 @@ describe('<ScalprumComponent />', () => {
     });
 
     expect(container).toMatchSnapshot();
+  });
+
+  it('should render component with importName prop from cache', async () => {
+    processManifestSpy.mockImplementation(() => Promise.resolve());
+    const namedModule = {
+      __esModule: true,
+      NamedExport: () => <div data-testid="named-component">named export Component</div>,
+    };
+    ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
+    ScalprumCore.getScalprum().exposedModules[`namedModule#./test`] = namedModule;
+    await ScalprumCore.getScalprum().pluginStore.loadPlugin(testManifest);
+
+    const props: ScalprumComponentProps = {
+      scope: 'namedModule',
+      module: './test',
+      importName: 'NamedExport',
+    };
+    let container;
+    await act(async () => {
+      container = render(<ScalprumComponent {...props} />).container;
+    });
+    expect(loadComponentSpy).not.toHaveBeenCalled();
+    expect(container).toMatchSnapshot();
+    expect(screen.getAllByTestId('named-component')).toHaveLength(1);
   });
 });

@@ -15,12 +15,12 @@ import DefaultErrorComponent from './default-error-component';
 import { PrefetchProvider } from './prefetch-context';
 import { useScalprum } from './use-scalprum';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type ScalprumComponentProps<API extends Record<string, any> = {}, Props extends Record<string, any> = {}> = Props & {
   fallback?: NonNullable<React.ReactNode> | null;
   api?: API;
   scope: string;
   module: string;
+  importName?: string;
   ErrorComponent?: React.ReactElement;
   LoadingComponent?: React.ComponentType;
   innerRef?: React.Ref<unknown>;
@@ -36,6 +36,7 @@ async function setComponentFromModule(
   scope: string,
   module: string,
   isMounted: boolean,
+  importName: string,
   setComponent: React.Dispatch<
     React.SetStateAction<
       | React.ComponentType<{
@@ -45,7 +46,7 @@ async function setComponentFromModule(
     >
   >
 ): Promise<PrefetchFunction | undefined> {
-  const { prefetch, component } = await loadComponent(scope, module);
+  const { prefetch, component } = await loadComponent(scope, module, importName);
   isMounted && setComponent(() => component);
   return prefetch;
 }
@@ -58,6 +59,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   processor,
   innerRef,
   skipCache = false,
+  importName = 'default',
   ...props
 }) => {
   const { manifestLocation } = getAppData(scope);
@@ -103,7 +105,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
         if (manifestLocation) {
           const processPromise = processManifest(manifestLocation, scope, module, processor)
             .then(() => {
-              pref = setComponentFromModule(scope, module, isMounted, setComponent);
+              pref = setComponentFromModule(scope, module, isMounted, importName, setComponent);
               pref.then((result) => {
                 if (result) {
                   const prefetch = getPendingPrefetch(prefetchID) || result(scalprumApi);
@@ -120,7 +122,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
         }
       } else {
         try {
-          isMounted && setComponent(() => cachedModule.default);
+          isMounted && setComponent(() => cachedModule[importName]);
 
           pref = cachedModule.prefetch;
           if (pref) {
@@ -186,7 +188,7 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
     return !isEqual(nextProps, this.props) || !isEqual(nextState, this.state);
   }
 
-  // TODO: Use ErrorWithCause once the type is avaiable
+  // TODO: Use ErrorWithCause once the type is available
   componentDidCatch(error: any, errorInfo: React.ErrorInfo) {
     if (this.selfRepairAttempt === true) {
       console.error('Scalprum encountered an error!', error?.cause || error.message, error);

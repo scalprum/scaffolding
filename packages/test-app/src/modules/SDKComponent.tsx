@@ -7,8 +7,21 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
+import Slider from '@mui/material/Slider';
 import InboxIcon from '@mui/icons-material/Inbox';
 import DraftsIcon from '@mui/icons-material/Drafts';
+
+function valuetext(value: number) {
+  return `${value}°C`;
+}
+
+export const NamedSDKComponent = () => {
+  return (
+    <Box sx={{ width: 300 }}>
+      <Slider id="named-component" aria-label="Temperature" defaultValue={30} getAriaValueText={valuetext} color="secondary" />
+    </Box>
+  );
+};
 
 const SDKComponent = () => {
   return (

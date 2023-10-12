@@ -1,5 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`<ScalprumComponent /> should render component with importName prop from cache 1`] = `
+<div>
+  <div
+    data-testid="named-component"
+  >
+    named export Component
+  </div>
+</div>
+`;
+
 exports[`<ScalprumComponent /> should render error component 1`] = `
 <div>
   <h1>
