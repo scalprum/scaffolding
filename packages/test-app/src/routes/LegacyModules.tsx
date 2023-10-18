@@ -63,7 +63,7 @@ const LegacyModules = () => {
             ...item,
             x: index % 2,
             y: Infinity, // put last
-          }))
+          })),
       );
     }
   };

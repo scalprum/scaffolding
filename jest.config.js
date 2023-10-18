@@ -1,4 +1,4 @@
-const transformIgnorePatterns = ['node_modules/(?!(@openshift|lodash-es)/)'];
+const transformIgnorePatterns = ['node_modules/(?!(uuid)/)'];
 
 /** @type {import('jest').Config} */
 module.exports = {
@@ -15,5 +15,7 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns,
+  // needs to fix the memory leak errors
+  coverageProvider: 'v8',
   setupFilesAfterEnv: ['<rootDir>/config/jest.setup.js'],
 };

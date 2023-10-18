@@ -190,7 +190,7 @@ export const getModule = async <T = any, P = any>(scope: string, module: string,
       Module = await scalprum.pluginStore.getExposedModule(scope, module);
     } catch {
       throw new Error(
-        `Module not initialized! Module "${module}" was not found in "${scope}" webpack scope. Make sure the remote container is loaded?`
+        `Module not initialized! Module "${module}" was not found in "${scope}" webpack scope. Make sure the remote container is loaded?`,
       );
     }
   } else {

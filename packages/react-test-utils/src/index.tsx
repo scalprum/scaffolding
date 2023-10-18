@@ -22,6 +22,7 @@ export function mockWebpackShareScope() {
 
 export function mockFetch() {
   if (!globalThis.fetch) {
+    // @ts-ignore
     globalThis.fetch = fetchPolyfill;
   }
 }

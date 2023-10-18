@@ -33,7 +33,7 @@ const DefaultErrorComponent = ({
     <div>
       <h2>Error loading component</h2>
       {typeof error === 'string' && <p>{error}</p>}
-      {error?.cause && <p>{error.cause}</p>}
+      {error?.cause && typeof error?.cause !== 'object' && <p>{error.cause}</p>}
       {error?.message && <p>{error.message}</p>}
       {errorInfo?.componentStack ? <pre>{errorInfo?.componentStack}</pre> : error?.stack && <pre>{error.stack}</pre>}
     </div>

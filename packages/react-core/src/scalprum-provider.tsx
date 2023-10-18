@@ -38,7 +38,7 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
         },
         ...pluginSDKOptions,
       }),
-    []
+    [],
   );
 
   return (
