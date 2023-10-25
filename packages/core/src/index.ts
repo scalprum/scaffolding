@@ -61,7 +61,7 @@ const SHARED_SCOPE_NAME = 'default';
 
 let scalprum: Scalprum | undefined;
 
-const getModuleIdentifier = (scope: string, module: string) => `${scope}#${module}`;
+export const getModuleIdentifier = (scope: string, module: string) => `${scope}#${module}`;
 
 export const getScalprum = () => {
   if (!scalprum) {
