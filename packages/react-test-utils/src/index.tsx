@@ -22,6 +22,7 @@ export function mockWebpackShareScope() {
 
 export function mockFetch() {
   if (!globalThis.fetch) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     globalThis.fetch = fetchPolyfill;
   }
@@ -100,7 +101,7 @@ export function mockPluginData(
     moduleMock?: ModuleMock;
     config?: AppsConfig;
   } = {},
-  api: ScalprumProviderProps['api'] = {}
+  api: ScalprumProviderProps['api'] = {},
 ) {
   const response: Response = {
     blob: () => Promise.resolve(new Blob()),

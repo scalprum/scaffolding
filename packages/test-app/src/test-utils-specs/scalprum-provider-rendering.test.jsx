@@ -1,18 +1,18 @@
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import { render, cleanup, act, screen } from '@testing-library/react';
 
 import { ScalprumComponent, ScalprumProvider, useScalprum } from '@scalprum/react-core';
-import { AppsConfig, removeScalprum } from '@scalprum/core';
+import { removeScalprum } from '@scalprum/core';
 import { DEFAULT_MODULE_TEST_ID, mockPluginData } from '@scalprum/react-test-utils';
 
-const InitGate = ({ children }: PropsWithChildren<{}>) => {
+const InitGate = ({ children }) => {
   const { initialized } = useScalprum();
   if (!initialized) {
     return null;
   }
   return <>{children}</>;
 };
-const TestComponent = ({ config = {}, children }: PropsWithChildren<{ config?: AppsConfig }>) => {
+const TestComponent = ({ config = {}, children }) => {
   return (
     <ScalprumProvider config={config}>
       <div data-testid="static-child">Test</div>
