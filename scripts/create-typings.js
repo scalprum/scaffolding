@@ -11,7 +11,7 @@ async function generateIndexTypes(from, to) {
   const files = glob.sync('**/*.d.ts', { cwd: from });
   const content = `${files.map(
     (file) => `export * from './cjs/${file.split('.').shift()}';
-`
+`,
   )}`.replace(/,/g, '');
   return Promise.all([fse.writeFile(path.resolve(to, 'index.d.ts'), content)]);
 }

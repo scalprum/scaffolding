@@ -33,6 +33,9 @@ function RootLayout() {
             <NavLink variant="button" color="text.primary" to="/not-found-error" sx={{ my: 1, mx: 1.5 }}>
               Manifest not found
             </NavLink>
+            <NavLink variant="button" color="text.primary" to="/use-module" sx={{ my: 1, mx: 1.5 }}>
+              Use module hook
+            </NavLink>
           </nav>
         </Toolbar>
       </AppBar>

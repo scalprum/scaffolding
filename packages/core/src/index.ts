@@ -176,6 +176,30 @@ export const preloadModule = async (scope: string, module: string, processor?: (
   return setPendingLoading(scope, module, Promise.resolve(modulePromise));
 };
 
+export const getModule = async <T = any, P = any>(scope: string, module: string, importName = 'default'): Promise<T> => {
+  const scalprum = getScalprum();
+  const { cachedModule } = getCachedModule(scope, module);
+  let Module: ExposedScalprumModule<T, P>;
+  const manifestLocation = getAppData(scope)?.manifestLocation;
+  if (!manifestLocation) {
+    throw new Error(`Could not get module. Manifest location not found for scope ${scope}.`);
+  }
+  if (!cachedModule) {
+    try {
+      await processManifest(manifestLocation, scope, module);
+      Module = await scalprum.pluginStore.getExposedModule(scope, module);
+    } catch {
+      throw new Error(
+        `Module not initialized! Module "${module}" was not found in "${scope}" webpack scope. Make sure the remote container is loaded?`,
+      );
+    }
+  } else {
+    Module = cachedModule;
+  }
+
+  return Module[importName];
+};
+
 export const initialize = <T extends Record<string, any> = Record<string, any>>({
   appsConfig,
   api,

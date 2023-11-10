@@ -44,7 +44,7 @@ async function setComponentFromModule(
         }>
       | undefined
     >
-  >
+  >,
 ): Promise<PrefetchFunction | undefined> {
   const { prefetch, component } = await loadComponent(scope, module, importName);
   isMounted && setComponent(() => component);

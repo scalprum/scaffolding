@@ -4,7 +4,7 @@ import { ExposedScalprumModule, getCachedModule, getScalprum, PrefetchFunction }
 export async function loadComponent<P = {}>(
   scope: string,
   module: string,
-  importName = 'default'
+  importName = 'default',
 ): Promise<{ prefetch?: PrefetchFunction; component: React.ComponentType<P> }> {
   {
     const { pluginStore } = getScalprum();

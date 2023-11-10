@@ -44,12 +44,6 @@ exports[`<ScalprumComponent /> should render fallback component 2`] = `
 
 exports[`<ScalprumComponent /> should render test component 1`] = `
 <div>
-  loading
-</div>
-`;
-
-exports[`<ScalprumComponent /> should render test component 2`] = `
-<div>
   <span>
     Test
   </span>

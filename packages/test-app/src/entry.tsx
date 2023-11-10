@@ -8,6 +8,7 @@ import RootRoute from './routes/RootRoute';
 import SDKModules from './routes/SDKModules';
 import NotFoundError from './routes/NotFoundError';
 import { AppsConfig } from '@scalprum/core';
+import UseModuleLoading from './routes/UseModuleLoading';
 
 const config: AppsConfig<{ assetsHost?: string }> = {
   notFound: {
@@ -62,6 +63,7 @@ const Entry = () => {
             <Route path="/not-found-error" element={<NotFoundError />} />
             <Route path="/legacy" element={<LegacyModules />} />
             <Route path="/sdk" element={<SDKModules />} />
+            <Route path="/use-module" element={<UseModuleLoading />} />
           </Route>
         </Routes>
       </BrowserRouter>

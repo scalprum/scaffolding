@@ -9,7 +9,7 @@ export type ModuleDefinition = {
 
 export function useLoadModule(
   { scope, module, processor }: ModuleDefinition,
-  defaultState: any
+  defaultState: any,
 ): [ExposedScalprumModule | undefined, Error | undefined] {
   const { manifestLocation } = getAppData(scope);
   const [data, setData] = useState<ExposedScalprumModule>(defaultState);

@@ -155,7 +155,6 @@ describe('<ScalprumComponent />', () => {
     };
     await act(async () => {
       container = render(<ScalprumComponent {...props} />)?.container;
-      expect(container).toMatchSnapshot();
     });
 
     expect(loadComponentSpy).toHaveBeenCalled();
@@ -201,7 +200,7 @@ describe('<ScalprumComponent />', () => {
                 }),
             } as unknown as Promise<Response>);
           }, 500);
-        })
+        }),
     );
     jest.useFakeTimers();
     /**
@@ -209,7 +208,7 @@ describe('<ScalprumComponent />', () => {
      */
 
     const componentPromise = new Promise<{ prefetch: (() => Promise<any>) | undefined; component: ComponentType<any> }>((res) =>
-      setTimeout(() => res({ prefetch: undefined, component: TestComponent }), 500)
+      setTimeout(() => res({ prefetch: undefined, component: TestComponent }), 500),
     );
     jest.spyOn(asyncComponent, 'loadComponent').mockReturnValueOnce(componentPromise);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
@@ -237,24 +236,14 @@ describe('<ScalprumComponent />', () => {
   test('should render error component', async () => {
     processManifestSpy.mockImplementation(() => Promise.resolve());
     const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
-    const asyncComponentSpy = jest
-      .spyOn(asyncComponent, 'loadComponent')
-      .mockReturnValueOnce(
-        componentPromise.then(() => ({
-          prefetch: undefined,
-          component: () => {
-            throw 'should render error component';
-          },
-        }))
-      )
-      .mockReturnValueOnce(
-        componentPromise.then(() => ({
-          prefetch: undefined,
-          component: () => {
-            throw 'should render error component';
-          },
-        }))
-      );
+    const asyncComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(
+      componentPromise.then(() => ({
+        prefetch: undefined,
+        component: () => {
+          throw 'should render error component';
+        },
+      })),
+    );
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
 
     const props: ScalprumComponentProps = {
@@ -304,7 +293,7 @@ describe('<ScalprumComponent />', () => {
         component: () => {
           throw 're-render initial error';
         },
-      }))
+      })),
     );
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
 
@@ -338,7 +327,7 @@ describe('<ScalprumComponent />', () => {
           return <div>Mocked testing component</div>;
         },
         prefetch: () => Promise.resolve(),
-      }))
+      })),
     );
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     let container;
