@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist/esm",
+    "declarationDir": "./dist/cjs",
+    "esModuleInterop": true
+  },
+  "include": [
+    "src/index.tsx",
+    "./src/index.d.ts",
+  ],
+}

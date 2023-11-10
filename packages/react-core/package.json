@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/react-core",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "React binding for @scalprum/core package.",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@openshift/dynamic-plugin-sdk": "^4.0.0",
-    "@scalprum/core": "^0.6.0",
+    "@scalprum/core": "^0.6.1",
     "lodash": "^4.17.0"
   },
   "peerDependencies": {

@@ -14,6 +14,7 @@
     "@openshift/dynamic-plugin-sdk-webpack": "^3.0.0",
     "@scalprum/core": "*",
     "@scalprum/react-core": "*",
+    "@scalprum/react-test-utils": "*",
     "@types/history": "^4.7.9",
     "@types/react": "^17.0.31",
     "@types/react-dom": "^17.0.10",
