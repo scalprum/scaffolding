@@ -1,13 +1,27 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist/esm",
-    "declarationDir": "./dist/cjs",
-    "esModuleInterop": true
+    "module": "ES2015",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitOverride": false,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "paths": {
+      // need to link local packages to be able to import them from different than expected dist directory
+      "@scalprum/core": ["dist/packages/core"],
+      "@scalprum/react-core": ["dist/packages/react-core"],
+    },
+    "rootDir": ".",
   },
-  "include": [
-    "src/index.tsx",
-    "./src/index.d.ts",
-  ],
+  "files": [],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "references": [
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
 }
