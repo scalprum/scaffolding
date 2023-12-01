@@ -2,7 +2,7 @@ import React from 'react';
 import { usePrefetch } from '@scalprum/react-core';
 import { Box, Button, Card, CardActions, CardContent, CardMedia, Stack, Typography } from '@mui/material';
 
-type Prefetch<T = any, A extends Record<string, any> = Record<string, any>> = (scalprumApi: A) => Promise<T>;
+type Prefetch<T = unknown, A extends Record<string, unknown> = Record<string, unknown>> = (scalprumApi: A) => Promise<T>;
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

@@ -8,6 +8,7 @@ import GlobalStyles from '@mui/material/GlobalStyles';
 import Container from '@mui/material/Container';
 import { Link, Outlet } from 'react-router-dom';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const NavLink = (props: any) => <Button {...props} component={Link} />;
 
 function RootLayout() {

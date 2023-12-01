@@ -8,7 +8,7 @@ import LoadingComponent from '../components/LoadingComponent';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-const BoxWrapper: React.FC<PropsWithChildren<{}>> = ({ children }) => (
+const BoxWrapper: React.FC<PropsWithChildren> = ({ children }) => (
   <Box sx={{ display: 'flex', justifyContent: 'center', justifyItems: 'center' }}>{children}</Box>
 );
 
