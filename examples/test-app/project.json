@@ -1,0 +1,98 @@
+{
+  "name": "test-app",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "examples/test-app/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "compiler": "tsc",
+        "outputPath": "dist/examples/test-app",
+        "index": "examples/test-app/src/index.html",
+        "baseHref": "/",
+        "main": "examples/test-app/src/main.ts",
+        "tsConfig": "examples/test-app/tsconfig.app.json",
+        "assets": ["examples/test-app/src/favicon.ico", "examples/test-app/src/assets"],
+        "styles": [],
+        "scripts": [],
+        "webpackConfig": "examples/test-app/webpack.config.ts"
+      },
+      "configurations": {
+        "development": {
+          "extractLicenses": false,
+          "optimization": false,
+          "sourceMap": true
+        },
+        "production": {
+          "fileReplacements": [
+            {
+              "replace": "examples/test-app/src/environments/environment.ts",
+              "with": "examples/test-app/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false,
+          "webpackConfig": "examples/test-app/webpack.config.prod.ts"
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/webpack:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "test-app:build",
+        "hmr": true,
+        "port": 4200,
+        "webpackConfig": "examples/test-app/webpack.config.ts"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "test-app:build:development"
+        },
+        "production": {
+          "buildTarget": "test-app:build:production",
+          "hmr": false
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["examples/test-app/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "defaultConfiguration": "production",
+      "options": {
+        "buildTarget": "test-app:build",
+        "watch": false,
+        "port": 4200
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "test-app:build:development"
+        },
+        "production": {
+          "buildTarget": "test-app:build:production"
+        }
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "examples/test-app/jest.config.ts"
+      }
+    }
+  },
+  "tags": []
+}
