@@ -1,0 +1,56 @@
+{
+  "name": "@scalprum/react-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/react-core/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@scalprum/build-utils:builder",
+      "options": {
+        "outputPath": "dist/packages/react-core",
+        "esmTsConfig": "packages/react-core/tsconfig.esm.json",
+        "cjsTsConfig": "packages/react-core/tsconfig.cjs.json",
+        "assets": ["packages/react-core/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/react-core/**/*.ts", "packages/react-core/package.json"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/react-core/jest.config.ts"
+      }
+    },
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "trackDeps": true,
+        "push": true,
+        "preset": "conventionalcommits"
+      }
+    },
+    "github": {
+      "executor": "@jscutlery/semver:github",
+      "options": {
+        "tag": "{tag}",
+        "notes": "{notes}"
+      }
+    },
+    "npm": {
+      "executor": "ngx-deploy-npm:deploy",
+      "options": {
+        "access": "public"
+      }
+    },
+    "syncDependencies": {
+      "executor": "@scalprum/build-utils:sync-dependencies"
+    },
+    "tags": []
+  }
+}
