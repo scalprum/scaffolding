@@ -1,0 +1,14 @@
+name: Unit tests
+description: verify unit tests
+runs:
+  using: "composite"
+  steps:
+    - uses: nrwl/nx-set-shas@v3
+    - uses: './.github/actions/node-cache'
+    - name: Install deps
+      shell: bash
+      run: npm i
+    - name: Test affected
+      shell: bash
+      run: npx nx affected -t test --configuration=ci
+

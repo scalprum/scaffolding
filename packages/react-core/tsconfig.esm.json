@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "declaration": true,
+    "target": "ES5",
+    "paths": {
+      // need to link local packages to be able to import them from different than expected dist directory
+      "@scalprum/core": ["dist/packages/core"],
+    },
+    "rootDir": "./src",
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.spec.tsx"]
+}

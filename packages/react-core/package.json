@@ -2,28 +2,16 @@
   "name": "@scalprum/react-core",
   "version": "0.6.1",
   "description": "React binding for @scalprum/core package.",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "files": [
-    "dist"
-  ],
-  "typings": "dist/index.d.ts",
+  "main": "./index.js",
+  "module": "./esm/index.js",
+  "typings": "./index.d.ts",
   "repository": "https://github.com/scalprum/scaffloding.git",
   "author": "Martin Marosi <marvusm.mmi@gmail.com>",
   "license": "Apache-2.0",
-  "scripts": {
-    "build": "npm run build:cjs && npm run build:esm && npm run build:typings",
-    "build:esm": "tsc --module es2015 --target es5",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
-    "build:typings": "node ../../scripts/create-typings.js",
-    "start:esm": "npm run build:esm -- -w",
-    "start:cjs": "npm run build:cjs -- -w"
-  },
+  "scripts": {},
   "devDependencies": {
-    "@types/history": "^4.7.9",
     "@types/react": "^18.0.0",
-    "@types/react-dom": "^17.0.10",
-    "@types/react-router-dom": "^5.3.1"
+    "@types/react-dom": "^18.0.0"
   },
   "dependencies": {
     "@openshift/dynamic-plugin-sdk": "^4.0.0",

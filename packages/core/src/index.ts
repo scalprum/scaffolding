@@ -220,7 +220,7 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   }
   const defaultOptions: ScalprumOptions = {
     cacheTimeout: 120,
-    enableScopeWarning: process.env.NODE_ENV === 'development',
+    enableScopeWarning: global?.process?.env?.NODE_ENV === 'development',
     ...options,
   };
 

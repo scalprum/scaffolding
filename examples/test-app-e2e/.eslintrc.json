@@ -1,0 +1,24 @@
+{
+  "extends": ["plugin:cypress/recommended", "../../.eslintrc.json"],
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "rules": {
+        "cypress/no-unnecessary-waiting": "off"
+      }
+    },
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {}
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "rules": {}
+    },
+    {
+      "files": ["*.cy.{ts,js,tsx,jsx}", "src/**/*.{ts,js,tsx,jsx}"],
+      "rules": {}
+    }
+  ]
+}
