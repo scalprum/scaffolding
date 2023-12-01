@@ -1,0 +1,14 @@
+name: Lint project
+description: verify linting rules
+runs:
+  using: "composite"
+  steps:
+    - uses: nrwl/nx-set-shas@v3
+    - uses: './.github/actions/node-cache'
+    - name: Install deps
+      shell: bash
+      run: npm i
+    - name: Lint affected
+      shell: bash
+      run: npx nx affected -t lint
+

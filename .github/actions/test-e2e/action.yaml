@@ -1,0 +1,16 @@
+name: E2E tests
+description: verify e2e tests
+runs:
+  using: "composite"
+  steps:
+    - uses: nrwl/nx-set-shas@v3
+    - uses: './.github/actions/node-cache'
+    - uses: './.github/actions/cypress-cache'
+    - uses: './.github/actions/webpack-cache'
+    - name: Install deps
+      shell: bash
+      run: npm i
+    - name: Run e2e tests
+      shell: bash
+      run: npx nx run test-app-e2e:e2e --ci
+

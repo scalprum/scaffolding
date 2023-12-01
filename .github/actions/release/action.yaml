@@ -1,0 +1,48 @@
+name: Release job
+description: build affected packages and publish them to npm
+inputs:
+  npm_token:
+    description: 'NPM token'
+    required: true
+  gh_token:
+    description: 'Github token'
+    required: true
+  gh_actor:
+    description: 'Github actor'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - uses: './.github/actions/node-cache'
+    - name: Install deps
+      shell: bash
+      run: npm i
+    - name: git config
+      shell: bash
+      run: |
+        git config user.name "${{ inputs.gh_actor }}"
+        git config user.email "${{ inputs.gh_actor }}@users.noreply.github.com"
+    - name: Build
+      shell: bash
+      run: npx nx run-many -t build
+    - name: Set publish config
+      env:
+        NPM_TOKEN: ${{ inputs.npm_token }}
+      shell: bash
+      run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+    - name: Version
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.gh_token }}
+        GITHUB_TOKEN: ${{ inputs.gh_token }}
+      run: npx nx affected --base=last-release --parallel=1 --target=version --postTargets=syncDependencies,npm,github --trackDeps
+    - name: Tag last-release
+      shell: bash
+      run: |
+        git tag -f last-release
+        git push origin last-release --force
+
