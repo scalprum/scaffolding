@@ -33,10 +33,13 @@ function commitToPrevious(baseBranch: string, remote: string) {
   const diffCommand = `git diff HEAD`;
   const addCommand = `git add .`;
   const commitToPreviousCommand = `git commit --no-edit -m "chore: [skip ci] sync dependencies"`;
+  // reset the original remote to allow bypass branch protection
+  const remoteCommand = 'git remote remove origin && git remote add origin https://${GH_TOKEN}@github.com/scalprum/scaffolding.git';
   const pushCommand = `git push ${remote} ${baseBranch}`;
   // check if there are any changes to be committed
   const isDiff = execSync(diffCommand).toString().length > 0;
   if (isDiff) {
+    execSync(remoteCommand);
     execSync(addCommand);
     execSync(commitToPreviousCommand);
     execSync(pushCommand);
