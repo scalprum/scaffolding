@@ -11,8 +11,8 @@
   "scripts": {},
   "dependencies": {
     "@openshift/dynamic-plugin-sdk": "^4.0.0",
-    "@scalprum/core": "^0.6.1",
-    "@scalprum/react-core": "^0.6.1",
+    "@scalprum/core": "^0.6.4",
+    "@scalprum/react-core": "^0.6.4",
     "tslib": "^2.6.2",
     "whatwg-fetch": "^3.6.0"
   },
