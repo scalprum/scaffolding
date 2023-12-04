@@ -67,6 +67,8 @@ jobs:
           fetch-depth: 0
       - uses: './.github/actions/release'
         with:
-          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          gh_token: ${{ secrets.DEPLOY_TOKEN }}
           npm_token: ${{ secrets.NPM_TOKEN }}
-          gh_actor: ${GITHUB_ACTOR}
+          gh_name: ${{ secrets.GH_NAME }}
+          gh_email: ${{ secrets.GH_EMAIL }}
+
