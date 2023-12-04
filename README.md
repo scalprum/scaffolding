@@ -591,3 +591,4 @@ const ErrorComponent = ({ error, errorInfo }) => {
 
 <ScalprumComponent {...props} ErrorComponent={<ErrorComponent />}>
 ```
+
