@@ -90,7 +90,7 @@ const TestModuleFederation = new ModuleFederationPlugin({
 const TestSDKPLugin = new DynamicRemotePlugin({
   extensions: [],
   sharedModules,
-  entryScriptFilename: 'sdk-plugin.[fullhash].js',
+  entryScriptFilename: 'sdk-plugin.[contenthash].js',
   moduleFederationSettings: {
     libraryType: 'global',
   },

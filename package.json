@@ -15,7 +15,8 @@
     "test": "npm-run-all --parallel test:*",
     "build": "nx run-many -t build",
     "lint": "nx run-many -t lint",
-    "version": "nx run-many -t version --dryRun"
+    "version": "nx run-many -t version --dryRun",
+    "postinstall": "rm -rf .webpack-cache"
   },
   "private": true,
   "dependencies": {
@@ -24,7 +25,7 @@
     "@mui/icons-material": "^5.14.19",
     "@mui/material": "^5.14.19",
     "@nx/devkit": "17.1.3",
-    "@openshift/dynamic-plugin-sdk-webpack": "^3.0.0",
+    "@openshift/dynamic-plugin-sdk-webpack": "^4.0.1",
     "@swc/helpers": "~0.5.2",
     "eslint-plugin-prettier": "^5.0.1",
     "react": "18.2.0",
