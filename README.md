@@ -4,6 +4,10 @@ Scalprum is a tool for building dynamic frontend UIs from a variety of different
 
 Scalprum is a JavaScript micro frontend framework. It leverages [webpack](https://webpack.js.org/) 5 and its [module federation](https://webpack.js.org/concepts/module-federation/#root) features to create fast and scaleable micro frontend environments. 
 
+# Roadmap
+
+See our [roadmap](./ROADMAP.md) to v1 to get of a future fo Scalprum.
+
 
 # Getting started
 
