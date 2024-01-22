@@ -265,7 +265,7 @@ if(domNode) {
 // declare shared dependencies
 const moduleFederationPlugin = new ModuleFederationPlugin({
   name: 'host',
-  filename: 'host.[fullhash].js',
+  filename: 'host.[contenthash].js',
   shared: [
     {'@openshift/dynamic-plugin-sdk': { singleton: true, requiredVersion: '*'} },
     { '@scalprum/react-core': { singleton: true, requiredVersion: '*'} },
@@ -314,7 +314,7 @@ const sharedModules = {
 const dynamicPlugin = new DynamicRemotePlugin({
     extensions: [],
     sharedModules,
-    entryScriptfilename:'remoteModule.(fullhash].js',
+    entryScriptfilename:'remoteModule.(contenthash].js',
     pluginMetadata: {    
       name: "remoteModule",
       version: "1.0.0",
@@ -415,7 +415,7 @@ const { ModuleFederationPlugin } = require('webpack').container;
 // declare shared dependencies
 const moduleFederationPlugin = new ModuleFederationPlugin({
   name: 'host',
-  filename: 'host.[fullhash].js',
+  filename: 'host.[contenthash].js',
   shared: [{
     // These packages has to be shared and has to be marked as singleton!
     { '@openshift/dynamic-plugin-sdk', { singleton: true, eager: true}}

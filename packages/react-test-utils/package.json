@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "scripts": {},
   "dependencies": {
-    "@openshift/dynamic-plugin-sdk": "^4.0.0",
+    "@openshift/dynamic-plugin-sdk": "^5.0.1",
     "@scalprum/core": "^0.6.6",
     "@scalprum/react-core": "^0.6.7",
     "tslib": "^2.6.2",

@@ -39,7 +39,7 @@ const Entry = () => {
     <ScalprumProvider
       pluginSDKOptions={{
         pluginLoaderOptions: {
-          postProcessManifest(manifest) {
+          transformPluginManifest(manifest) {
             return {
               ...manifest,
               loadScripts: manifest.loadScripts.map((script) => `${script}`),
