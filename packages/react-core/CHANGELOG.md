@@ -2,6 +2,11 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.7](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.6.6...@scalprum/react-core-0.6.7) (2024-01-22)
+
+### Dependency Updates
+
+* `@scalprum/core` updated to version `0.6.6`
 ## [0.6.6](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.6.5...@scalprum/react-core-0.6.6) (2024-01-15)
 
 ## [0.6.5](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.6.4...@scalprum/react-core-0.6.5) (2023-12-04)
