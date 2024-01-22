@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@openshift/dynamic-plugin-sdk": "^4.0.0",
-    "@scalprum/core": "^0.6.5",
+    "@scalprum/core": "^0.6.6",
     "lodash": "^4.17.0"
   },
   "peerDependencies": {
