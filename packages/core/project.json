@@ -49,8 +49,10 @@
     "npm": {
       "executor": "ngx-deploy-npm:deploy",
       "options": {
-        "access": "public"
-      }
+        "access": "public",
+        "distFolderPath": "dist/packages/core"
+      },
+      "dependsOn": ["build"]
     },
     "syncDependencies": {
       "executor": "@scalprum/build-utils:sync-dependencies"
