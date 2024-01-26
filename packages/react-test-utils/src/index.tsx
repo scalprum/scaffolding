@@ -1,4 +1,3 @@
-/* eslint-disable no-var */
 import './overrides';
 import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
 import { ScalprumProvider, ScalprumProviderProps, useScalprum } from '@scalprum/react-core';
@@ -9,6 +8,7 @@ import { AppsConfig, getModuleIdentifier, getScalprum } from '@scalprum/core';
 type SharedScope = Record<string, Record<string, { loaded?: 1; get: () => Promise<unknown>; from: string; eager: boolean }>>;
 
 declare global {
+  // eslint-disable-next-line no-var
   var __webpack_share_scopes__: SharedScope;
   // var fetch: typeof fetchInternal;
 }
