@@ -42,7 +42,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh_token }}
         GITHUB_TOKEN: ${{ inputs.gh_token }}
-      run: npx nx affected --base=last-release --parallel=1 --target=version --postTargets=build,syncDependencies,npm,github --trackDeps
+      run: npx nx affected --base=last-release --parallel=1 --target=version --postTargets=syncDependencies,build,npm,github --trackDeps
     - name: Tag last-release
       shell: bash
       run: |
