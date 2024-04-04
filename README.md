@@ -65,7 +65,7 @@ npx webpack init
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
   },
-  "include": ["src/**/*ts", "src/**/*ts"]
+  "include": ["src/**/*tsx", "src/**/*ts"]
 }
 
 ```
@@ -105,7 +105,7 @@ const isProduction = process.env.NODE_ENV == "production";
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
-  entry: "./src/index.tsx",
+  entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
   },
@@ -118,7 +118,24 @@ const config = {
       template: "index.html",
     }),
     new MiniCssExtractPlugin(),
-
+    new ModuleFederationPlugin({
+      name: 'shell',
+      filename: isProduction ? 'shell-entry.[contenthash].js' : 'shell-entry.js',
+      shared: [
+        {
+          react: {
+            requiredVersion: '*',
+            singleton: true,
+          },
+          'react-dom': {
+            requiredVersion: '*',
+            singleton: true,
+          },
+          '@scalprum/react-core': { singleton: true, requiredVersion: '*' },
+          '@openshift/dynamic-plugin-sdk': { singleton: true, requiredVersion: '*' },
+        },
+      ],
+    }),
   ],
   module: {
     rules: [
@@ -168,7 +185,13 @@ module.exports = () => {
   return config;
 };
 ```
-12. Change the `index.ts` file extention to `index.tsx` and edit the `index.tsx` file to match the following example:
+12. Change the `index.ts` file to match the following example:
+
+```ts
+import('./bootstrap.tsx')
+```
+Create a `bootstrap.tsx` file with this code:
+
 ```js
 
 import React from 'react';
