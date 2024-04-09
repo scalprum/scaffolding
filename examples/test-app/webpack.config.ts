@@ -3,29 +3,9 @@
 import { withNx, NxWebpackExecutionContext, composePluginsSync } from '@nx/webpack';
 import { withReact } from '@nx/react';
 import { merge } from 'webpack-merge';
-import { Configuration, ProgressPlugin } from 'webpack';
-import { join, resolve } from 'path';
+import { Configuration } from 'webpack';
+import { join } from 'path';
 import { ModuleFederationPlugin } from '@module-federation/enhanced';
-import { DynamicRemotePluginEnhanced } from '@scalprum/build-tools/src/index';
-
-const sharedModules = {
-  react: {
-    singleton: true,
-    requiredVersion: '*',
-  },
-  'react-dom': {
-    singleton: true,
-    requiredVersion: '*',
-  },
-  '@scalprum/react-core': {
-    singleton: true,
-    requiredVersion: '*',
-  },
-  '@openshift/dynamic-plugin-sdk': {
-    singleton: true,
-    requiredVersion: '*',
-  },
-};
 
 const ShellConfig = new ModuleFederationPlugin({
   name: 'shell',
@@ -52,49 +32,8 @@ const ShellConfig = new ModuleFederationPlugin({
   ],
 });
 
-const TestPreLoadFederation = new ModuleFederationPlugin({
-  name: 'preLoad',
-  filename: 'preLoad.js',
-  library: {
-    type: 'global',
-    name: 'preLoad',
-  },
-  exposes: {
-    './PreLoadedModule': resolve(__dirname, './src/modules/preLoad.tsx'),
-    './NestedModule': resolve(__dirname, './src/modules/nestedModule.tsx'),
-  },
-  shared: [sharedModules],
-});
-
-const TestModuleFederation = new ModuleFederationPlugin({
-  name: 'testModule',
-  filename: 'testModule.js',
-  library: {
-    type: 'global',
-    name: 'testModule',
-  },
-  exposes: {
-    './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
-    './ModuleFour': resolve(__dirname, './src/modules/moduleFour.tsx'),
-  },
-  shared: [sharedModules],
-});
-
-const TestSDKPLugin = new DynamicRemotePluginEnhanced({
-  extensions: [],
-  sharedModules,
-  entryScriptFilename: 'sdk-plugin.[contenthash].js',
-  pluginMetadata: {
-    name: 'sdk-plugin',
-    version: '1.0.0',
-    exposedModules: {
-      './SDKComponent': './src/modules/SDKComponent.tsx',
-    },
-  },
-});
-
 const withModuleFederation = (config: Configuration, { context }: NxWebpackExecutionContext): Configuration => {
-  const plugins: Configuration['plugins'] = [new ProgressPlugin(), ShellConfig];
+  const plugins: Configuration['plugins'] = [ShellConfig];
   const newConfig = merge(config, {
     experiments: {
       outputModule: true,
