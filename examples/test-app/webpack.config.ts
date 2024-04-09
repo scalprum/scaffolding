@@ -3,11 +3,10 @@
 import { withNx, NxWebpackExecutionContext, composePluginsSync } from '@nx/webpack';
 import { withReact } from '@nx/react';
 import { merge } from 'webpack-merge';
-import { Configuration, container, ProgressPlugin } from 'webpack';
+import { Configuration, ProgressPlugin } from 'webpack';
 import { join, resolve } from 'path';
-import { DynamicRemotePlugin } from '@openshift/dynamic-plugin-sdk-webpack';
-
-const { ModuleFederationPlugin } = container;
+import { ModuleFederationPlugin } from '@module-federation/enhanced';
+import { DynamicRemotePluginEnhanced } from '@scalprum/build-tools/src/index';
 
 const sharedModules = {
   react: {
@@ -28,18 +27,12 @@ const sharedModules = {
   },
 };
 
-const TestAppFederation = new ModuleFederationPlugin({
-  name: 'testApp',
-  filename: 'testApp.js',
+const ShellConfig = new ModuleFederationPlugin({
+  name: 'shell',
+  filename: 'shell.[contenthash].js',
   library: {
-    type: 'var',
-    name: 'testApp',
-  },
-  exposes: {
-    './ModuleOne': resolve(__dirname, './src/modules/moduleOne.tsx'),
-    './ModuleTwo': resolve(__dirname, './src/modules/moduleTwo.tsx'),
-    './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
-    './ErrorModule': resolve(__dirname, './src/modules/errorModule.tsx'),
+    type: 'global',
+    name: 'shell',
   },
   shared: [
     {
@@ -63,7 +56,7 @@ const TestPreLoadFederation = new ModuleFederationPlugin({
   name: 'preLoad',
   filename: 'preLoad.js',
   library: {
-    type: 'var',
+    type: 'global',
     name: 'preLoad',
   },
   exposes: {
@@ -77,7 +70,7 @@ const TestModuleFederation = new ModuleFederationPlugin({
   name: 'testModule',
   filename: 'testModule.js',
   library: {
-    type: 'var',
+    type: 'global',
     name: 'testModule',
   },
   exposes: {
@@ -87,13 +80,10 @@ const TestModuleFederation = new ModuleFederationPlugin({
   shared: [sharedModules],
 });
 
-const TestSDKPLugin = new DynamicRemotePlugin({
+const TestSDKPLugin = new DynamicRemotePluginEnhanced({
   extensions: [],
   sharedModules,
   entryScriptFilename: 'sdk-plugin.[contenthash].js',
-  moduleFederationSettings: {
-    libraryType: 'global',
-  },
   pluginMetadata: {
     name: 'sdk-plugin',
     version: '1.0.0',
@@ -104,7 +94,7 @@ const TestSDKPLugin = new DynamicRemotePlugin({
 });
 
 const withModuleFederation = (config: Configuration, { context }: NxWebpackExecutionContext): Configuration => {
-  const plugins: Configuration['plugins'] = [new ProgressPlugin(), TestSDKPLugin, TestAppFederation, TestModuleFederation, TestPreLoadFederation];
+  const plugins: Configuration['plugins'] = [new ProgressPlugin(), ShellConfig];
   const newConfig = merge(config, {
     experiments: {
       outputModule: true,

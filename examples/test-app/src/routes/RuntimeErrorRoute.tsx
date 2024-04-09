@@ -6,7 +6,7 @@ const RuntimeErrorRoute = () => {
   return (
     <div>
       <h2>Runtime error route</h2>
-      <ScalprumComponent LoadingComponent={LoadingComponent} scope="testApp" module="./ErrorModule" />
+      <ScalprumComponent LoadingComponent={LoadingComponent} scope="sdk-plugin" module="./ErrorModule" />
     </div>
   );
 };

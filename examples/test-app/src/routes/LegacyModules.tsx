@@ -24,7 +24,7 @@ const LegacyModules = () => {
 
   const handlePreload = async () => {
     try {
-      await preloadModule('preLoad', './PreLoadedModule');
+      await preloadModule('sdk-plugin', './PreLoadedModule');
     } catch (error) {
       console.log('Unable to preload module: ', error);
     }
@@ -32,7 +32,7 @@ const LegacyModules = () => {
 
   const handlePreloadPF = async () => {
     try {
-      await preloadModule('testApp', './ModuleOne');
+      await preloadModule('sdk-plugin', './ModuleOne');
     } catch (error) {
       console.log('Unable to preload module: ', error);
     }
@@ -79,20 +79,20 @@ const LegacyModules = () => {
         <GridLayout margin={[10, 10]} className="layout" layout={layout} cols={2} width={852}>
           <div key="initial">
             <BoxWrapper>
-              <ScalprumComponent LoadingComponent={LoadingComponent} scope="testApp" module="./ModuleOne" />
+              <ScalprumComponent LoadingComponent={LoadingComponent} scope="sdk-plugin" module="./ModuleOne" />
             </BoxWrapper>
           </div>
           {showPreLoadedModule && (
             <div key="preLoad">
               <BoxWrapper>
-                <ScalprumComponent LoadingComponent={LoadingComponent} scope="preLoad" module="./PreLoadedModule" />
+                <ScalprumComponent LoadingComponent={LoadingComponent} scope="sdk-plugin" module="./PreLoadedModule" />
               </BoxWrapper>
             </div>
           )}
           {showPreLoadedModuleWPF && (
             <div key="preFetch">
               <BoxWrapper>
-                <ScalprumComponent LoadingComponent={LoadingComponent} scope="testApp" module="./ModuleOne" />
+                <ScalprumComponent LoadingComponent={LoadingComponent} scope="sdk-plugin" module="./ModuleOne" />
               </BoxWrapper>
             </div>
           )}
