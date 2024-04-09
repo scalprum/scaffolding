@@ -3,7 +3,7 @@ describe('Module error loading handling', () => {
     cy.visit('http://localhost:4200/legacy');
 
     // intercept webpack chunk and return 500 response
-    cy.intercept('GET', '/src_modules_preLoad_tsx.js', {
+    cy.intercept('GET', 'http://localhost:8001/exposed-./PreLoadedModule.js', {
       statusCode: 500,
     });
 
@@ -16,7 +16,7 @@ describe('Module error loading handling', () => {
     cy.get('#render-preload-module').click();
     cy.wait(1000);
 
-    cy.contains(`Loading chunk src_modules_preLoad_tsx failed.`).should('exist');
+    cy.contains(`Loading chunk exposed-./PreLoadedModule failed.`).should('exist');
   });
 
   it('should handle runtime module error', () => {

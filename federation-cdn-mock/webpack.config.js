@@ -110,10 +110,11 @@ function init() {
   /** @type { import("webpack").Configuration } */
   const config = {
     entry: {},
+    cache: { type: 'filesystem', cacheDirectory: resolve(__dirname, '.cdn-cache')},
     output: {
       publicPath: 'auto',
     },
-    mode: 'production',
+    mode: 'development',
     plugins: [TestSDKPLugin],
     module: {
       rules: [

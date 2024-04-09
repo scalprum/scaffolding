@@ -11,7 +11,7 @@
     "dev": "node dev-script.js",
     "test:unit": "nx run-many -t test",
     "test:unit:affected": "nx affected -t test",
-    "test:e2e": "nx run test-app-e2e:e2e",
+    "test:e2e": "concurrently \"npm run dev\" \"nx run test-app-e2e:e2e\"",
     "test": "npm-run-all --parallel test:*",
     "build": "nx run-many -t build",
     "lint": "nx run-many -t lint",

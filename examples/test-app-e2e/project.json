@@ -7,6 +7,7 @@
     "e2e": {
       "executor": "@nx/cypress:cypress",
       "options": {
+        "skipServe": true,
         "cypressConfig": "examples/test-app-e2e/cypress.config.ts",
         "testingType": "e2e",
         "devServerTarget": "test-app:serve",
