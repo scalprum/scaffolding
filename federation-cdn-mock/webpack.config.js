@@ -1,7 +1,6 @@
 const { resolve } = require('path');
-const { ModuleFederationPlugin } = require('@module-federation/enhanced');
-const { DynamicRemotePluginEnhanced } = require('@scalprum/build-tools');
-// import { DynamicRemotePlugin } from '@openshift/dynamic-plugin-sdk-webpack'
+const { ModuleFederationPlugin, ContainerPlugin } = require('@module-federation/enhanced');
+const { DynamicRemotePlugin } = require('@openshift/dynamic-plugin-sdk-webpack');
 
 const sharedModules = {
   react: {
@@ -24,71 +23,17 @@ const sharedModules = {
   },
 };
 
-const TestAppFederation = new ModuleFederationPlugin({
-  name: 'testApp',
-  filename: 'testApp.js',
-  library: {
-    type: 'global',
-    name: 'testApp',
-  },
-  exposes: {
-    './ModuleOne': resolve(__dirname, './src/modules/moduleOne.tsx'),
-    './ModuleTwo': resolve(__dirname, './src/modules/moduleTwo.tsx'),
-    './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
-    './ErrorModule': resolve(__dirname, './src/modules/errorModule.tsx'),
-  },
-  shared: [
-    {
-      react: {
-        singleton: true,
-        version: '18.2.0',
-      },
-      'react-dom': {
-        singleton: true,
-        version: '18.2.0',
-      },
-      '@scalprum/react-core': {
-        singleton: true,
-      },
-      '@openshift/dynamic-plugin-sdk': {
-        singleton: true,
-      },
-    },
-  ],
-});
-
-const TestPreLoadFederation = new ModuleFederationPlugin({
-  name: 'preLoad',
-  filename: 'preLoad.js',
-  library: {
-    type: 'global',
-    name: 'preLoad',
-  },
-  exposes: {
-    './PreLoadedModule': resolve(__dirname, './src/modules/preLoad.tsx'),
-    './NestedModule': resolve(__dirname, './src/modules/nestedModule.tsx'),
-  },
-  shared: [sharedModules],
-});
-
-const TestModuleFederation = new ModuleFederationPlugin({
-  name: 'testModule',
-  filename: 'testModule.js',
-  library: {
-    type: 'global',
-    name: 'testModule',
-  },
-  exposes: {
-    './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
-    './ModuleFour': resolve(__dirname, './src/modules/moduleFour.tsx'),
-  },
-  shared: [sharedModules],
-});
-
-const TestSDKPLugin = new DynamicRemotePluginEnhanced({
+const TestSDKPLugin = new DynamicRemotePlugin({
   extensions: [],
   sharedModules,
   entryScriptFilename: 'sdk-plugin.[contenthash].js',
+  moduleFederationSettings: {
+    // Use non native webpack plugins
+    pluginOverride: {
+      ModuleFederationPlugin,
+      ContainerPlugin,
+    }
+  },
   pluginMetadata: {
     name: 'sdk-plugin',
     version: '1.0.0',
