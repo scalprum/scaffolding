@@ -16,7 +16,7 @@ try {
 // ensure the deps exist before we start the servers
 execSync('npm run build', { cwd: cdnPath, stdio: 'inherit'})
 
-concurrently(
+const { commands } = concurrently(
   [{
     cwd: cdnPath,
     command: 'npm run watch',
@@ -29,3 +29,11 @@ concurrently(
     command: 'npx nx run test-app:serve',
   }]
 )
+
+
+// cleanup dev servers
+process.on('SIGINT', () => {
+  commands.forEach((c) => {
+    c.close()
+  })
+})

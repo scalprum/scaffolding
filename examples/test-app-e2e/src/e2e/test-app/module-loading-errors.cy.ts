@@ -3,7 +3,7 @@ describe('Module error loading handling', () => {
     cy.visit('http://localhost:4200/legacy');
 
     // intercept webpack chunk and return 500 response
-    cy.intercept('GET', 'http://localhost:8001/exposed-./PreLoadedModule.js', {
+    cy.intercept('GET', 'http://127.0.0.1:8001/exposed-./PreLoadedModule.js', {
       statusCode: 500,
     });
 

@@ -3,7 +3,7 @@ description: verify e2e tests
 runs:
   using: "composite"
   steps:
-    - uses: nrwl/nx-set-shas@v3
+    - uses: nrwl/nx-set-shas@v4
     - uses: './.github/actions/node-cache'
     - uses: './.github/actions/cypress-cache'
     - uses: './.github/actions/webpack-cache'
@@ -12,5 +12,11 @@ runs:
       run: npm i
     - name: Run e2e tests
       shell: bash
-      run: npx nx run test-app-e2e:e2e --ci
+      run: npm run test:e2e
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: test-results
+        path: dist/cypress/examples/test-app-e2e/screenshots/
 

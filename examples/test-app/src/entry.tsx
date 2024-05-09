@@ -14,12 +14,12 @@ const config: AppsConfig<{ assetsHost?: string }> = {
   notFound: {
     name: 'notFound',
     manifestLocation: '/assets/testPath/foo/bar/nonsense.json',
-    assetsHost: 'http://localhost:8888',
+    assetsHost: 'http://127.0.0.1:8001',
   },
   'sdk-plugin': {
     name: 'sdk-plugin',
-    assetsHost: 'http://localhost:8001',
-    manifestLocation: 'http://localhost:8001/plugin-manifest.json',
+    assetsHost: 'http://127.0.0.1:8001',
+    manifestLocation: 'http://127.0.0.1:8001/plugin-manifest.json',
   },
 };
 

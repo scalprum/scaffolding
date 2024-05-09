@@ -4,12 +4,13 @@
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch",
-    "serve": "http-server dist -p 8001 -c-1 --cors=*"
+    "serve": "wait-on dist && http-server dist -p 8001 -c-1 --cors=*"
   },
   "devDependencies": {
     "@module-federation/enhanced": "^0.1.2",
     "http-server": "^14.1.1",
     "swc-loader": "^0.2.6",
+    "wait-on": "^7.2.0",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {

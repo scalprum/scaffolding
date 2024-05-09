@@ -2,6 +2,8 @@ const { resolve } = require('path');
 const { ModuleFederationPlugin, ContainerPlugin } = require('@module-federation/enhanced');
 const { DynamicRemotePlugin } = require('@openshift/dynamic-plugin-sdk-webpack');
 
+console.log("Entry tests:", resolve(__dirname, './src/modules/moduleOne.tsx'))
+
 const sharedModules = {
   react: {
     singleton: true,
@@ -54,7 +56,9 @@ const TestSDKPLugin = new DynamicRemotePlugin({
 function init() {
   /** @type { import("webpack").Configuration } */
   const config = {
-    entry: {},
+    entry: {
+      mock: resolve(__dirname, './src/index.tsx'),
+    },
     cache: { type: 'filesystem', cacheDirectory: resolve(__dirname, '.cdn-cache')},
     output: {
       publicPath: 'auto',
