@@ -1,7 +1,0 @@
-{
-    "testApp": {
-        "entry": [
-            "/testPath/testApp.js"
-        ]
-    }
-}

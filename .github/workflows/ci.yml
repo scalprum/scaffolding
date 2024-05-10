@@ -10,10 +10,10 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: nrwl/nx-set-shas@v3
+      - uses: nrwl/nx-set-shas@v4
       # cache node modules for all jobs to use
       - uses: './.github/actions/node-cache'
       # cache cypress runner
@@ -24,7 +24,7 @@ jobs:
     needs: [install]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: './.github/actions/lint'
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [install]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: './.github/actions/test-unit'
@@ -40,10 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [install]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: nrwl/nx-set-shas@v3
+      - uses: nrwl/nx-set-shas@v4
       - uses: './.github/actions/node-cache'
       - name: Install deps
         run: npm i
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [install, build]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: './.github/actions/test-e2e'
@@ -62,7 +62,7 @@ jobs:
     needs: [install, lint, test, build, test-e2e]
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ssh-key: ${{ secrets.BOTH_AUTH_KEY }}

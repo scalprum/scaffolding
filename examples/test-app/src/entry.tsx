@@ -14,23 +14,12 @@ const config: AppsConfig<{ assetsHost?: string }> = {
   notFound: {
     name: 'notFound',
     manifestLocation: '/assets/testPath/foo/bar/nonsense.json',
-    assetsHost: 'http://localhost:8888',
-  },
-  testApp: {
-    name: 'testApp',
-    manifestLocation: '/assets/testPath/test-app-fed-mods.json',
-  },
-  testModule: {
-    name: 'testModule',
-    manifestLocation: '/assets/testPath/test-module-fed-mods.json',
-  },
-  preLoad: {
-    name: 'preLoad',
-    manifestLocation: '/assets/testPath/pre-load-module-fed-mods.json',
+    assetsHost: 'http://127.0.0.1:8001',
   },
   'sdk-plugin': {
     name: 'sdk-plugin',
-    manifestLocation: '/plugin-manifest.json',
+    assetsHost: 'http://127.0.0.1:8001',
+    manifestLocation: 'http://127.0.0.1:8001/plugin-manifest.json',
   },
 };
 
@@ -40,6 +29,13 @@ const Entry = () => {
       pluginSDKOptions={{
         pluginLoaderOptions: {
           transformPluginManifest(manifest) {
+            const host = config[manifest.name]?.assetsHost;
+            if (host) {
+              return {
+                ...manifest,
+                loadScripts: manifest.loadScripts.map((script) => `${host}/${script}`),
+              };
+            }
             return {
               ...manifest,
               loadScripts: manifest.loadScripts.map((script) => `${script}`),
