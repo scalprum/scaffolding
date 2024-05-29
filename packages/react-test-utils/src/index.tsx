@@ -1,6 +1,6 @@
 import './overrides';
 import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
-import { ScalprumProvider, ScalprumProviderProps, useScalprum } from '@scalprum/react-core';
+import { ScalprumProvider, ScalprumProviderConfigurableProps, useScalprum } from '@scalprum/react-core';
 import { fetch as fetchPolyfill } from 'whatwg-fetch';
 import React, { useEffect } from 'react';
 import { AppsConfig, getModuleIdentifier, getScalprum } from '@scalprum/core';
@@ -101,7 +101,7 @@ export function mockPluginData(
     moduleMock?: ModuleMock;
     config?: AppsConfig;
   } = {},
-  api: ScalprumProviderProps['api'] = {},
+  api: ScalprumProviderConfigurableProps['api'] = {},
 ) {
   const response: Response = {
     blob: () => Promise.resolve(new Blob()),
