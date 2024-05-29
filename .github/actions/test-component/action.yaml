@@ -1,0 +1,16 @@
+name: Components tests
+description: verify component tests
+runs:
+  using: "composite"
+  steps:
+    - uses: nrwl/nx-set-shas@v4
+    - uses: './.github/actions/node-cache'
+    - uses: './.github/actions/cypress-cache'
+    - uses: './.github/actions/webpack-cache'
+    - name: Install deps
+      shell: bash
+      run: npm i
+    - name: Test affected
+      shell: bash
+      run: npx nx affected -t component-test --configuration=ci
+

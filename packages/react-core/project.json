@@ -54,6 +54,15 @@
     "syncDependencies": {
       "executor": "@scalprum/build-utils:sync-dependencies"
     },
-    "tags": []
+    "tags": [],
+    "component-test": {
+      "executor": "@nx/cypress:cypress",
+      "options": {
+        "cypressConfig": "packages/react-core/cypress.config.ts",
+        "testingType": "component",
+        "devServerTarget": "test-app:build",
+        "skipServe": true
+      }
+    }
   }
 }
