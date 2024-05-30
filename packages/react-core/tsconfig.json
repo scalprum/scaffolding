@@ -11,16 +11,18 @@
     "jsx": "react",
     "esModuleInterop": true,
     "paths": {
-      // need to link local packages to be able to import them from different than expected dist directory
-      "@scalprum/core": ["dist/packages/core"],
+      "@scalprum/core": ["dist/packages/core"]
     },
-    "rootDir": ".",
+    "rootDir": "."
   },
   "files": [],
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "references": [
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./cypress/tsconfig.json"
     }
   ]
 }

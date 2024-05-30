@@ -36,6 +36,14 @@ jobs:
         with:
           fetch-depth: 0
       - uses: './.github/actions/test-unit'
+  test-component:
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: './.github/actions/test-component'
   build:
     runs-on: ubuntu-latest
     needs: [install]
@@ -59,7 +67,7 @@ jobs:
       - uses: './.github/actions/test-e2e'
   release:
     runs-on: ubuntu-latest
-    needs: [install, lint, test, build, test-e2e]
+    needs: [install, lint, test, build, test-e2e, test-component]
     if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
