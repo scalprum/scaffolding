@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.0](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.7.1...@scalprum/react-core-0.8.0) (2024-05-30)
+
+
+### Features
+
+* enable ScalprumProvider intialization with scalprum instance ([894c8bf](https://github.com/scalprum/scaffolding/commit/894c8bf3d9f32a3f2236d8f1fac86a557cd09639))
+
 ## [0.7.1](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.7.0...@scalprum/react-core-0.7.1) (2024-01-26)
 
 ## [0.7.0](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.6.7...@scalprum/react-core-0.7.0) (2024-01-22)
