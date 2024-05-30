@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.0](https://github.com/scalprum/scaffolding/compare/@scalprum/react-test-utils-0.1.3...@scalprum/react-test-utils-0.2.0) (2024-05-30)
+
+### Dependency Updates
+
+* `@scalprum/react-core` updated to version `0.8.0`
+
+### Features
+
+* enable ScalprumProvider intialization with scalprum instance ([894c8bf](https://github.com/scalprum/scaffolding/commit/894c8bf3d9f32a3f2236d8f1fac86a557cd09639))
+
 ## [0.1.3](https://github.com/scalprum/scaffolding/compare/@scalprum/react-test-utils-0.1.2...@scalprum/react-test-utils-0.1.3) (2024-01-26)
 
 ## [0.1.2](https://github.com/scalprum/scaffolding/compare/@scalprum/react-test-utils-0.1.1...@scalprum/react-test-utils-0.1.2) (2024-01-26)
