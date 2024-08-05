@@ -2,7 +2,7 @@ const { resolve } = require('path');
 const { ModuleFederationPlugin, ContainerPlugin } = require('@module-federation/enhanced');
 const { DynamicRemotePlugin } = require('@openshift/dynamic-plugin-sdk-webpack');
 
-console.log("Entry tests:", resolve(__dirname, './src/modules/moduleOne.tsx'))
+console.log('Entry tests:', resolve(__dirname, './src/modules/moduleOne.tsx'));
 
 const sharedModules = {
   react: {
@@ -25,7 +25,7 @@ const sharedModules = {
   },
 };
 
-const TestSDKPLugin = new DynamicRemotePlugin({
+const TestSDKPlugin = new DynamicRemotePlugin({
   extensions: [],
   sharedModules,
   entryScriptFilename: 'sdk-plugin.[contenthash].js',
@@ -34,7 +34,7 @@ const TestSDKPLugin = new DynamicRemotePlugin({
     pluginOverride: {
       ModuleFederationPlugin,
       ContainerPlugin,
-    }
+    },
   },
   pluginMetadata: {
     name: 'sdk-plugin',
@@ -53,18 +53,39 @@ const TestSDKPLugin = new DynamicRemotePlugin({
   },
 });
 
+const FullManifest = new DynamicRemotePlugin({
+  extensions: [],
+  sharedModules,
+  pluginManifestFilename: 'full-manifest.json',
+  entryScriptFilename: 'full-manifest.js',
+  moduleFederationSettings: {
+    // Use non native webpack plugins
+    pluginOverride: {
+      ModuleFederationPlugin,
+      ContainerPlugin,
+    },
+  },
+  pluginMetadata: {
+    name: 'full-manifest',
+    version: '1.0.0',
+    exposedModules: {
+      './SDKComponent': resolve(__dirname, './src/modules/SDKComponent.tsx'),
+    },
+  },
+});
+
 function init() {
   /** @type { import("webpack").Configuration } */
   const config = {
     entry: {
       mock: resolve(__dirname, './src/index.tsx'),
     },
-    cache: { type: 'filesystem', cacheDirectory: resolve(__dirname, '.cdn-cache')},
+    cache: { type: 'filesystem', cacheDirectory: resolve(__dirname, '.cdn-cache') },
     output: {
       publicPath: 'auto',
     },
     mode: 'development',
-    plugins: [TestSDKPLugin],
+    plugins: [TestSDKPlugin, FullManifest],
     module: {
       rules: [
         {

@@ -8,6 +8,7 @@ export type AppMetadata<T extends {} = {}> = T & {
   rootLocation?: string;
   scriptLocation?: string;
   manifestLocation?: string;
+  pluginManifest?: PluginManifest;
 };
 export interface AppsConfig<T extends {} = {}> {
   [key: string]: AppMetadata<T>;
@@ -281,13 +282,18 @@ function isPluginManifest(manifest: any): manifest is PluginManifest {
 
 function extractBaseURL(path: string) {
   const result = path.split('/');
-  // remove last section of pathname that inclides the JS filename
+  // remove last section of pathname that includes the JS filename
   result.pop();
   // make sure there is always at least leading / to satisfy sdk manifest validation
   return result.join('/') || '/';
 }
 
-export async function processManifest(url: string, scope: string, module: string, processor?: (manifest: any) => string[]): Promise<void> {
+export async function processManifest(
+  moduleManifest: string | PluginManifest,
+  scope: string,
+  module: string,
+  processor?: (manifest: any) => string[],
+): Promise<void> {
   let pendingInjection = getPendingInjection(scope);
   const { pluginStore } = getScalprum();
   if (pendingInjection) {
@@ -298,31 +304,35 @@ export async function processManifest(url: string, scope: string, module: string
   }
 
   pendingInjection = (async () => {
-    const headers = new Headers();
-    headers.append('Pragma', 'no-cache');
-    headers.append('Cache-Control', 'no-cache');
-    headers.append('expires', '0');
-    const manifestPromise = await fetch(url, {
-      method: 'GET',
-      headers,
-    });
-    // handle network errors
-    if (!manifestPromise.ok) {
-      const resClone = manifestPromise.clone();
-      let data;
-      try {
-        data = await resClone.json();
-      } catch (error) {
-        throw new Error(`Unable to load manifest files at ${url}! ${resClone.status}: ${resClone.statusText}`);
-      }
-      throw new Error(`Unable to load manifest files at ${url}! ${data}`);
-    }
     let manifest: PluginManifest | { [scope: string]: { entry: string[] } };
-    try {
-      manifest = await manifestPromise.json();
-    } catch (error) {
-      clearPendingInjection(scope);
-      throw new Error(error as string);
+    if (typeof moduleManifest === 'object') {
+      manifest = moduleManifest;
+    } else {
+      const headers = new Headers();
+      headers.append('Pragma', 'no-cache');
+      headers.append('Cache-Control', 'no-cache');
+      headers.append('expires', '0');
+      const manifestPromise = await fetch(moduleManifest, {
+        method: 'GET',
+        headers,
+      });
+      // handle network errors
+      if (!manifestPromise.ok) {
+        const resClone = manifestPromise.clone();
+        let data;
+        try {
+          data = await resClone.json();
+        } catch (error) {
+          throw new Error(`Unable to load manifest files at ${moduleManifest}! ${resClone.status}: ${resClone.statusText}`);
+        }
+        throw new Error(`Unable to load manifest files at ${moduleManifest}! ${data}`);
+      }
+      try {
+        manifest = await manifestPromise.json();
+      } catch (error) {
+        clearPendingInjection(scope);
+        throw new Error(error as string);
+      }
     }
     let sdkManifest: PluginManifest;
     if (isPluginManifest(manifest)) {

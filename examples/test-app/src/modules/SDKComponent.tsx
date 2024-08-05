@@ -10,15 +10,28 @@ import Divider from '@mui/material/Divider';
 import Slider from '@mui/material/Slider';
 import InboxIcon from '@mui/icons-material/Inbox';
 import DraftsIcon from '@mui/icons-material/Drafts';
+import Checkbox from '@mui/material/Checkbox';
 
 function valuetext(value: number) {
   return `${value}°C`;
+}
+
+interface namedProps {
+  name: string;
 }
 
 export const NamedSDKComponent = () => {
   return (
     <Box sx={{ width: 300 }}>
       <Slider id="named-component" aria-label="Temperature" defaultValue={30} getAriaValueText={valuetext} color="secondary" />
+    </Box>
+  );
+};
+
+export const PluginSDKComponent = (props: namedProps = { name: 'named' }) => {
+  return (
+    <Box sx={{ width: 300 }}>
+      <Checkbox aria-label="Checked" id={props.name} defaultChecked />
     </Box>
   );
 };
