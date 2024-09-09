@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.0](https://github.com/scalprum/scaffolding/compare/@scalprum/core-0.7.0...@scalprum/core-0.8.0) (2024-09-09)
+
+
+### Features
+
+* **core:** allow directly using plugin manifest ([9eede15](https://github.com/scalprum/scaffolding/commit/9eede15da2db3113f480326597f612e8cd853840))
+
 ## [0.7.0](https://github.com/scalprum/scaffolding/compare/@scalprum/core-0.6.6...@scalprum/core-0.7.0) (2024-01-22)
 
 
