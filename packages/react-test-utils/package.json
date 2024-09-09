@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/react-test-utils",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Includes test utilities for scalprum scaffolding.",
   "main": "./index.js",
   "module": "./esm/index.js",
