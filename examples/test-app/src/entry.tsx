@@ -21,6 +21,18 @@ const config: AppsConfig<{ assetsHost?: string }> = {
     assetsHost: 'http://127.0.0.1:8001',
     manifestLocation: 'http://127.0.0.1:8001/plugin-manifest.json',
   },
+  'full-manifest': {
+    name: 'full-manifest',
+    assetsHost: 'http://127.0.0.1:8001',
+    pluginManifest: {
+      name: 'full-manifest',
+      version: '1.0.0',
+      extensions: [],
+      registrationMethod: 'callback',
+      baseURL: 'auto',
+      loadScripts: ['full-manifest.js'],
+    },
+  },
 };
 
 const Entry = () => {

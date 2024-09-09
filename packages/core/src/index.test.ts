@@ -11,7 +11,7 @@ describe('scalprum', () => {
     version: '1.0.0',
     baseURL: '/foo/bar',
   };
-  const mockInititliazeConfig = {
+  const mockInitializeConfig = {
     appsConfig: {
       appOne: {
         name: 'appOne',
@@ -34,6 +34,21 @@ describe('scalprum', () => {
         rootLocation: '/foo/bar',
         manifestLocation: '/appThree/url',
       },
+      appFour: {
+        name: 'appFour',
+        appId: 'app-four',
+        elementId: 'app-four-element',
+        rootLocation: '/foo/bar',
+        pluginManifest: testManifest,
+      },
+      appFive: {
+        name: 'appFive',
+        appId: 'app-five',
+        elementId: 'app-five-element',
+        rootLocation: '/foo/bar',
+        manifestLocation: '/appFive/url',
+        pluginManifest: testManifest,
+      },
     },
   };
 
@@ -51,7 +66,7 @@ describe('scalprum', () => {
   });
 
   test('should initialize scalprum with apps config', () => {
-    initialize(mockInititliazeConfig);
+    initialize(mockInitializeConfig);
 
     const expectedResult = {
       appsConfig: {
@@ -63,6 +78,35 @@ describe('scalprum', () => {
           name: 'appThree',
           rootLocation: '/foo/bar',
           manifestLocation: '/appThree/url',
+        },
+        appFour: {
+          appId: 'app-four',
+          elementId: 'app-four-element',
+          name: 'appFour',
+          rootLocation: '/foo/bar',
+          pluginManifest: {
+            baseURL: '/foo/bar',
+            extensions: [],
+            loadScripts: [],
+            name: 'testScope',
+            registrationMethod: 'custom',
+            version: '1.0.0',
+          },
+        },
+        appFive: {
+          appId: 'app-five',
+          elementId: 'app-five-element',
+          name: 'appFive',
+          rootLocation: '/foo/bar',
+          manifestLocation: '/appFive/url',
+          pluginManifest: {
+            baseURL: '/foo/bar',
+            extensions: [],
+            loadScripts: [],
+            name: 'testScope',
+            registrationMethod: 'custom',
+            version: '1.0.0',
+          },
         },
       },
       exposedModules: {},
@@ -82,7 +126,7 @@ describe('scalprum', () => {
   });
 
   test('getScalprum should return the scalprum object', () => {
-    initialize(mockInititliazeConfig);
+    initialize(mockInitializeConfig);
     const result = getScalprum();
     expect(result).toEqual(expect.any(Object));
   });
@@ -96,7 +140,7 @@ describe('scalprum', () => {
         status: 'loaded',
       },
     ];
-    initialize(mockInititliazeConfig);
+    initialize(mockInitializeConfig);
     // @ts-ignore
     global.testScope = {
       init: jest.fn(),
@@ -108,7 +152,7 @@ describe('scalprum', () => {
 
   test('getCachedModule should invalidate cache after 120s', async () => {
     jest.useFakeTimers();
-    initialize(mockInititliazeConfig);
+    initialize(mockInitializeConfig);
     // @ts-ignore
     global.testScope = {
       init: jest.fn(),
@@ -126,7 +170,7 @@ describe('scalprum', () => {
 
   test('getCachedModule should skip factory cache', async () => {
     jest.useFakeTimers();
-    initialize(mockInititliazeConfig);
+    initialize(mockInitializeConfig);
     // @ts-ignore
     global.testScope = {
       init: jest.fn(),

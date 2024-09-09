@@ -62,7 +62,7 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
   importName = 'default',
   ...props
 }) => {
-  const { manifestLocation } = getAppData(scope);
+  const { manifestLocation, pluginManifest } = getAppData(scope);
   const [reRender, forceRender] = useReducer((prev) => prev + 1, 0);
   const [Component, setComponent] = useState<React.ComponentType<{ ref?: React.Ref<unknown> } & Record<string, any>> | undefined>(undefined);
   const [prefetchPromise, setPrefetchPromise] = useState<Promise<any>>();
@@ -102,8 +102,8 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
        * Here will be registry check
        */
       if (!cachedModule) {
-        if (manifestLocation) {
-          const processPromise = processManifest(manifestLocation, scope, module, processor)
+        if (manifestLocation || pluginManifest) {
+          const processPromise = processManifest((manifestLocation ?? pluginManifest)!, scope, module, processor)
             .then(() => {
               pref = setComponentFromModule(scope, module, isMounted, importName, setComponent);
               pref.then((result) => {

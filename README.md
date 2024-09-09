@@ -290,13 +290,23 @@ const moduleFederationPlugin = new ModuleFederationPlugin({
   name: 'host',
   filename: 'host.[contenthash].js',
   shared: [
-    {'@openshift/dynamic-plugin-sdk': { singleton: true, requiredVersion: '*'} },
-    { '@scalprum/react-core': { singleton: true, requiredVersion: '*'} },
+    {
+      '@openshift/dynamic-plugin-sdk': {
+        singleton: true,
+        requiredVersion: '*',
+      },
+    },
+    {
+      '@scalprum/react-core': {
+        singleton: true,
+        requiredVersion: '*',
+      },
+    },
     { react: { singleton: true, requiredVersion: '*' } },
-    { 'react-dom': { singleton: true, requiredVersion: '*' } },
+    { 'react-dom': { singleton: true, requiredVersion: '*'} },
     // any other packages you wish to share
-  ]
-})
+  ],
+});
 ```
 
 Note that for demo purposes, the `requiredVersion` for dependencies in this example is set to `*`, but you can update this to a version that suits your requirements.
@@ -329,23 +339,24 @@ This is a known issue that is being actively worked on.
 const { DynamicRemotePlugin } = require('@openshift/dynamic-plugin-sdk-webpack');
 
 const sharedModules = {
-    '@openshift/dynamic-plugin-sdk':( singleton: true},
-    '@scalprum/react-core':( singleton: true},
-    react: { singleton: true),
-    'react-dom': ( singleton: true },
+  '@openshift/dynamic-plugin-sdk': { singleton: true },
+  '@scalprum/react-core': { singleton: true },
+  react: { singleton: true },
+  'react-dom': { singleton: true },
+};
 
 const dynamicPlugin = new DynamicRemotePlugin({
+  extensions: [],
+  sharedModules,
+  entryScriptfilename: 'remoteModule.[contenthash].js',
+  pluginMetadata: {
+    name: 'remoteModule',
+    version: '1.0.0',
+    exposedModules: {
+      RemoteModuleComponent: './remoteModule/src/RemoteModuleComponent.tsx',
+    },
     extensions: [],
-    sharedModules,
-    entryScriptfilename:'remoteModule.(contenthash].js',
-    pluginMetadata: {    
-      name: "remoteModule",
-      version: "1.0.0",
-      exposedModules: {
-        RemoteModuleComponent": "./remoteModule/src/RemoteModuleComponent.tsx"
-      },
-      extensions: []
-    }
+  },
 });
 
 ```
@@ -441,10 +452,10 @@ const moduleFederationPlugin = new ModuleFederationPlugin({
   filename: 'host.[contenthash].js',
   shared: [{
     // These packages has to be shared and has to be marked as singleton!
-    { '@openshift/dynamic-plugin-sdk', { singleton: true, eager: true}}
-    { '@scalprum/react-core': { singleton: true, eager: true} },
-    { react: { singleton: true, eager: true } },
-    { 'react-dom': { singleton: true, eager: true } },
+    { '@openshift/dynamic-plugin-sdk', { singleton: true, }}
+    { '@scalprum/react-core': { singleton: true, } },
+    { react: { singleton: true, } },
+    { 'react-dom': { singleton: true } },
     // any other packages you wish to share
   }]
 })
