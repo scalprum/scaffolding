@@ -7,7 +7,7 @@
     "serve": "wait-on dist && http-server dist -p 8001 -c-1 --cors=*"
   },
   "devDependencies": {
-    "@module-federation/enhanced": "^0.1.2",
+    "@module-federation/enhanced": "^0.6.1",
     "http-server": "^14.1.1",
     "swc-loader": "^0.2.6",
     "wait-on": "^7.2.0",
