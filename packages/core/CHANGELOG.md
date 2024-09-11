@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.1](https://github.com/scalprum/scaffolding/compare/@scalprum/core-0.8.0...@scalprum/core-0.8.1) (2024-09-11)
+
+
+### Bug Fixes
+
+* **core:** ensure scalprum instance receives configuration updates ([9caf092](https://github.com/scalprum/scaffolding/commit/9caf092b741300cfd395b42844e21804204a297c))
+
 ## [0.8.0](https://github.com/scalprum/scaffolding/compare/@scalprum/core-0.7.0...@scalprum/core-0.8.0) (2024-09-09)
 
 
