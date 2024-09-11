@@ -37,6 +37,9 @@ function RootLayout() {
             <NavLink variant="button" color="text.primary" to="/use-module" sx={{ my: 1, mx: 1.5 }}>
               Use module hook
             </NavLink>
+            <NavLink variant="button" color="text.primary" to="/api" sx={{ my: 1, mx: 1.5 }}>
+              API updates
+            </NavLink>
           </nav>
         </Toolbar>
       </AppBar>

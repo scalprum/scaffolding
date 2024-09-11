@@ -68,7 +68,9 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
         transformPluginManifest: internalTransformPluginManifest,
       },
     });
-  }, []);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+  }, [props.api, props.config, props.scalprum]);
 
   return (
     <ScalprumContext.Provider

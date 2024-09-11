@@ -49,6 +49,7 @@ const TestSDKPlugin = new DynamicRemotePlugin({
       './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
       './ModuleFour': resolve(__dirname, './src/modules/moduleFour.tsx'),
       './SDKComponent': resolve(__dirname, './src/modules/SDKComponent.tsx'),
+      './ApiModule': resolve(__dirname, './src/modules/apiModule.tsx'),
     },
   },
 });
