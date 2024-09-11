@@ -217,6 +217,13 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   pluginStoreOptions?: PluginStoreOptions;
 }): Scalprum<T> => {
   if (scalprum) {
+    scalprum.api = api || {};
+    scalprum.appsConfig = appsConfig;
+    scalprum.scalprumOptions = {
+      ...scalprum.scalprumOptions,
+      ...options,
+    };
+    scalprum.pluginStore.setFeatureFlags(pluginStoreFeatureFlags);
     return scalprum as Scalprum<T>;
   }
   const defaultOptions: ScalprumOptions = {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScalprumProvider } from '@scalprum/react-core';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import RuntimeErrorRoute from './routes/RuntimeErrorRoute';
@@ -9,6 +9,7 @@ import SDKModules from './routes/SDKModules';
 import NotFoundError from './routes/NotFoundError';
 import { AppsConfig } from '@scalprum/core';
 import UseModuleLoading from './routes/UseModuleLoading';
+import ApiUpdates from './routes/ApiUpdates';
 
 const config: AppsConfig<{ assetsHost?: string }> = {
   notFound: {
@@ -36,6 +37,15 @@ const config: AppsConfig<{ assetsHost?: string }> = {
 };
 
 const Entry = () => {
+  const [isBeta, setIsBeta] = React.useState(false);
+  const chromeApi = useMemo(
+    () => ({
+      foo: 'bar',
+      isBeta: () => isBeta,
+      setIsBeta,
+    }),
+    [isBeta, setIsBeta],
+  );
   return (
     <ScalprumProvider
       pluginSDKOptions={{
@@ -56,10 +66,7 @@ const Entry = () => {
         },
       }}
       api={{
-        chrome: {
-          foo: 'bar',
-          isBeta: () => true,
-        },
+        chrome: chromeApi,
       }}
       config={config}
     >
@@ -72,6 +79,7 @@ const Entry = () => {
             <Route path="/legacy" element={<LegacyModules />} />
             <Route path="/sdk" element={<SDKModules />} />
             <Route path="/use-module" element={<UseModuleLoading />} />
+            <Route path="/api" element={<ApiUpdates />} />
           </Route>
         </Routes>
       </BrowserRouter>
