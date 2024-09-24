@@ -72,15 +72,20 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
     // @ts-ignore
   }, [props.api, props.config, props.scalprum]);
 
+  const value = useMemo(
+    () => ({
+      config: state.appsConfig,
+      api: state.api,
+      initialized: true,
+      pluginStore: state.pluginStore,
+    }),
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    [props.api, props.config, props.scalprum, state],
+  );
+
   return (
-    <ScalprumContext.Provider
-      value={{
-        config: state.appsConfig,
-        api: state.api,
-        initialized: true,
-        pluginStore: state.pluginStore,
-      }}
-    >
+    <ScalprumContext.Provider value={value}>
       <PluginStoreProvider store={state.pluginStore}>{props.children}</PluginStoreProvider>
     </ScalprumContext.Provider>
   );
