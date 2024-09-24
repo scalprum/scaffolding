@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.9.3](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.9.2...@scalprum/react-core-0.9.3) (2024-09-24)
+
+
+### Bug Fixes
+
+* **react:** memoize provider value ([a7b95eb](https://github.com/scalprum/scaffolding/commit/a7b95eb0b0ce8cf6e04937fcad54a53681f7188a))
+
 ## [0.9.2](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.9.1...@scalprum/react-core-0.9.2) (2024-09-24)
 
 ## [0.9.1](https://github.com/scalprum/scaffolding/compare/@scalprum/react-core-0.9.0...@scalprum/react-core-0.9.1) (2024-09-11)
