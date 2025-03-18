@@ -39,6 +39,7 @@ export const PluginSDKComponent = (props: namedProps = { name: 'named' }) => {
 const SDKComponent = () => {
   return (
     <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+      Hola
       <nav aria-label="main mailbox folders">
         <List>
           <ListItem disablePadding>

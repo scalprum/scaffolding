@@ -5,10 +5,11 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nx/webpack:webpack",
+      "executor": "@nx/rspack:rspack",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
+        "target": "web",
         "compiler": "tsc",
         "outputPath": "dist/examples/test-app",
         "index": "examples/test-app/src/index.html",
@@ -18,7 +19,8 @@
         "assets": ["examples/test-app/src/favicon.ico", "examples/test-app/src/assets"],
         "styles": [],
         "scripts": [],
-        "webpackConfig": "examples/test-app/webpack.config.ts"
+        "sourceMap": "examples/test-app/rspack.config.ts",
+        "rspackConfig": "examples/test-app/rspack.config.ts"
       },
       "configurations": {
         "development": {
@@ -39,18 +41,18 @@
           "namedChunks": false,
           "extractLicenses": true,
           "vendorChunk": false,
-          "webpackConfig": "examples/test-app/webpack.config.prod.ts"
+          "rspackConfig": "examples/test-app/rspack.config.ts"
         }
       }
     },
     "serve": {
-      "executor": "@nx/webpack:dev-server",
+      "executor": "@nx/rspack:dev-server",
       "defaultConfiguration": "development",
       "options": {
         "buildTarget": "test-app:build",
         "hmr": true,
         "port": 4200,
-        "webpackConfig": "examples/test-app/webpack.config.ts"
+        "rspackConfig": "examples/test-app/rspack.config.ts"
       },
       "configurations": {
         "development": {

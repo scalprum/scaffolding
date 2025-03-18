@@ -17,6 +17,6 @@
     "whatwg-fetch": "^3.6.0"
   },
   "devDependencies": {
-    "react": "^17.0.1 || ^18.0.0"
+    "react": "^19.0.0"
   }
 }

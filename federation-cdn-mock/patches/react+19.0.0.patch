@@ -1,0 +1,156 @@
+diff --git a/node_modules/react/cjs/react-jsx-dev-runtime.development.js b/node_modules/react/cjs/react-jsx-dev-runtime.development.js
+index 73d2a43..857faae 100644
+--- a/node_modules/react/cjs/react-jsx-dev-runtime.development.js
++++ b/node_modules/react/cjs/react-jsx-dev-runtime.development.js
+@@ -604,7 +604,7 @@
+       return info;
+     }
+     var React = require("react"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js b/node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js
+index cdb771f..5e0c24b 100644
+--- a/node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js
++++ b/node_modules/react/cjs/react-jsx-dev-runtime.react-server.development.js
+@@ -604,7 +604,7 @@
+       return info;
+     }
+     var React = require("react"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react/cjs/react-jsx-dev-runtime.react-server.production.js b/node_modules/react/cjs/react-jsx-dev-runtime.react-server.production.js
+index 0664121..81c7542 100644
+--- a/node_modules/react/cjs/react-jsx-dev-runtime.react-server.production.js
++++ b/node_modules/react/cjs/react-jsx-dev-runtime.react-server.production.js
+@@ -10,7 +10,7 @@
+ 
+ "use strict";
+ var React = require("react"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+ if (!React.__SERVER_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE)
+   throw Error(
+diff --git a/node_modules/react/cjs/react-jsx-runtime.development.js b/node_modules/react/cjs/react-jsx-runtime.development.js
+index fb5ec53..52805fc 100644
+--- a/node_modules/react/cjs/react-jsx-runtime.development.js
++++ b/node_modules/react/cjs/react-jsx-runtime.development.js
+@@ -604,7 +604,7 @@
+       return info;
+     }
+     var React = require("react"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react/cjs/react-jsx-runtime.production.js b/node_modules/react/cjs/react-jsx-runtime.production.js
+index 12d6088..c54e78f 100644
+--- a/node_modules/react/cjs/react-jsx-runtime.production.js
++++ b/node_modules/react/cjs/react-jsx-runtime.production.js
+@@ -9,7 +9,7 @@
+  */
+ 
+ "use strict";
+-var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++var REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+ function jsxProd(type, config, maybeKey) {
+   var key = null;
+diff --git a/node_modules/react/cjs/react-jsx-runtime.profiling.js b/node_modules/react/cjs/react-jsx-runtime.profiling.js
+index 68a28d6..399b131 100644
+--- a/node_modules/react/cjs/react-jsx-runtime.profiling.js
++++ b/node_modules/react/cjs/react-jsx-runtime.profiling.js
+@@ -9,7 +9,7 @@
+  */
+ 
+ "use strict";
+-var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++var REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+ function jsxProd(type, config, maybeKey) {
+   var key = null;
+diff --git a/node_modules/react/cjs/react-jsx-runtime.react-server.development.js b/node_modules/react/cjs/react-jsx-runtime.react-server.development.js
+index 9c5f16e..fa65007 100644
+--- a/node_modules/react/cjs/react-jsx-runtime.react-server.development.js
++++ b/node_modules/react/cjs/react-jsx-runtime.react-server.development.js
+@@ -604,7 +604,7 @@
+       return info;
+     }
+     var React = require("react"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react/cjs/react-jsx-runtime.react-server.production.js b/node_modules/react/cjs/react-jsx-runtime.react-server.production.js
+index 486facb..fb31b5a 100644
+--- a/node_modules/react/cjs/react-jsx-runtime.react-server.production.js
++++ b/node_modules/react/cjs/react-jsx-runtime.react-server.production.js
+@@ -10,7 +10,7 @@
+ 
+ "use strict";
+ var React = require("react"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
+ if (!React.__SERVER_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE)
+   throw Error(
+diff --git a/node_modules/react/cjs/react.development.js b/node_modules/react/cjs/react.development.js
+index cfb3447..3c75961 100644
+--- a/node_modules/react/cjs/react.development.js
++++ b/node_modules/react/cjs/react.development.js
+@@ -882,7 +882,7 @@
+       "function" ===
+         typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart &&
+       __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
+-    var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++    var REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react/cjs/react.production.js b/node_modules/react/cjs/react.production.js
+index c17c889..74fb77f 100644
+--- a/node_modules/react/cjs/react.production.js
++++ b/node_modules/react/cjs/react.production.js
+@@ -9,7 +9,7 @@
+  */
+ 
+ "use strict";
+-var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++var REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react/cjs/react.react-server.development.js b/node_modules/react/cjs/react.react-server.development.js
+index ca5224b..f8b8c3b 100644
+--- a/node_modules/react/cjs/react.react-server.development.js
++++ b/node_modules/react/cjs/react.react-server.development.js
+@@ -764,7 +764,7 @@
+     }
+     var ReactSharedInternals = { H: null, A: null, getCurrentStack: null },
+       isArrayImpl = Array.isArray,
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react/cjs/react.react-server.production.js b/node_modules/react/cjs/react.react-server.production.js
+index 36cd046..b452036 100644
+--- a/node_modules/react/cjs/react.react-server.production.js
++++ b/node_modules/react/cjs/react.react-server.production.js
+@@ -26,7 +26,7 @@ function formatProdErrorMessage(code) {
+   );
+ }
+ var isArrayImpl = Array.isArray,
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),

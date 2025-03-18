@@ -82,10 +82,8 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
 
     let isMounted = true;
     const handleLoadingError = (error?: Error) => {
-      if (isMounted) {
-        setLoadingError(error);
-        setComponent(() => (props: any) => <ErrorComponent error={error} {...props} />);
-      }
+      setLoadingError(error);
+      setComponent(() => (props: any) => <ErrorComponent error={error} {...props} />);
     };
     let pref;
     /**

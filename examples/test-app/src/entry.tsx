@@ -11,6 +11,10 @@ import { AppsConfig } from '@scalprum/core';
 import UseModuleLoading from './routes/UseModuleLoading';
 import ApiUpdates from './routes/ApiUpdates';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+window.ReactShell = React;
+
 const config: AppsConfig<{ assetsHost?: string }> = {
   notFound: {
     name: 'notFound',
@@ -29,7 +33,7 @@ const config: AppsConfig<{ assetsHost?: string }> = {
       name: 'full-manifest',
       version: '1.0.0',
       extensions: [],
-      registrationMethod: 'callback',
+      registrationMethod: 'custom',
       baseURL: 'auto',
       loadScripts: ['full-manifest.js'],
     },

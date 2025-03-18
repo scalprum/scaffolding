@@ -1,0 +1,208 @@
+diff --git a/node_modules/react-dom/cjs/react-dom-client.development.js b/node_modules/react-dom/cjs/react-dom-client.development.js
+index 83ea1c6..217084f 100644
+--- a/node_modules/react-dom/cjs/react-dom-client.development.js
++++ b/node_modules/react-dom/cjs/react-dom-client.development.js
+@@ -20896,7 +20896,7 @@
+       React = require("react"),
+       ReactDOM = require("react-dom"),
+       REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-client.production.js b/node_modules/react-dom/cjs/react-dom-client.production.js
+index af7283a..70fdd95 100644
+--- a/node_modules/react-dom/cjs/react-dom-client.production.js
++++ b/node_modules/react-dom/cjs/react-dom-client.production.js
+@@ -37,7 +37,7 @@ function isValidContainer(node) {
+   );
+ }
+ var REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-profiling.development.js b/node_modules/react-dom/cjs/react-dom-profiling.development.js
+index 7847cbd..3a25039 100644
+--- a/node_modules/react-dom/cjs/react-dom-profiling.development.js
++++ b/node_modules/react-dom/cjs/react-dom-profiling.development.js
+@@ -20953,7 +20953,7 @@
+       React = require("react"),
+       ReactDOM = require("react-dom"),
+       REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-profiling.profiling.js b/node_modules/react-dom/cjs/react-dom-profiling.profiling.js
+index 98a9f0b..6a83a30 100644
+--- a/node_modules/react-dom/cjs/react-dom-profiling.profiling.js
++++ b/node_modules/react-dom/cjs/react-dom-profiling.profiling.js
+@@ -41,7 +41,7 @@ function isValidContainer(node) {
+   );
+ }
+ var REACT_LEGACY_ELEMENT_TYPE = Symbol.for("react.element"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js b/node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js
+index 3965b00..7173497 100644
+--- a/node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js
++++ b/node_modules/react-dom/cjs/react-dom-server-legacy.browser.development.js
+@@ -7129,7 +7129,7 @@
+     }
+     var React = require("react"),
+       ReactDOM = require("react-dom"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server-legacy.browser.production.js b/node_modules/react-dom/cjs/react-dom-server-legacy.browser.production.js
+index dc4e5f2..52c3fdc 100644
+--- a/node_modules/react-dom/cjs/react-dom-server-legacy.browser.production.js
++++ b/node_modules/react-dom/cjs/react-dom-server-legacy.browser.production.js
+@@ -50,7 +50,7 @@ function formatProdErrorMessage(code) {
+     " for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+   );
+ }
+-var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++var REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js b/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js
+index f6f0907..c6b1a51 100644
+--- a/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js
++++ b/node_modules/react-dom/cjs/react-dom-server-legacy.node.development.js
+@@ -7129,7 +7129,7 @@
+     }
+     var React = require("react"),
+       ReactDOM = require("react-dom"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server-legacy.node.production.js b/node_modules/react-dom/cjs/react-dom-server-legacy.node.production.js
+index 4396f26..3ca77d3 100644
+--- a/node_modules/react-dom/cjs/react-dom-server-legacy.node.production.js
++++ b/node_modules/react-dom/cjs/react-dom-server-legacy.node.production.js
+@@ -35,7 +35,7 @@
+ "use strict";
+ var React = require("react"),
+   ReactDOM = require("react-dom"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.browser.development.js b/node_modules/react-dom/cjs/react-dom-server.browser.development.js
+index 38e80e1..e9ece15 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.browser.development.js
++++ b/node_modules/react-dom/cjs/react-dom-server.browser.development.js
+@@ -7305,7 +7305,7 @@
+     }
+     var React = require("react"),
+       ReactDOM = require("react-dom"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.browser.production.js b/node_modules/react-dom/cjs/react-dom-server.browser.production.js
+index 05148fb..8ad0d0f 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.browser.production.js
++++ b/node_modules/react-dom/cjs/react-dom-server.browser.production.js
+@@ -50,7 +50,7 @@ function formatProdErrorMessage(code) {
+     " for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+   );
+ }
+-var REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++var REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.bun.development.js b/node_modules/react-dom/cjs/react-dom-server.bun.development.js
+index 0dbc147..6d6df2a 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.bun.development.js
++++ b/node_modules/react-dom/cjs/react-dom-server.bun.development.js
+@@ -11,7 +11,7 @@
+ "use strict";
+ var React = require("react"),
+   ReactDOM = require("react-dom"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.bun.production.js b/node_modules/react-dom/cjs/react-dom-server.bun.production.js
+index 52664b4..21b8b5a 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.bun.production.js
++++ b/node_modules/react-dom/cjs/react-dom-server.bun.production.js
+@@ -11,7 +11,7 @@
+ "use strict";
+ var React = require("react"),
+   ReactDOM = require("react-dom"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.edge.development.js b/node_modules/react-dom/cjs/react-dom-server.edge.development.js
+index 611a571..1bff01b 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.edge.development.js
++++ b/node_modules/react-dom/cjs/react-dom-server.edge.development.js
+@@ -7328,7 +7328,7 @@
+     }
+     var React = require("react"),
+       ReactDOM = require("react-dom"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.edge.production.js b/node_modules/react-dom/cjs/react-dom-server.edge.production.js
+index f1ae614..da031a8 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.edge.production.js
++++ b/node_modules/react-dom/cjs/react-dom-server.edge.production.js
+@@ -35,7 +35,7 @@
+ "use strict";
+ var React = require("react"),
+   ReactDOM = require("react-dom"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.node.development.js b/node_modules/react-dom/cjs/react-dom-server.node.development.js
+index 53e547d..7c9d973 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.node.development.js
++++ b/node_modules/react-dom/cjs/react-dom-server.node.development.js
+@@ -7261,7 +7261,7 @@
+       React = require("react"),
+       ReactDOM = require("react-dom"),
+       stream = require("stream"),
+-      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++      REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+       REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+       REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+       REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),
+diff --git a/node_modules/react-dom/cjs/react-dom-server.node.production.js b/node_modules/react-dom/cjs/react-dom-server.node.production.js
+index f7b6e9f..c1b8ead 100644
+--- a/node_modules/react-dom/cjs/react-dom-server.node.production.js
++++ b/node_modules/react-dom/cjs/react-dom-server.node.production.js
+@@ -15,7 +15,7 @@ var util = require("util"),
+   React = require("react"),
+   ReactDOM = require("react-dom"),
+   stream = require("stream"),
+-  REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
++  REACT_ELEMENT_TYPE = Symbol.for("react.element"),
+   REACT_PORTAL_TYPE = Symbol.for("react.portal"),
+   REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
+   REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"),

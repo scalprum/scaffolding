@@ -2,27 +2,28 @@
   "name": "federation-cdn-mock",
   "private": true,
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch",
+    "build": "rspack",
+    "watch": "rspack --watch",
     "serve": "wait-on dist && http-server dist -p 8001 -c-1 --cors=*"
   },
   "devDependencies": {
-    "@module-federation/enhanced": "^0.6.1",
+    "@rspack/cli": "^1.2.2",
+    "@rspack/core": "^1.2.2",
     "http-server": "^14.1.1",
+    "patch-package": "^8.0.0",
     "swc-loader": "^0.2.6",
-    "wait-on": "^7.2.0",
-    "webpack-cli": "^5.1.4"
+    "wait-on": "^7.2.0"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
-    "@mui/icons-material": "^5.15.15",
-    "@mui/material": "^5.15.15",
-    "@mui/styled-engine": "^5.15.14",
+    "@mui/icons-material": "^5.0.0",
+    "@mui/material": "^5.0.0",
+    "@mui/styled-engine": "^5.0.0",
     "@scalprum/core": "^0.8.1",
     "@scalprum/react-core": "^0.9.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tslib": "^2.6.2"
   }
 }

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { ScalprumComponent } from '@scalprum/react-core';
 
@@ -10,7 +11,7 @@ const ApiUpdates = () => {
           <ScalprumComponent module="./ApiModule" scope="sdk-plugin" importName="ApiConsumer" />
         </Box>
         <Box>
-          <ScalprumComponent module="./ApiModule" scope="sdk-plugin" importName="ApiChanger" />
+          {/* <ScalprumComponent module="./ApiModule" scope="sdk-plugin" importName="ApiChanger" /> */}
         </Box>
       </Box>
     </Box>
