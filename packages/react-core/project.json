@@ -58,7 +58,7 @@
     "component-test": {
       "executor": "@nx/cypress:cypress",
       "options": {
-        "cypressConfig": "packages/react-core/cypress.config.ts",
+        "cypressConfig": "packages/react-core/cypress.config.js",
         "testingType": "component",
         "devServerTarget": "test-app:build",
         "skipServe": true

@@ -65,7 +65,7 @@ describe('<ScalprumComponent />', () => {
       manifestLocation: '/errorRepairSuccess,js',
     },
   };
-  const getAppDataSpy = jest.spyOn(ScalprumCore, 'getAppData').mockReturnValue(mockInitScalprumConfig.appOne);
+  const getAppDataSpy = jest.spyOn(ScalprumCore, 'getAppData').mockReturnValue(mockInitScalprumConfig['appOne']);
   const processManifestSpy = jest.spyOn(ScalprumCore, 'processManifest');
   let loadComponentSpy: jest.SpyInstance;
 
@@ -118,7 +118,7 @@ describe('<ScalprumComponent />', () => {
 
   test('should retrieve manifest location', async () => {
     processManifestSpy.mockImplementationOnce(() => Promise.resolve());
-    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
+    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest['appOne']);
     ScalprumCore.initialize({ appsConfig: mockInitScalpumConfigManifest });
     await act(async () => {
       await render(<ScalprumComponent scope="appOne" module="test" />);
@@ -128,7 +128,7 @@ describe('<ScalprumComponent />', () => {
   });
 
   test('should inject manifest and mount app if it was not initialized before', async () => {
-    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
+    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest['appOne']);
     ScalprumCore.initialize({ appsConfig: mockInitScalpumConfigManifest });
     processManifestSpy.mockImplementationOnce(() => {
       return Promise.resolve();
@@ -163,7 +163,7 @@ describe('<ScalprumComponent />', () => {
 
   test('should render test component with manifest', async () => {
     jest.useFakeTimers();
-    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest.appOne);
+    getAppDataSpy.mockReturnValueOnce(mockInitScalpumConfigManifest['appOne']);
     ScalprumCore.initialize({ appsConfig: mockInitScalprumConfig });
     processManifestSpy.mockImplementationOnce(() => {
       return Promise.resolve();
