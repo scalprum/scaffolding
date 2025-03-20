@@ -18,4 +18,11 @@ describe('SDK module loading', () => {
     cy.get(`[aria-label="Checked"]`).should('exist');
     cy.get('#plugin-manifest').should('exist');
   });
+
+  it('should render delayed module without processing entire manifest', () => {
+    cy.visit('http://localhost:4200/sdk');
+    // Delayed module is fetched after 5 seconds
+    cy.wait(5001);
+    cy.get('#delayed-module').should('exist');
+  });
 });
