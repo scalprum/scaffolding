@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.2](https://github.com/scalprum/scaffloding/compare/@scalprum/core-0.8.1...@scalprum/core-0.8.2) (2025-03-20)
+
 ## [0.8.1](https://github.com/scalprum/scaffolding/compare/@scalprum/core-0.8.0...@scalprum/core-0.8.1) (2024-09-11)
 
 
