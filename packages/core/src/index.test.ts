@@ -113,6 +113,7 @@ describe('scalprum', () => {
       pendingInjections: {},
       pendingLoading: {},
       pendingPrefetch: {},
+      existingScopes: new Set(),
       api: {},
       scalprumOptions: {
         cacheTimeout: 120,

@@ -45,6 +45,7 @@ export type Scalprum<T extends Record<string, any> = Record<string, any>> = {
   pendingPrefetch: {
     [key: string]: Promise<unknown>;
   };
+  existingScopes: Set<string>;
   exposedModules: {
     [moduleId: string]: ExposedScalprumModule;
   };
@@ -248,6 +249,7 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
     pendingInjections: {},
     pendingLoading: {},
     pendingPrefetch: {},
+    existingScopes: new Set<string>(),
     exposedModules: {},
     scalprumOptions: defaultOptions,
     api: api || {},
@@ -263,7 +265,11 @@ export const removeScalprum = () => {
 
 export const getAppData = (name: string): AppMetadata => getScalprum().appsConfig[name];
 
-const setExposedModule = (moduleId: string, exposedModule: ExposedScalprumModule) => {
+const setExposedModule = (scope: string, module: string, exposedModule: ExposedScalprumModule) => {
+  if (!getScalprum().existingScopes.has(scope)) {
+    getScalprum().existingScopes.add(scope);
+  }
+  const moduleId = getModuleIdentifier(scope, module);
   getScalprum().exposedModules[moduleId] = exposedModule;
 };
 
@@ -302,11 +308,23 @@ export async function processManifest(
   processor?: (manifest: any) => string[],
 ): Promise<void> {
   let pendingInjection = getPendingInjection(scope);
-  const { pluginStore } = getScalprum();
+  const { pluginStore, existingScopes } = getScalprum();
+
+  if (existingScopes.has(scope)) {
+    try {
+      const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
+      setExposedModule(scope, module, exposedModule);
+      return;
+    } catch (error) {
+      console.warn('Unable to load module from existing container', error);
+      console.warn('Scalprum will try to process manifest from scratch.');
+    }
+  }
+
   if (pendingInjection) {
     await pendingInjection;
     const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
-    setExposedModule(getModuleIdentifier(scope, module), exposedModule);
+    setExposedModule(scope, module, exposedModule);
     return;
   }
 
@@ -361,7 +379,7 @@ export async function processManifest(
     await pluginStore.loadPlugin(sdkManifest);
     try {
       const exposedModule = await pluginStore.getExposedModule<ExposedScalprumModule>(scope, module);
-      setExposedModule(getModuleIdentifier(scope, module), exposedModule);
+      setExposedModule(scope, module, exposedModule);
       return;
     } catch (error) {
       clearPendingInjection(scope);
