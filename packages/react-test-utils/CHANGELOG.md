@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.2.6](https://github.com/scalprum/scaffloding/compare/@scalprum/react-test-utils-0.2.5...@scalprum/react-test-utils-0.2.6) (2025-03-31)
+
+### Dependency Updates
+
+* `@scalprum/core` updated to version `0.8.3`
+* `@scalprum/react-core` updated to version `0.9.5`
 ## [0.2.5](https://github.com/scalprum/scaffloding/compare/@scalprum/react-test-utils-0.2.4...@scalprum/react-test-utils-0.2.5) (2025-03-20)
 
 ### Dependency Updates
