@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.3](https://github.com/scalprum/scaffloding/compare/@scalprum/core-0.8.2...@scalprum/core-0.8.3) (2025-03-31)
+
+
+### Bug Fixes
+
+* **core:** do not process manifest for intialized scopes ([dcd4bed](https://github.com/scalprum/scaffloding/commit/dcd4bedeed50f9e17c45fbf46eccd4e270de0771))
+
 ## [0.8.2](https://github.com/scalprum/scaffloding/compare/@scalprum/core-0.8.1...@scalprum/core-0.8.2) (2025-03-20)
 
 ## [0.8.1](https://github.com/scalprum/scaffolding/compare/@scalprum/core-0.8.0...@scalprum/core-0.8.1) (2024-09-11)
