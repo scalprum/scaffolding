@@ -6,4 +6,8 @@ export * from './use-module';
 export * from './use-load-module';
 export * from './use-prefetch';
 export * from './prefetch-context';
+export * from './use-remote-hook';
+export * from './remote-hooks-types';
+export * from './remote-hook-provider';
+export * from './use-remote-hook-manager';
 export { ScalprumProvider as default } from './scalprum-provider';

@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useMemo } from 'react';
 import { initialize, AppsConfig, Scalprum } from '@scalprum/core';
 import { ScalprumContext } from './scalprum-context';
 import { FeatureFlags, PluginLoaderOptions, PluginManifest, PluginStoreOptions, PluginStoreProvider } from '@openshift/dynamic-plugin-sdk';
+import { RemoteHookProvider } from './remote-hook-provider';
 
 /**
  * @deprecated
@@ -86,7 +87,9 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
 
   return (
     <ScalprumContext.Provider value={value}>
-      <PluginStoreProvider store={state.pluginStore}>{props.children}</PluginStoreProvider>
+      <PluginStoreProvider store={state.pluginStore}>
+        <RemoteHookProvider>{props.children}</RemoteHookProvider>
+      </PluginStoreProvider>
     </ScalprumContext.Provider>
   );
 }

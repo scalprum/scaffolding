@@ -51,6 +51,9 @@ const TestSDKPlugin = new DynamicRemotePlugin({
       './SDKComponent': resolve(__dirname, './src/modules/SDKComponent.tsx'),
       './ApiModule': resolve(__dirname, './src/modules/apiModule.tsx'),
       './DelayedModule': resolve(__dirname, './src/modules/delayedModule.tsx'),
+      './useCounterHook': resolve(__dirname, './src/modules/useCounterHook.tsx'),
+      './useApiHook': resolve(__dirname, './src/modules/useApiHook.tsx'),
+      './useTimerHook': resolve(__dirname, './src/modules/useTimerHook.tsx'),
     },
   },
 });
