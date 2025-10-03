@@ -1,6 +1,19 @@
 # Remote Hook Types
 
-This document provides TypeScript interfaces and types for the remote hooks functionality in Scalprum.
+This document provides comprehensive TypeScript interfaces and types for the remote hooks functionality in Scalprum.
+
+> **Related Documentation:**
+> - [useRemoteHook](./use-remote-hook.md) - Using remote hooks
+> - [useRemoteHookManager](./use-remote-hook-manager.md) - Managing multiple hooks
+> - [RemoteHookProvider](./remote-hook-provider.md) - Context provider
+
+## Quick Navigation
+
+- [Hook Configuration](#hook-configuration) - `HookConfig`
+- [Hook Results](#hook-results) - `UseRemoteHookResult<T>`
+- [Hook Handles](#hook-handles) - `HookHandle`, `RemoteHookHandle<T>`
+- [Hook Manager](#hook-manager) - `RemoteHookManager`
+- [Common Patterns](#common-type-patterns) - Examples and usage
 
 ## Import
 

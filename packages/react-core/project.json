@@ -10,7 +10,10 @@
         "outputPath": "dist/packages/react-core",
         "esmTsConfig": "packages/react-core/tsconfig.esm.json",
         "cjsTsConfig": "packages/react-core/tsconfig.cjs.json",
-        "assets": ["packages/react-core/*.md"]
+        "assets": [
+          "packages/react-core/*.md",
+          "packages/react-core/docs"
+        ]
       }
     },
     "lint": {
