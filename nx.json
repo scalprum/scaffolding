@@ -71,65 +71,26 @@
     "projects": ["@scalprum/core", "@scalprum/react-core", "@scalprum/react-test-utils"],
     "projectsRelationship": "independent",
     "version": {
-      "generatorOptions": {
-        "packageRoot": "dist/{projectRoot}",
-        "currentVersionResolver": "git-tag",
-        "updateDependents": "auto"
+      "git": {
+        "commit": true,
+        "tag": true,
+        "push": true,
+        "commitMessage": "chore: bump {projectName} to {version} [skip ci]"
       },
-      "conventionalCommits": {
-        "types": {
-          "feat": {
-            "semverBump": "minor",
-            "changelog": {
-              "title": "Features"
-            }
-          },
-          "fix": {
-            "semverBump": "patch",
-            "changelog": {
-              "title": "Bug Fixes"
-            }
-          },
-          "chore": {
-            "semverBump": "patch",
-            "changelog": {
-              "title": "Chores"
-            }
-          },
-          "refactor": {
-            "semverBump": "patch",
-            "changelog": {
-              "title": "Refactoring"
-            }
-          },
-          "docs": {
-            "semverBump": "patch",
-            "changelog": {
-              "hidden": true
-            }
-          },
-          "style": {
-            "semverBump": "patch",
-            "changelog": {
-              "hidden": true
-            }
-          },
-          "perf": {
-            "semverBump": "patch",
-            "changelog": {
-              "hidden": true
-            }
-          },
-          "test": {
-            "semverBump": "patch",
-            "changelog": {
-              "hidden": true
-            }
-          }
-        }
+      "preVersionCommand": "npx nx run-many -t build",
+      "conventionalCommits": true,
+      "preserveLocalDependencyProtocols": false,
+      "versionActionsOptions": {
+        "skipLockFileUpdate": false
       }
     },
     "changelog": {
+      "git": {
+        "commit": false,
+        "tag": true,
+        "push": true,
+        "commitMessage": "chore: {projectName} changelog {version} [skip ci]"
+      },
       "projectChangelogs": {
         "createRelease": "github",
         "renderOptions": {
@@ -139,13 +100,6 @@
         }
       }
     },
-    "releaseTagPattern": "{projectName}-{version}",
-    "git": {
-      "commitMessage": "chore: bump {projectName} to {version} [skip ci]",
-      "push": true,
-      "commit": true,
-      "tag": true,
-      "stageChanges": true
-    }
+    "releaseTagPattern": "{projectName}-{version}"
   }
 }
