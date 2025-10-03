@@ -2,6 +2,39 @@
 
 The `useRemoteHookManager` hook provides a way to dynamically manage multiple remote hooks. Unlike `useRemoteHook` which manages a single hook, the manager allows you to add, remove, and control multiple remote hooks at runtime.
 
+## Quick Reference
+
+```tsx
+import { useRemoteHookManager } from '@scalprum/react-core';
+import { useEffect } from 'react';
+
+// For managing multiple remote hooks dynamically
+const manager = useRemoteHookManager();
+
+// Add hooks dynamically
+const handle = manager.addHook({
+  scope: 'remote-app',
+  module: './useMyHook',
+  args: [{ config: 'value' }]
+});
+
+// Update hook arguments
+handle.updateArgs([{ config: 'newValue' }]);
+
+// Remove specific hook
+handle.remove();
+
+// Get all hook results
+const results = manager.getHookResults();
+
+// Clean up all hooks (do this on unmount)
+useEffect(() => () => manager.cleanup(), [manager]);
+```
+
+**When to use:** Managing multiple remote hooks dynamically, adding/removing hooks at runtime, or building plugin systems.
+
+**When NOT to use:** For a single static hook - use [useRemoteHook](./use-remote-hook.md) instead for automatic re-renders.
+
 ## Import
 
 ```tsx

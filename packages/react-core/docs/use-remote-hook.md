@@ -2,6 +2,26 @@
 
 The `useRemoteHook` is a React hook that allows you to load and use hooks from remote federated modules. It provides a seamless way to consume hooks that are dynamically loaded from other applications or microfrontends.
 
+## Quick Reference
+
+```tsx
+import { useRemoteHook } from '@scalprum/react-core';
+import { useMemo } from 'react';
+
+// For single, static remote hooks
+const args = useMemo(() => [{ config: 'value' }], []);
+const { hookResult, loading, error } = useRemoteHook<ResultType>({
+  scope: 'remote-app',
+  module: './useMyHook',
+  importName: 'useNamedHook', // optional, for named exports
+  args
+});
+```
+
+**When to use:** Loading a single remote hook with a known scope and module at component mount time.
+
+**When NOT to use:** For managing multiple hooks dynamically - use [useRemoteHookManager](./use-remote-hook-manager.md) instead.
+
 ## Import
 
 ```tsx

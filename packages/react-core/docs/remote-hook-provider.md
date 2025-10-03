@@ -2,6 +2,28 @@
 
 The `RemoteHookProvider` is a React context provider that enables remote hook functionality across your application. It must be wrapped around any components that use `useRemoteHook` or `useRemoteHookManager`.
 
+## Quick Reference
+
+```tsx
+import { ScalprumProvider } from '@scalprum/react-core';
+
+// RemoteHookProvider is automatically included in ScalprumProvider
+function App() {
+  return (
+    <ScalprumProvider config={scalprumConfig}>
+      {/* Remote hooks work automatically here */}
+      <YourComponents />
+    </ScalprumProvider>
+  );
+}
+```
+
+**Key points:**
+- Automatically included in `ScalprumProvider` - no setup needed
+- Can be used standalone for advanced use cases
+- Provides isolated execution environments for each remote hook
+- Manages hook state, lifecycle, and argument updates
+
 ## Overview
 
 The RemoteHookProvider manages the execution of remote hooks by:
