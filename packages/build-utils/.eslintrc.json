@@ -35,7 +35,8 @@
             "checkVersionMismatches": true,
             "ignoredDependencies": [
               "semver",
-              "zod"
+              "zod",
+              "@nx/devkit"
             ]
           }
         ]

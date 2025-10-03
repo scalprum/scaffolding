@@ -10,6 +10,8 @@ import NotFoundError from './routes/NotFoundError';
 import { AppsConfig } from '@scalprum/core';
 import UseModuleLoading from './routes/UseModuleLoading';
 import ApiUpdates from './routes/ApiUpdates';
+import RemoteHooks from './routes/RemoteHooks';
+import RemoteHookManager from './routes/RemoteHookManager';
 
 const config: AppsConfig<{ assetsHost?: string }> = {
   notFound: {
@@ -80,6 +82,8 @@ const Entry = () => {
             <Route path="/sdk" element={<SDKModules />} />
             <Route path="/use-module" element={<UseModuleLoading />} />
             <Route path="/api" element={<ApiUpdates />} />
+            <Route path="/remote-hooks" element={<RemoteHooks />} />
+            <Route path="/remote-hook-manager" element={<RemoteHookManager />} />
           </Route>
         </Routes>
       </BrowserRouter>
