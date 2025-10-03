@@ -43,7 +43,11 @@ runs:
         GH_TOKEN: ${{ inputs.gh_token }}
         GITHUB_TOKEN: ${{ inputs.gh_token }}
         NODE_AUTH_TOKEN: ${{ inputs.npm_token }}
-      run: npx nx release --base=last-release
+      run: |
+        npx nx release version
+        npx nx run-many --target=build --all --parallel --maxParallel=4 --skipNxCache
+        npx nx release changelog
+        npx nx release publish
     - name: Tag last-release
       shell: bash
       run: |
