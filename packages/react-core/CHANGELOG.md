@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.0](https://github.com/scalprum/scaffloding/compare/@scalprum/react-core-0.9.5...@scalprum/react-core-0.10.0) (2025-10-03)
+
+
+### Features
+
+* **react-core:** add remote hooks interface ([de92047](https://github.com/scalprum/scaffloding/commit/de920476152382f5a4a16dc50cea499191deefa1))
+
 ## [0.9.5](https://github.com/scalprum/scaffloding/compare/@scalprum/react-core-0.9.4...@scalprum/react-core-0.9.5) (2025-03-31)
 
 ### Dependency Updates
