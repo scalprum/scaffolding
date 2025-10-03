@@ -23,7 +23,7 @@ runs:
     - uses: './.github/actions/node-cache'
     - name: Install deps
       shell: bash
-      run: npm i
+      run: npm ci
     - name: git config
       shell: bash
       run: |
@@ -32,17 +32,18 @@ runs:
     - name: Build
       shell: bash
       run: npx nx run-many -t build
-    - name: Set publish config
+    - name: Set npm auth
       env:
         NPM_TOKEN: ${{ inputs.npm_token }}
       shell: bash
       run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
-    - name: Version
+    - name: Release (Version, Changelog, Publish to npm and GitHub)
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.gh_token }}
         GITHUB_TOKEN: ${{ inputs.gh_token }}
-      run: npx nx affected --base=last-release --parallel=1 --target=version --postTargets=syncDependencies,build,npm,github --trackDeps
+        NODE_AUTH_TOKEN: ${{ inputs.npm_token }}
+      run: npx nx release --base=last-release
     - name: Tag last-release
       shell: bash
       run: |

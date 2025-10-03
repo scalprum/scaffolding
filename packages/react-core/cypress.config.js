@@ -41,7 +41,7 @@ const config = {
             extensions: ['.tsx', '.ts', '.js'],
             alias: {
               '@scalprum/core': path.resolve(__dirname, '../core/src/index.ts'),
-            }
+            },
           },
           module: {
             rules: [
@@ -66,12 +66,11 @@ const config = {
               },
             ],
           },
-          plugins: [ShellConfig]
+          plugins: [ShellConfig],
         };
-      }
-    }
+      },
+    },
   },
 };
-
 
 module.exports = config;

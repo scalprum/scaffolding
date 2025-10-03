@@ -3,6 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/react-test-utils/src",
   "projectType": "library",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@scalprum/build-utils:builder",
@@ -27,33 +28,13 @@
         "jestConfig": "packages/react-test-utils/jest.config.ts"
       }
     },
-    "version": {
-      "executor": "@jscutlery/semver:version",
+    "nx-release-publish": {
       "options": {
-        "trackDeps": true,
-        "push": true,
-        "preset": "conventionalcommits",
-        "commitMessageFormat": "chore: bump {projectName} to {version} [skip ci]"
+        "packageRoot": "dist/{projectRoot}"
       }
-    },
-    "github": {
-      "executor": "@jscutlery/semver:github",
-      "options": {
-        "tag": "{tag}",
-        "notes": "{notes}"
-      }
-    },
-    "npm": {
-      "executor": "ngx-deploy-npm:deploy",
-      "options": {
-        "access": "public",
-        "distFolderPath": "dist/packages/react-test-utils"
-      },
-      "dependsOn": ["build"]
     },
     "syncDependencies": {
       "executor": "@scalprum/build-utils:sync-dependencies"
     }
-  },
-  "tags": []
+  }
 }

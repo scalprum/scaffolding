@@ -27,9 +27,6 @@
         }
       }
     },
-    "version": {
-      "dependsOn": ["^version"]
-    },
     "component-test": {
       "cache": true,
       "inputs": ["default", "^production"]
@@ -68,6 +65,87 @@
         "style": "@emotion/styled",
         "linter": "eslint"
       }
+    }
+  },
+  "release": {
+    "projects": ["@scalprum/core", "@scalprum/react-core", "@scalprum/react-test-utils"],
+    "projectsRelationship": "independent",
+    "version": {
+      "generatorOptions": {
+        "packageRoot": "dist/{projectRoot}",
+        "currentVersionResolver": "git-tag",
+        "updateDependents": "auto"
+      },
+      "conventionalCommits": {
+        "types": {
+          "feat": {
+            "semverBump": "minor",
+            "changelog": {
+              "title": "Features"
+            }
+          },
+          "fix": {
+            "semverBump": "patch",
+            "changelog": {
+              "title": "Bug Fixes"
+            }
+          },
+          "chore": {
+            "semverBump": "patch",
+            "changelog": {
+              "title": "Chores"
+            }
+          },
+          "refactor": {
+            "semverBump": "patch",
+            "changelog": {
+              "title": "Refactoring"
+            }
+          },
+          "docs": {
+            "semverBump": "patch",
+            "changelog": {
+              "hidden": true
+            }
+          },
+          "style": {
+            "semverBump": "patch",
+            "changelog": {
+              "hidden": true
+            }
+          },
+          "perf": {
+            "semverBump": "patch",
+            "changelog": {
+              "hidden": true
+            }
+          },
+          "test": {
+            "semverBump": "patch",
+            "changelog": {
+              "hidden": true
+            }
+          }
+        }
+      }
+    },
+    "changelog": {
+      "projectChangelogs": {
+        "createRelease": "github",
+        "renderOptions": {
+          "authors": true,
+          "commitReferences": true,
+          "versionTitleDate": true
+        }
+      }
+    },
+    "releaseTagPattern": "{projectName}-{version}",
+    "git": {
+      "commitMessage": "chore: bump {projectName} to {version} [skip ci]",
+      "push": true,
+      "commit": true,
+      "tag": true,
+      "stageChanges": true
     }
   }
 }
