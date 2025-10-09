@@ -29,10 +29,10 @@ export interface HookHandle {
   updateArgs(args: any[]): void;
 }
 
-export interface RemoteHookManager {
+export interface RemoteHookManager<R = unknown> {
   addHook(config: HookConfig): HookHandle; // Returns handle with remove and updateArgs
   cleanup(): void; // Cleanup for component unmount
-  getHookResults(): UseRemoteHookResult<any>[]; // Get results for all tracked hooks
+  hookResults: UseRemoteHookResult<R>[]; // Results for all tracked hooks
 }
 
 // Context type from RemoteHookProvider

@@ -45,12 +45,12 @@ function isTimerResult(result: any): result is UseRemoteHookResult<TimerResult> 
 }
 
 const RemoteHookManager = () => {
-  const manager = useRemoteHookManager();
+  const { addHook, cleanup, hookResults } = useRemoteHookManager();
   const [hooks, setHooks] = useState<any[]>([]);
 
   // Add counter hook
   const addCounterHook = () => {
-    const handle = manager.addHook({
+    const handle = addHook({
       scope: 'sdk-plugin',
       module: './useCounterHook',
       args: [{ initialValue: Math.floor(Math.random() * 10), step: 1 }],
@@ -61,7 +61,7 @@ const RemoteHookManager = () => {
 
   // Add API hook
   const addApiHook = () => {
-    const handle = manager.addHook({
+    const handle = addHook({
       scope: 'sdk-plugin',
       module: './useApiHook',
       args: [
@@ -81,7 +81,7 @@ const RemoteHookManager = () => {
 
   // Add timer hook
   const addTimerHook = () => {
-    const handle = manager.addHook({
+    const handle = addHook({
       scope: 'sdk-plugin',
       module: './useTimerHook',
       args: [{ duration: 10, autoStart: true }],
@@ -105,15 +105,12 @@ const RemoteHookManager = () => {
     }
   };
 
-  // Get all hook results
-  const hookResults = manager.getHookResults();
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      manager.cleanup();
+      cleanup();
     };
-  }, [manager]);
+  }, [cleanup]);
 
   return (
     <Grid container spacing={4}>
@@ -146,7 +143,7 @@ const RemoteHookManager = () => {
               <Button
                 variant="outlined"
                 onClick={() => {
-                  manager.cleanup();
+                  cleanup();
                   setHooks([]);
                 }}
                 color="error"
