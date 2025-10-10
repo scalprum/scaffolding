@@ -43,6 +43,8 @@ runs:
         GH_TOKEN: ${{ inputs.gh_token }}
         GITHUB_TOKEN: ${{ inputs.gh_token }}
         NODE_AUTH_TOKEN: ${{ inputs.npm_token }}
+        # force NX to not use legacy peer deps handling
+        npm_config_legacy_peer_deps: false
       run: |
         npx nx release version
         npx nx run-many --target=build --all --parallel --maxParallel=4 --skipNxCache
