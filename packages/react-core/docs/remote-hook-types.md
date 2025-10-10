@@ -63,7 +63,7 @@ const config: HookConfig = {
 
 ### UseRemoteHookResult<T>
 
-Result object returned by `useRemoteHook` and included in `getHookResults()` arrays.
+Result object returned by `useRemoteHook` and included in `hookResults` arrays.
 
 ```tsx
 interface UseRemoteHookResult<T> {
@@ -153,14 +153,14 @@ Interface for the hook manager returned by `useRemoteHookManager()`.
 interface RemoteHookManager {
   addHook(config: HookConfig): HookHandle;
   cleanup(): void;
-  getHookResults(): UseRemoteHookResult<any>[];
+  hookResults: UseRemoteHookResult<any>[];
 }
 ```
 
 **Methods:**
 - `addHook(config)`: Add a new remote hook and return a handle
 - `cleanup()`: Remove all managed hooks and clean up resources
-- `getHookResults()`: Get an array of all current hook results
+- `hookResults`: An array of all current hook results
 
 **Example:**
 ```tsx
@@ -176,11 +176,7 @@ function useHookManager() {
     return handle;
   };
 
-  const getAllResults = (): UseRemoteHookResult<any>[] => {
-    return manager.getHookResults();
-  };
-
-  return { addCounter, getAllResults, cleanup: manager.cleanup };
+  return { addCounter, hookResults: manager.hookResults, cleanup: manager.cleanup };
 }
 ```
 
@@ -269,13 +265,13 @@ function TypedHookManager() {
     });
   };
 
-  const getApiResults = (): UseRemoteHookResult<ApiHookResult>[] => {
-    return manager.getHookResults().filter(result =>
+  const apiResults = useMemo(() => {
+    return manager.hookResults.filter(result =>
       result.hookResult && 'data' in result.hookResult
     ) as UseRemoteHookResult<ApiHookResult>[];
-  };
+  }, [manager.hookResults]);
 
-  return { addApiHook, getApiResults };
+  return { addApiHook, apiResults };
 }
 ```
 
@@ -355,7 +351,7 @@ interface MyHooks {
 
 function useTypedHookRegistry(): HookRegistry<MyHooks> {
   const manager = useRemoteHookManager();
-  const results = manager.getHookResults();
+  const results = manager.hookResults;
 
   // Implementation would map results to the typed registry
   return {} as HookRegistry<MyHooks>;

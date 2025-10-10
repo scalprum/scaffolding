@@ -10,9 +10,6 @@
     "noFallthroughCasesInSwitch": true,
     "jsx": "react",
     "esModuleInterop": true,
-    "paths": {
-      "@scalprum/core": ["dist/packages/core"]
-    },
     "rootDir": "."
   },
   "files": [],

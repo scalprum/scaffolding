@@ -302,7 +302,7 @@ function DynamicHooksComponent() {
     // handle.remove();
   };
 
-  const results = manager.getHookResults();
+  const results = manager.hookResults;
 
   return (
     <div>
@@ -323,7 +323,7 @@ function DynamicHooksComponent() {
 **Methods:**
 - `addHook(config)` - Add a new remote hook, returns handle
 - `cleanup()` - Remove all hooks (called automatically on unmount)
-- `getHookResults()` - Get results from all tracked hooks
+- `hookResults` - Results from all tracked hooks
 
 **Handle Methods:**
 - `remove()` - Remove this specific hook
