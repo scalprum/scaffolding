@@ -32,7 +32,6 @@ export const useRemoteHook = <T>({
 
         // Only update if component is still mounted
         if (isMounted) {
-          updateState(id, { loading: false, error: null });
           updateArgs(id, args); // Set args before registering hook
           registerHook(id, hookFunction);
         }

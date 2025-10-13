@@ -50,7 +50,8 @@ function HookExecutor({
 
   // Update state with the result
   useEffect(() => {
-    updateState(id, { hookResult });
+    // always set loading to false when we have a result
+    updateState(id, { loading: false, hookResult });
   }, [hookResult, id, updateState]);
 
   return null;
