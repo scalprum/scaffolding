@@ -25,10 +25,10 @@ handle.updateArgs([{ config: 'newValue' }]);
 handle.remove();
 
 // Get all hook results
-const results = manager.getHookResults();
+const results = manager.hookResults;
 
 // Clean up all hooks (do this on unmount)
-useEffect(() => () => manager.cleanup(), [manager]);
+useEffect(() => () => manager.cleanup(), [manager.cleanup]);
 ```
 
 **When to use:** Managing multiple remote hooks dynamically, adding/removing hooks at runtime, or building plugin systems.
@@ -48,10 +48,10 @@ import { useRemoteHookManager } from '@scalprum/react-core';
 import { useEffect } from 'react';
 
 function HookManagerComponent() {
-  const manager = useRemoteHookManager();
+  const { addHook, cleanup, hookResults } = useRemoteHookManager();
 
   const addCounterHook = () => {
-    const handle = manager.addHook({
+    const handle = addHook({
       scope: 'counter-app',
       module: './useCounter',
       args: [{ initialValue: 0, step: 1 }]
@@ -62,18 +62,17 @@ function HookManagerComponent() {
   };
 
   const getAllResults = () => {
-    const results = manager.getHookResults();
-    console.log('All hook results:', results);
+    console.log('All hook results:', hookResults);
   };
 
   const cleanupAll = () => {
-    manager.cleanup();
+    cleanup();
   };
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => manager.cleanup();
-  }, [manager]);
+    return () => cleanup();
+  }, [cleanup]);
 
   return (
     <div>
@@ -108,9 +107,9 @@ Adds a new remote hook and returns a handle to control it.
 - `remove()`: Remove this specific hook
 - `updateArgs(args: any[])`: Update arguments for this hook
 
-#### `getHookResults(): UseRemoteHookResult<any>[]`
+#### `hookResults: UseRemoteHookResult<any>[]`
 
-Returns an array of all current hook results.
+An array of all current hook results.
 
 **Returns:** Array of `UseRemoteHookResult` objects with:
 - `id`: Unique hook identifier
@@ -170,16 +169,12 @@ function MultiHookManager() {
     setHooks(prev => prev.filter((_, i) => i !== index));
   };
 
-  const getAllResults = () => {
-    return manager.getHookResults();
-  };
-
   // Cleanup on unmount
   useEffect(() => {
     return () => manager.cleanup();
-  }, [manager]);
+  }, [manager.cleanup]);
 
-  const hookResults = getAllResults();
+  const { hookResults } = manager;
 
   return (
     <div>
@@ -237,7 +232,7 @@ function DynamicArgsManager() {
     setHandles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const hookResults = manager.getHookResults();
+  const { hookResults } = manager;
 
   return (
     <div>
@@ -287,7 +282,7 @@ function HookResultsProcessor() {
 
   useEffect(() => {
     // Process hook results whenever they change
-    const results = manager.getHookResults();
+    const results = manager.hookResults;
 
     const processed = results.reduce((acc, result, index) => {
       if (!result.loading && !result.error && result.hookResult) {
@@ -302,7 +297,7 @@ function HookResultsProcessor() {
     }, {});
 
     setProcessedData(processed);
-  }, [manager]); // Re-run when results change
+  }, [manager.hookResults]); // Re-run when results change
 
   const determineHookType = (hookResult) => {
     if (typeof hookResult.count === 'number') return 'counter';
@@ -380,7 +375,6 @@ function MemoizedArgsExample() {
 ## Performance Considerations
 
 - **Manager Stability**: The manager object is stable across re-renders
-- **Hook Results**: Call `getHookResults()` to get fresh results, as they're not automatically reactive
 - **Memory Management**: Always call `cleanup()` or individual `remove()` methods to prevent memory leaks
 - **Argument Updates**: Use `handle.updateArgs()` to update arguments instead of removing and re-adding hooks
 
@@ -414,31 +408,11 @@ function MemoizedArgsExample() {
 
 ```tsx
 function ErrorHandlingManager() {
-  const manager = useRemoteHookManager();
-  const [errors, setErrors] = useState([]);
+  const { hookResults } = useRemoteHookManager();
 
-  const addHookWithErrorHandling = (config) => {
-    try {
-      const handle = manager.addHook(config);
-
-      // Check results periodically for errors
-      setTimeout(() => {
-        const results = manager.getHookResults();
-        const newErrors = results
-          .filter(result => result.error)
-          .map(result => ({ id: result.id, error: result.error.message }));
-
-        if (newErrors.length > 0) {
-          setErrors(prev => [...prev, ...newErrors]);
-        }
-      }, 1000);
-
-      return handle;
-    } catch (error) {
-      console.error('Failed to add hook:', error);
-      setErrors(prev => [...prev, { id: 'add-hook', error: error.message }]);
-    }
-  };
+  const errors = hookResults
+    .filter(result => result.error)
+    .map(result => ({ id: result.id, error: result.error.message }));
 
   return (
     <div>

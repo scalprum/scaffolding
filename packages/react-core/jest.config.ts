@@ -3,8 +3,13 @@ export default {
   displayName: '@scalprum/react-core',
   preset: '../../jest.preset.js',
   transform: {
-    '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
+    '^.+\\.[tj]sx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
   },
-  moduleFileExtensions: ['ts', 'js', 'html'],
+  moduleNameMapper: {
+    '^@scalprum/core$': '<rootDir>/../core/src/index.ts',
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'html'],
   coverageDirectory: '../../coverage/packages/react-core',
+  testEnvironment: 'jsdom',
+  testMatch: ['**/*.test.ts?(x)', '**/*.spec.ts?(x)'],
 };
