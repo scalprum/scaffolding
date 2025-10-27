@@ -15,6 +15,10 @@ const sharedModules = {
     requiredVersion: '*',
     version: '18.2.0',
   },
+  '@scalprum/core': {
+    singleton: true,
+    requiredVersion: '*',
+  },
   '@scalprum/react-core': {
     singleton: true,
     requiredVersion: '*',
@@ -54,6 +58,7 @@ const TestSDKPlugin = new DynamicRemotePlugin({
       './useCounterHook': resolve(__dirname, './src/modules/useCounterHook.tsx'),
       './useApiHook': resolve(__dirname, './src/modules/useApiHook.tsx'),
       './useTimerHook': resolve(__dirname, './src/modules/useTimerHook.tsx'),
+      './useSharedStoreHook': resolve(__dirname, './src/modules/useSharedStoreHook.tsx'),
     },
   },
 });
@@ -91,6 +96,12 @@ function init() {
     },
     mode: 'development',
     plugins: [TestSDKPlugin, FullManifest],
+    resolve: {
+      alias: {
+        '@scalprum/react-core': resolve(__dirname, '../dist/packages/react-core/esm'),
+        '@scalprum/core': resolve(__dirname, '../dist/packages/core/esm'),
+      }
+    },
     module: {
       rules: [
         {

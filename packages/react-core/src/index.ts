@@ -10,4 +10,8 @@ export * from './use-remote-hook';
 export * from './remote-hooks-types';
 export * from './remote-hook-provider';
 export * from './use-remote-hook-manager';
+export * from './useGetState';
+export * from './useSubscribeStore';
+export * from './ensureImmutability';
+
 export { ScalprumProvider as default } from './scalprum-provider';

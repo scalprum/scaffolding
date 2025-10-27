@@ -584,9 +584,82 @@ export * from './remote-hooks-types';
 - [`@scalprum/build-utils`](../build-utils) - Build tools and NX executors
 - [`@scalprum/react-test-utils`](../react-test-utils) - Testing utilities for React components
 
+## Shared Stores
+
+Scalprum provides powerful event-driven state management for micro-frontends through shared stores. This allows multiple micro-frontend modules to share and synchronize state in real-time.
+
+### Quick Example
+
+```tsx
+import { createSharedStore } from '@scalprum/core';
+import { useGetState } from '@scalprum/react-core';
+
+// Create a shared store (in a remote module)
+const EVENTS = ['ADD_TODO', 'TOGGLE_TODO'] as const;
+
+let todoStore = null;
+const getTodoStore = () => {
+  if (!todoStore) {
+    todoStore = createSharedStore({
+      initialState: { todos: [] },
+      events: EVENTS,
+      onEventChange: (state, event, payload) => {
+        switch (event) {
+          case 'ADD_TODO':
+            return { todos: [...state.todos, payload.todo] };
+          case 'TOGGLE_TODO':
+            return {
+              todos: state.todos.map(t =>
+                t.id === payload.id ? { ...t, completed: !t.completed } : t
+              ),
+            };
+          default:
+            return state;
+        }
+      },
+    });
+  }
+  return todoStore;
+};
+
+// Use in React components
+export const useTodoStore = () => {
+  const store = getTodoStore();
+  const state = useGetState(store);
+
+  return {
+    todos: state.todos,
+    addTodo: (todo) => store.updateState('ADD_TODO', { todo }),
+    toggleTodo: (id) => store.updateState('TOGGLE_TODO', { id }),
+  };
+};
+```
+
+### Key Features
+
+- **Event-Driven Updates**: State changes triggered by named events
+- **Real-Time Synchronization**: Changes propagate across all microfrontends instantly
+- **Performance Optimized**: `useSubscribeStore` for selective subscriptions
+- **Type-Safe**: Full TypeScript support with generic types
+- **Singleton Pattern**: Automatic state sharing across module boundaries
+
+### Complete Documentation
+
+For comprehensive documentation including:
+- API reference for `createSharedStore`, `useGetState`, `useSubscribeStore`
+- Advanced patterns (async operations, performance optimization, persistence)
+- Module federation setup and configuration
+- TypeScript best practices
+- Testing strategies
+- Migration guides from Redux/Context
+- Troubleshooting common issues
+
+See the **[Complete Shared Stores Guide](./docs/shared-stores.md)**
+
 ## Documentation
 
 - [Getting Started Guide](./docs/getting-started.md)
+- **[Shared Stores Guide](./docs/shared-stores.md)** - Event-driven state management for microfrontends
 - [useRemoteHook Documentation](./docs/use-remote-hook.md)
 - [useRemoteHookManager Documentation](./docs/use-remote-hook-manager.md)
 - [RemoteHookProvider Reference](./docs/remote-hook-provider.md)

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
-import { initialize, getScalprum, getCachedModule, initSharedScope } from '.';
+import { initialize, getScalprum, getCachedModule, initSharedScope } from './scalprum';
 
 describe('scalprum', () => {
   const testManifest: PluginManifest = {

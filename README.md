@@ -63,6 +63,11 @@ Documentation is organized within individual package directories, following mono
   - [useRemoteHookManager Guide](./packages/react-core/docs/use-remote-hook-manager.md)
   - [RemoteHookProvider Reference](./packages/react-core/docs/remote-hook-provider.md)
   - [Type Definitions](./packages/react-core/docs/remote-hook-types.md)
+- 🏪 **Shared Stores** - Event-driven state management for micro-frontends:
+  - [Complete Shared Stores Guide](./packages/react-core/docs/shared-stores.md) - Comprehensive documentation
+  - [API Reference](./packages/react-core/docs/shared-stores.md#api-reference)
+  - [Usage Patterns](./packages/react-core/docs/shared-stores.md#usage-patterns)
+  - [Testing Guide](./packages/react-core/docs/shared-stores.md#testing)
 
 ## Getting Started
 

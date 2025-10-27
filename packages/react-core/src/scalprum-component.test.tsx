@@ -4,9 +4,17 @@ import * as asyncComponent from './async-loader';
 import { ScalprumComponent, ScalprumComponentProps } from './scalprum-component';
 import { render, cleanup, act, screen } from '@testing-library/react';
 import * as ScalprumCore from '@scalprum/core';
-import { AppsConfig } from '@scalprum/core';
 import TestComponent from './TestComponent';
 import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
+
+import type { AppsConfig } from '@scalprum/core';
+
+jest.mock('@scalprum/core', () => {
+  return {
+    __esModule: true,
+    ...jest.requireActual('@scalprum/core'),
+  };
+});
 
 const ErrorComponent = () => {
   return <h1>Custom error component</h1>;
@@ -65,8 +73,8 @@ describe('<ScalprumComponent />', () => {
       manifestLocation: '/errorRepairSuccess,js',
     },
   };
-  const getAppDataSpy = jest.spyOn(ScalprumCore, 'getAppData').mockReturnValue(mockInitScalprumConfig['appOne']);
-  const processManifestSpy = jest.spyOn(ScalprumCore, 'processManifest');
+  let getAppDataSpy: jest.SpyInstance;
+  let processManifestSpy: jest.SpyInstance;
   let loadComponentSpy: jest.SpyInstance;
 
   beforeAll(() => {
@@ -95,15 +103,17 @@ describe('<ScalprumComponent />', () => {
   });
 
   beforeEach(() => {
+    getAppDataSpy = jest.spyOn(ScalprumCore, 'getAppData').mockReturnValue(mockInitScalprumConfig['appOne']);
+    processManifestSpy = jest.spyOn(ScalprumCore, 'processManifest');
     const componentPromise = Promise.resolve({ prefetch: undefined, component: TestComponent });
     loadComponentSpy = jest.spyOn(asyncComponent, 'loadComponent').mockReturnValue(componentPromise);
   });
 
   afterEach(() => {
     cleanup();
-    getAppDataSpy.mockClear();
-    processManifestSpy.mockClear();
-    loadComponentSpy.mockReset();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
   });
 
   test('should retrieve script location', async () => {
