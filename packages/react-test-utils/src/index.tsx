@@ -115,6 +115,7 @@ export function mockPluginData(
     type,
     body: null,
     bodyUsed: false,
+    bytes: () => Promise.resolve(new Uint8Array()),
     arrayBuffer: () => {
       return Promise.resolve(new ArrayBuffer(0));
     },
@@ -127,6 +128,7 @@ export function mockPluginData(
     clone: () => response,
   };
 
+  // eslint-disable-next-line @typescript-eslint/ban-types
   const TestScalprumProvider: React.ComponentType<React.PropsWithChildren<{}>> = ({ children }) => {
     return (
       <ScalprumProvider config={config} api={api}>
