@@ -16,6 +16,7 @@ npm install @scalprum/core
 - **Dynamic Module Loading**: Load remote modules at runtime with caching
 - **Manifest Processing**: Support for both plugin manifests and custom formats
 - **Shared Scope Management**: Integration with webpack's module federation shared scopes
+- **Shared Stores**: Event-driven state management for micro-frontends
 - **Built-in Caching**: Intelligent module caching with configurable timeout
 - **Error Handling**: Robust error handling for network and module loading failures
 
@@ -192,6 +193,43 @@ This package is compatible with:
 - **Webpack 5** with Module Federation
 - **Rspack** with Module Federation support
 - **Module Federation Runtime** for any bundler
+
+## Shared Stores
+
+The `createSharedStore` function enables event-driven state management across microfrontends. See the comprehensive [Shared Stores Guide](../react-core/docs/shared-stores.md) for detailed documentation.
+
+**Quick Example:**
+
+```typescript
+import { createSharedStore } from '@scalprum/core';
+
+const EVENTS = ['UPDATE_USER', 'LOGOUT'] as const;
+
+const store = createSharedStore({
+  initialState: { user: null, isAuthenticated: false },
+  events: EVENTS,
+  onEventChange: (state, event, payload) => {
+    switch (event) {
+      case 'UPDATE_USER':
+        return { ...state, user: payload.user, isAuthenticated: true };
+      case 'LOGOUT':
+        return { user: null, isAuthenticated: false };
+      default:
+        return state;
+    }
+  },
+});
+
+// Update state
+store.updateState('UPDATE_USER', { user: { id: '123', name: 'John' } });
+
+// Subscribe to changes
+const unsubscribe = store.subscribeAll(() => {
+  console.log('State changed:', store.getState());
+});
+```
+
+For React integration, use with `useGetState` and `useSubscribeStore` from `@scalprum/react-core`. See [Shared Stores Documentation](../react-core/docs/shared-stores.md) for complete guide.
 
 ## Related Packages
 

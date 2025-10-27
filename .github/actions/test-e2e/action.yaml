@@ -10,6 +10,9 @@ runs:
     - name: Install deps
       shell: bash
       run: npm i
+    - name: Build packages
+      shell: bash
+      run: npm run build
     - name: Run e2e tests
       shell: bash
       run: npm run test:e2e

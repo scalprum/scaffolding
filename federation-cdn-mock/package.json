@@ -19,8 +19,8 @@
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",
     "@mui/styled-engine": "^5.15.14",
-    "@scalprum/core": "^0.8.1",
-    "@scalprum/react-core": "^0.9.1",
+    "@scalprum/core": "file:../dist/packages/core",
+    "@scalprum/react-core": "file:../dist/packages/react-core",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tslib": "^2.6.2"

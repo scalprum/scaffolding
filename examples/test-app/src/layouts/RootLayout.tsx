@@ -40,6 +40,12 @@ function RootLayout() {
             <NavLink variant="button" color="text.primary" to="/api" sx={{ my: 1, mx: 1.5 }}>
               API updates
             </NavLink>
+            <NavLink variant="button" color="text.primary" to="/remote-hooks" sx={{ my: 1, mx: 1.5 }}>
+              Remote Hooks
+            </NavLink>
+            <NavLink variant="button" color="text.primary" to="/shared-store" sx={{ my: 1, mx: 1.5 }}>
+              Shared Store
+            </NavLink>
           </nav>
         </Toolbar>
       </AppBar>
