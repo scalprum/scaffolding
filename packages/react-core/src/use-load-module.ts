@@ -4,13 +4,14 @@ import { getCachedModule, ExposedScalprumModule, getAppData, processManifest, ge
 export type ModuleDefinition = {
   scope: string;
   module: string;
+  importName?: string;
   processor?: (item: any) => string[];
 };
 
-export function useLoadModule(
-  { scope, module, processor }: ModuleDefinition,
+export function useLoadModule<T>(
+  { scope, module, importName, processor }: ModuleDefinition,
   defaultState: any,
-): [ExposedScalprumModule | undefined, Error | undefined] {
+): [ExposedScalprumModule<T> | undefined, Error | undefined] {
   const { manifestLocation } = getAppData(scope);
   const [data, setData] = useState<ExposedScalprumModule>(defaultState);
   const [error, setError] = useState<Error>();
@@ -24,7 +25,7 @@ export function useLoadModule(
           processManifest(manifestLocation, scope, module, processor)
             .then(async () => {
               const Module: ExposedScalprumModule = await pluginStore.getExposedModule(scope, module);
-              setData(() => Module);
+              setData(() => Module[importName || 'default']);
             })
             .catch((e) => {
               setError(() => e);
@@ -33,7 +34,7 @@ export function useLoadModule(
       } else {
         try {
           pluginStore.getExposedModule<ExposedScalprumModule>(scope, module).then((Module) => {
-            setData(() => Module);
+            setData(() => Module[importName || 'default']);
           });
         } catch (e) {
           setError(() => e as Error);
