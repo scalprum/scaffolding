@@ -159,7 +159,14 @@ export const getPendingLoading = (scope: string, module: string): Promise<any> |
 };
 
 export const preloadModule = async (scope: string, module: string, processor?: (manifest: any) => string[]) => {
-  const { manifestLocation } = getAppData(scope);
+  const appData = getAppData(scope);
+  if (!appData) {
+    const availableScopes = Object.keys(getScalprum().appsConfig).join(', ');
+    throw new Error(
+      `Module "${module}" could not be preloaded because scope "${scope}" is not in the scalprum configuration. Available scopes: ${availableScopes}`,
+    );
+  }
+  const { manifestLocation } = appData;
   const { cachedModule } = getCachedModule(scope, module);
   let modulePromise = getPendingLoading(scope, module);
 
@@ -182,19 +189,22 @@ export const getModule = async <T = any, P = any>(scope: string, module: string,
   const scalprum = getScalprum();
   const { cachedModule } = getCachedModule(scope, module);
   let Module: ExposedScalprumModule<T, P>;
-  const manifestLocation = getAppData(scope)?.manifestLocation;
+  const appData = getAppData(scope);
+  if (!appData) {
+    const availableScopes = Object.keys(scalprum.appsConfig).join(', ');
+    throw new Error(
+      `Module "${module}" could not be loaded because scope "${scope}" is not in the scalprum configuration. Available scopes: ${availableScopes}`,
+    );
+  }
+  const manifestLocation = appData.manifestLocation;
   if (!manifestLocation) {
-    throw new Error(`Could not get module. Manifest location not found for scope ${scope}.`);
+    throw new Error(
+      `Module "${module}" could not be loaded because scope "${scope}" does not have a manifestLocation in the scalprum configuration.`,
+    );
   }
   if (!cachedModule) {
-    try {
-      await processManifest(manifestLocation, scope, module);
-      Module = await scalprum.pluginStore.getExposedModule(scope, module);
-    } catch {
-      throw new Error(
-        `Module not initialized! Module "${module}" was not found in "${scope}" webpack scope. Make sure the remote container is loaded?`,
-      );
-    }
+    await processManifest(manifestLocation, scope, module);
+    Module = await scalprum.pluginStore.getExposedModule(scope, module);
   } else {
     Module = cachedModule;
   }

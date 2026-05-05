@@ -100,20 +100,10 @@ describe('Shared Store Remote Hooks functionality', () => {
     cy.get('[data-testid="instance-1-filter-group"]', { timeout: 15000 }).should('exist');
     cy.get('[data-testid="instance-2-filter-group"]', { timeout: 15000 }).should('exist');
 
-    // Ensure we have at least one completed todo for testing
-    cy.get('[data-testid="instance-1-todo-list"]')
-      .contains('Test remote hooks with shared state')
-      .parents('[data-testid^="instance-1-todo-"]')
-      .then(($todo) => {
-        const todoId = $todo.attr('data-testid')?.replace('instance-1-todo-', '');
-        // This should already be completed based on initial state, but let's ensure it
-        cy.get(`[data-testid="instance-1-toggle-${todoId}"]`).then(($button) => {
-          // Check if it needs to be toggled to completed state
-          if (!$button.parent().parent().find('span').css('text-decoration').includes('line-through')) {
-            cy.get(`[data-testid="instance-1-toggle-${todoId}"]`).click();
-          }
-        });
-      });
+    // The demo todo "Test remote hooks with shared state" starts as completed in initial state,
+    // so we already have at least one completed todo for filter testing.
+    // Wait for the todo list to be fully loaded before proceeding.
+    cy.get('[data-testid="instance-1-todo-list"]', { timeout: 15000 }).contains('Test remote hooks with shared state').should('exist');
 
     // Change filter to "active" from instance 1
     cy.get('[data-testid="instance-1-filter-active"]').click();
