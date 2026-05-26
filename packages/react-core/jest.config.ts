@@ -1,5 +1,5 @@
 /* eslint-disable */
-export default {
+module.exports = {
   displayName: '@scalprum/react-core',
   preset: '../../jest.preset.js',
   transform: {

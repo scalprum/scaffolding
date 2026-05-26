@@ -105,6 +105,8 @@
         }
       }
     },
-    "releaseTagPattern": "{projectName}-{version}"
+    "releaseTag": {
+      "pattern": "{projectName}-{version}"
+    }
   }
 }
