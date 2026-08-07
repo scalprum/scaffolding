@@ -1,5 +1,6 @@
 /* eslint-disable */
 module.exports = {
+  setupFiles: ['<rootDir>/jest.setup.ts'],
   displayName: 'shell',
   preset: '../../jest.preset.js',
   transform: {
