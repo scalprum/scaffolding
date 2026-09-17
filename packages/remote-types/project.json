@@ -10,7 +10,7 @@
         "outputPath": "dist/packages/remote-types",
         "esmTsConfig": "packages/remote-types/tsconfig.esm.json",
         "cjsTsConfig": "packages/remote-types/tsconfig.cjs.json",
-        "assets": ["packages/remote-types/README.md", "packages/remote-types/esm", "LICENSE"]
+        "assets": ["packages/remote-types/README.md", "packages/remote-types/src/generated.d.ts", "packages/remote-types/esm", "LICENSE"]
       }
     },
     "lint": {

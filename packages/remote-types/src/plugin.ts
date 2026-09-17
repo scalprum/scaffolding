@@ -18,7 +18,7 @@ async function clearGeneratedRemoteTypes(outputDirectory: string): Promise<void>
     // No previous generated manifest.
   }
   await Promise.all(scopes.map((scope) => rm(join(outputDirectory, scope), { recursive: true, force: true })));
-  await rm(join(outputDirectory, 'generated.d.ts'), { force: true });
+  await writeFile(join(outputDirectory, 'generated.d.ts'), 'export {};\n');
   await rm(scopeManifestPath, { force: true });
 }
 
