@@ -307,13 +307,12 @@ Enabled mode treats registry and archive failures as build errors. This prevents
 
 ## Testing
 
-Package tests use Vitest. Suite builds federation mock programmatically, runs consumer plugins through Webpack and Rspack, then compiles valid and invalid TypeScript fixtures with TypeScript diagnostics.
+Package tests use Vitest and cover registry loading, producer and consumer behavior, declaration generation and type checking, default output discovery, and published ESM/CommonJS entry points. Run the package tests and test-source typecheck with:
 
 ```bash
 npx nx test @scalprum/remote-types
+npx tsc -p packages/remote-types/tsconfig.spec.json --noEmit
 ```
-
-Invalid fixtures assert diagnostic code and message, including wrong component props and wrong remote hook arguments.
 
 ## Package Exports
 
