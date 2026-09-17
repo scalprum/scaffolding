@@ -16,7 +16,7 @@
             "checkMissingDependencies": true,
             "checkObsoleteDependencies": true,
             "checkVersionMismatches": true,
-            "ignoredDependencies": ["vitest"]
+            "ignoredDependencies": ["tslib", "vitest"]
           }
         ]
       }
@@ -32,7 +32,7 @@
             "checkMissingDependencies": true,
             "checkObsoleteDependencies": true,
             "checkVersionMismatches": true,
-            "ignoredDependencies": ["vitest"]
+            "ignoredDependencies": ["tslib", "vitest"]
           }
         ]
       }
