@@ -1,2 +1,2 @@
-export * from './remote-types';
-export * from './plugin';
+export * from './remote-types.js';
+export * from './plugin.js';

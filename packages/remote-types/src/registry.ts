@@ -1,5 +1,5 @@
-import { getArchiveLocation } from './locations';
-import type { ModuleConfigEntry, ModulesConfig, RegistryEntry } from './plugin-types';
+import { getArchiveLocation } from './locations.js';
+import type { ModuleConfigEntry, ModulesConfig, RegistryEntry } from './plugin-types.js';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

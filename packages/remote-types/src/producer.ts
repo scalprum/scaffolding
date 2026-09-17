@@ -3,9 +3,9 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFil
 import { dirname, join, relative, resolve, sep } from 'path';
 import { tmpdir } from 'os';
 import * as ts from 'typescript';
-import { AdmZip } from './adm-zip';
+import { AdmZip } from './adm-zip.js';
 import type AdmZipType from 'adm-zip';
-import type { CompilerLike, ScalprumRemoteTypesProducerPluginOptions } from './plugin-types';
+import type { CompilerLike, ScalprumRemoteTypesProducerPluginOptions } from './plugin-types.js';
 
 const producerPluginName = 'ScalprumRemoteTypesProducerPlugin';
 

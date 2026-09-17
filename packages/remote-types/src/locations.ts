@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import type { CompilerLike, ScalprumRemoteTypesPluginOptions } from './plugin-types';
+import type { CompilerLike, ScalprumRemoteTypesPluginOptions } from './plugin-types.js';
 
 export function getOutputDirectory(compiler: CompilerLike, options: ScalprumRemoteTypesPluginOptions): string {
   const baseDirectory = compiler.context ?? process.cwd();

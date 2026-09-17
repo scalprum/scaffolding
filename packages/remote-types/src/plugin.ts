@@ -1,10 +1,10 @@
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { AdmZip } from './adm-zip';
-import { createGeneratedTypes, extractArchive, getExposeEntryName } from './declarations';
-import { getArchiveLocation, getOutputDirectory, readLocation } from './locations';
-import type { CompilerLike, RegistryEntry, RemoteTypesLocation, ScalprumRemoteTypesPluginOptions } from './plugin-types';
-import { normalizeRegistryPayload } from './registry';
+import { AdmZip } from './adm-zip.js';
+import { createGeneratedTypes, extractArchive, getExposeEntryName } from './declarations.js';
+import { getArchiveLocation, getOutputDirectory, readLocation } from './locations.js';
+import type { CompilerLike, RegistryEntry, RemoteTypesLocation, ScalprumRemoteTypesPluginOptions } from './plugin-types.js';
+import { normalizeRegistryPayload } from './registry.js';
 
 const pluginName = 'ScalprumRemoteTypesPlugin';
 const scopeManifestFilename = '.scalprum-remote-types-scopes.json';
@@ -91,7 +91,7 @@ export class ScalprumRemoteTypesPlugin {
   }
 }
 
-export { ScalprumRemoteTypesProducerPlugin } from './producer';
+export { ScalprumRemoteTypesProducerPlugin } from './producer.js';
 export type {
   CompilerLike,
   ModuleConfigEntry,
@@ -99,4 +99,4 @@ export type {
   RemoteTypesLocation,
   ScalprumRemoteTypesPluginOptions,
   ScalprumRemoteTypesProducerPluginOptions,
-} from './plugin-types';
+} from './plugin-types.js';
