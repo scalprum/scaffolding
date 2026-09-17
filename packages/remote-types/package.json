@@ -1,0 +1,48 @@
+{
+  "name": "@scalprum/remote-types",
+  "version": "0.1.0",
+  "description": "Remote Module Federation types for Scalprum applications.",
+  "main": "./index.js",
+  "module": "./esm/index.js",
+  "typings": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./esm/index.js",
+      "require": "./index.js"
+    },
+    "./webpack": {
+      "types": "./webpack.d.ts",
+      "import": "./esm/webpack.js",
+      "require": "./webpack.js"
+    },
+    "./rspack": {
+      "types": "./rspack.d.ts",
+      "import": "./esm/rspack.js",
+      "require": "./rspack.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "webpack": [
+        "./webpack.d.ts"
+      ],
+      "rspack": [
+        "./rspack.d.ts"
+      ]
+    }
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "adm-zip": "^0.6.0",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@rspack/core": "2.0.8",
+    "vitest": "^4.1.11",
+    "webpack": "^5.94.0"
+  }
+}
