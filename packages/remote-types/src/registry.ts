@@ -1,8 +1,8 @@
-import { getArchiveLocation } from './locations';
-import type { ModuleConfigEntry, ModulesConfig, RegistryEntry } from './plugin-types';
+import { getArchiveLocation } from './locations.js';
+import type { ModuleConfigEntry, ModulesConfig, RegistryEntry } from './plugin-types.js';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function getNestedRemoteTypesLocation(manifest: Record<string, unknown>): string | undefined {
@@ -54,9 +54,8 @@ export function normalizeRegistryPayload(
     return [{ scope: expectedScope, config: config as ModuleConfigEntry, registryLocation }];
   }
 
-  return Object.entries(payload as ModulesConfig).map(([scope, config]) => ({
-    scope,
-    config,
-    registryLocation,
-  }));
+  return Object.entries(payload as ModulesConfig).map(([scope, config]) => {
+    if (!isRecord(config)) throw new Error(`Remote type registry entry must be an object: ${scope}`);
+    return { scope, config: config as ModuleConfigEntry, registryLocation };
+  });
 }

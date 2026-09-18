@@ -5,7 +5,9 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { describe, expect, test } from 'vitest';
 import '../test/test-fetch';
+import { getOutputDirectory } from './locations';
 import { ScalprumRemoteTypesPlugin, ScalprumRemoteTypesProducerPlugin } from './plugin';
+import { normalizeRegistryPayload } from './registry';
 
 interface TestZipArchive {
   addFile(entryName: string, content: Buffer | string): void;
@@ -16,6 +18,22 @@ interface TestZipArchive {
 const AdmZip = require('adm-zip') as new () => TestZipArchive;
 
 describe('ScalprumRemoteTypesPlugin', () => {
+  test('resolves relative output directories from compiler context', () => {
+    const compilerContext = join(tmpdir(), 'scalprum-host');
+    const outputDirectory = getOutputDirectory(
+      { context: compilerContext, hooks: {} },
+      { modulesConfigLocations: [], outputDirectory: 'dist/remote-types' },
+    );
+
+    expect(outputDirectory).toBe(join(compilerContext, 'dist/remote-types'));
+  });
+
+  test('rejects invalid aggregate registry entries', () => {
+    expect(() => normalizeRegistryPayload({ inventory: 'invalid' }, '/tmp/registry.json', '@mf-types.zip')).toThrow(
+      'Remote type registry entry must be an object: inventory',
+    );
+  });
+
   test('loads local MF type archive and creates Scalprum module keys', async () => {
     const root = await mkdtemp(join(tmpdir(), 'scalprum-remote-types-'));
     const outputDirectory = join(root, 'generated');
@@ -51,7 +69,9 @@ describe('ScalprumRemoteTypesPlugin', () => {
       );
       await beforeRun?.();
 
-      expect(await readFile(join(outputDirectory, 'sdk-plugin', 'ApiModule.d.ts'), 'utf8')).toContain("export * from './src/modules/apiModule';");
+      expect(await readFile(join(outputDirectory, 'remotes', 'sdk-plugin', 'ApiModule.d.ts'), 'utf8')).toContain(
+        "export * from './src/modules/apiModule';",
+      );
       const generated = await readFile(join(outputDirectory, 'generated.d.ts'), 'utf8');
       expect(generated).toContain(`"sdk-plugin./ApiModule": typeof RemoteModule0.default;`);
       expect(generated).toContain(`declare module '@scalprum/remote-types'`);
@@ -127,6 +147,51 @@ describe('ScalprumRemoteTypesPlugin', () => {
       expect(generated).toContain('inventory./ApiModule');
       expect(generated).toContain('billing./ApiModule');
       expect(await readFile(join(outputDirectory, '.scalprum-remote-types-scopes.json'), 'utf8')).toContain('billing');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test('keeps nested barrel exports under exposed module key', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'scalprum-remote-types-barrel-'));
+    const outputDirectory = join(root, 'generated');
+    const archivePath = join(root, 'types.zip');
+    const modulesConfigPath = join(root, 'fed-modules.json');
+    try {
+      const archive = new AdmZip();
+      archive.addFile('Widget.d.ts', `export * from './nested/barrel';\nexport { default } from './nested/barrel';\n`);
+      archive.addFile(
+        'nested/barrel.d.ts',
+        `export * from './runtimeA';\nexport * from './runtimeB';\nexport interface Props { value: string; }\nexport { Props };\nexport declare namespace NS { const value: string; }\nexport { default } from './widget';\n`,
+      );
+      archive.addFile('nested/runtimeA.d.ts', `export declare const runtimeA: string;\n`);
+      archive.addFile('nested/runtimeB.d.ts', `export declare const runtimeB: number;\n`);
+      archive.addFile('nested/props.d.ts', `export interface Props { value: string; }\n`);
+      archive.addFile('nested/widget.d.ts', `declare const Widget: (props: Props) => unknown;\nexport default Widget;\n`);
+      archive.writeZip(archivePath);
+      await writeFile(modulesConfigPath, JSON.stringify({ integration: { remoteTypesLocation: 'types.zip' } }));
+
+      let beforeRun: (() => Promise<void>) | undefined;
+      new ScalprumRemoteTypesPlugin({ modulesConfigLocations: [{ scope: 'integration', location: modulesConfigPath }], outputDirectory }).apply({
+        context: root,
+        hooks: {
+          beforeRun: {
+            tapPromise: (_name, callback) => {
+              beforeRun = callback;
+            },
+          },
+        },
+      });
+      await beforeRun?.();
+
+      const generated = await readFile(join(outputDirectory, 'generated.d.ts'), 'utf8');
+      expect(generated).toContain('"integration./Widget.runtimeA"');
+      expect(generated).toContain('"integration./Widget.runtimeB"');
+      expect(generated).toContain('"integration./Widget.Props"');
+      expect(generated).toContain('"integration./Widget.NS"');
+      expect(generated).not.toContain('"integration./Widget.Props": typeof');
+      expect(generated).toContain('"integration./Widget":');
+      expect(generated).not.toContain('"integration./nested/barrel.runtimeA"');
     } finally {
       await rm(root, { recursive: true, force: true });
     }

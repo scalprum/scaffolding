@@ -133,8 +133,11 @@ new ScalprumRemoteTypesProducerPlugin({
   outputDirectory: './dist',
   archiveFilename: 'inventory-mf-types.zip',
   sourceArchiveFilename: 'inventory-mf-types.zip',
+  tsConfigPath: './tsconfig.json',
 });
 ```
+
+Producer uses the nearest `tsconfig.json` by default. Set `tsConfigPath` when project configuration is stored elsewhere; compiler path aliases and ambient declaration files are included while the plugin controls declaration-only output.
 
 When DynamicRemotePlugin cannot produce an archive, producer plugin can generate an MF-compatible archive from configured `exposes` as fallback:
 
@@ -310,7 +313,7 @@ Enabled mode treats registry and archive failures as build errors. This prevents
 Package tests use Vitest. Suite builds federation mock programmatically, runs consumer plugins through Webpack and Rspack, then compiles valid and invalid TypeScript fixtures with TypeScript diagnostics.
 
 ```bash
-npm run test:types
+npx nx test @scalprum/remote-types
 ```
 
 Invalid fixtures assert diagnostic code and message, including wrong component props and wrong remote hook arguments.

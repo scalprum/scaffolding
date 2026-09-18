@@ -21,6 +21,7 @@ export interface ScalprumRemoteTypesProducerPluginOptions {
   scope: string;
   exposes?: Record<string, string>;
   sourceRoot?: string;
+  tsConfigPath?: string;
   outputDirectory: string;
   archiveFilename?: string;
   sourceArchiveFilename?: string;

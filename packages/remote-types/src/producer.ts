@@ -1,11 +1,11 @@
 import { mkdtemp, mkdir, readdir, rm } from 'fs/promises';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
-import { dirname, join, relative, resolve, sep } from 'path';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'fs';
+import { dirname, join, posix, relative, resolve, sep } from 'path';
 import { tmpdir } from 'os';
 import * as ts from 'typescript';
-import { AdmZip } from './adm-zip';
+import { AdmZip } from './adm-zip.js';
 import type AdmZipType from 'adm-zip';
-import type { CompilerLike, ScalprumRemoteTypesProducerPluginOptions } from './plugin-types';
+import type { CompilerLike, ScalprumRemoteTypesProducerPluginOptions } from './plugin-types.js';
 
 const producerPluginName = 'ScalprumRemoteTypesProducerPlugin';
 
@@ -15,6 +15,35 @@ async function addDeclarationFiles(archive: AdmZipType, directory: string, rootD
     if (entry.isDirectory()) await addDeclarationFiles(archive, filePath, rootDirectory);
     else if (entry.name.endsWith('.d.ts')) archive.addFile(relative(rootDirectory, filePath).split(sep).join('/'), readFileSync(filePath));
   }
+}
+
+function resolveSourceFile(context: string, source: string): string {
+  const sourcePath = resolve(context, source);
+  const candidates = [sourcePath, ...['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'].map((extension) => `${sourcePath}${extension}`)];
+  if (existsSync(sourcePath) && statSync(sourcePath).isDirectory()) {
+    candidates.push(
+      ...['index.ts', 'index.tsx', 'index.mts', 'index.cts', 'index.js', 'index.jsx', 'index.mjs', 'index.cjs'].map((name) => join(sourcePath, name)),
+    );
+  }
+  const resolvedSource = candidates.find((candidate) => existsSync(candidate) && statSync(candidate).isFile());
+  if (!resolvedSource) throw new Error(`${producerPluginName} cannot resolve exposed module source: ${source}`);
+  return resolvedSource;
+}
+
+function getProjectConfig(context: string, tsConfigPath?: string): { options: ts.CompilerOptions; fileNames: string[] } {
+  const configPath = tsConfigPath ? resolve(context, tsConfigPath) : ts.findConfigFile(context, ts.sys.fileExists);
+  if (!configPath) return { options: {}, fileNames: [] };
+  const parsed = ts.getParsedCommandLineOfConfigFile(
+    configPath,
+    {},
+    {
+      ...ts.sys,
+      onUnRecoverableConfigFileDiagnostic: (diagnostic) => {
+        throw new Error(`${producerPluginName} cannot read ${configPath}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')}`);
+      },
+    },
+  );
+  return { options: parsed?.options ?? {}, fileNames: parsed?.fileNames ?? [] };
 }
 
 function hasDefaultExport(declarationPath: string): boolean {
@@ -28,24 +57,31 @@ function hasDefaultExport(declarationPath: string): boolean {
 async function generateRemoteTypesArchive(options: ScalprumRemoteTypesProducerPluginOptions, context: string, archivePath: string): Promise<void> {
   if (!options.exposes) throw new Error(`${producerPluginName} cannot generate archive without exposes`);
   const sourceRoot = resolve(context, options.sourceRoot ?? './src');
+  const compiledTypesDirectory = 'compiled-types';
+  const projectConfig = getProjectConfig(context, options.tsConfigPath);
   const declarationDirectory = await mkdtemp(join(tmpdir(), 'scalprum-mf-types-'));
   try {
-    const program = ts.createProgram(
-      Object.values(options.exposes).map((source) => resolve(context, source)),
-      {
-        declaration: true,
-        emitDeclarationOnly: true,
-        outDir: declarationDirectory,
-        rootDir: sourceRoot,
-        jsx: ts.JsxEmit.ReactJSX,
-        module: ts.ModuleKind.ESNext,
-        moduleResolution: ts.ModuleResolutionKind.Node10,
-        target: ts.ScriptTarget.ES2020,
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-        skipLibCheck: true,
-      },
-    );
+    const resolvedSources = Object.values(options.exposes).map((source) => resolveSourceFile(context, source));
+    const program = ts.createProgram([...resolvedSources, ...projectConfig.fileNames.filter((fileName) => fileName.endsWith('.d.ts'))], {
+      ...projectConfig.options,
+      declaration: true,
+      emitDeclarationOnly: true,
+      outDir: join(declarationDirectory, compiledTypesDirectory),
+      rootDir: sourceRoot,
+      jsx: projectConfig.options.jsx ?? ts.JsxEmit.ReactJSX,
+      module: projectConfig.options.module ?? ts.ModuleKind.ESNext,
+      moduleResolution: projectConfig.options.moduleResolution ?? ts.ModuleResolutionKind.Node10,
+      target: projectConfig.options.target ?? ts.ScriptTarget.ES2020,
+      esModuleInterop: true,
+      allowSyntheticDefaultImports: true,
+      skipLibCheck: true,
+      noEmit: false,
+      declarationDir: undefined,
+      outFile: undefined,
+      composite: false,
+      incremental: false,
+      tsBuildInfoFile: undefined,
+    });
     const diagnostics = ts.getPreEmitDiagnostics(program);
     if (diagnostics.some((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error)) {
       throw new Error(
@@ -59,17 +95,20 @@ async function generateRemoteTypesArchive(options: ScalprumRemoteTypesProducerPl
     program.emit();
     const archive = new AdmZip();
     await addDeclarationFiles(archive, declarationDirectory, declarationDirectory);
-    for (const [exposedModule, source] of Object.entries(options.exposes)) {
-      const declarationPath = relative(sourceRoot, resolve(context, source))
+    for (const [index, [exposedModule]] of Object.entries(options.exposes).entries()) {
+      const source = resolvedSources[index];
+      const declarationPath = relative(sourceRoot, source)
         .replace(/\.(tsx?|jsx?)$/, '.d.ts')
         .split(sep)
         .join('/');
       const modulePath = exposedModule.replace(/^\.\//, '');
-      const moduleTarget = declarationPath.replace(/\.d\.ts$/, '');
-      const compiledDeclaration = join(declarationDirectory, declarationPath);
+      const moduleTarget = posix.join(compiledTypesDirectory, declarationPath.replace(/\.d\.ts$/, ''));
+      const compiledDeclaration = join(declarationDirectory, compiledTypesDirectory, declarationPath);
       const defaultExport = hasDefaultExport(compiledDeclaration);
-      const defaultReExport = defaultExport ? `export { default } from './${moduleTarget}';\n` : '';
-      archive.addFile(`${modulePath}.d.ts`, Buffer.from(`export * from './${moduleTarget}';\n${defaultReExport}`));
+      const relativeTarget = posix.relative(posix.dirname(modulePath), moduleTarget);
+      const specifier = relativeTarget.startsWith('.') ? relativeTarget : `./${relativeTarget}`;
+      const defaultReExport = defaultExport ? `export { default } from '${specifier}';\n` : '';
+      archive.addFile(`${modulePath}.d.ts`, Buffer.from(`export * from '${specifier}';\n${defaultReExport}`));
     }
     await mkdir(dirname(archivePath), { recursive: true });
     const temporaryArchivePath = `${archivePath}.${process.pid}.tmp`;
