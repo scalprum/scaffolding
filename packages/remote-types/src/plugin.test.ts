@@ -5,7 +5,9 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { describe, expect, test } from 'vitest';
 import '../test/test-fetch';
+import { getOutputDirectory } from './locations';
 import { ScalprumRemoteTypesPlugin, ScalprumRemoteTypesProducerPlugin } from './plugin';
+import { normalizeRegistryPayload } from './registry';
 
 interface TestZipArchive {
   addFile(entryName: string, content: Buffer | string): void;
@@ -16,6 +18,22 @@ interface TestZipArchive {
 const AdmZip = require('adm-zip') as new () => TestZipArchive;
 
 describe('ScalprumRemoteTypesPlugin', () => {
+  test('resolves relative output directories from compiler context', () => {
+    const compilerContext = join(tmpdir(), 'scalprum-host');
+    const outputDirectory = getOutputDirectory(
+      { context: compilerContext, hooks: {} },
+      { modulesConfigLocations: [], outputDirectory: 'dist/remote-types' },
+    );
+
+    expect(outputDirectory).toBe(join(compilerContext, 'dist/remote-types'));
+  });
+
+  test('rejects invalid aggregate registry entries', () => {
+    expect(() => normalizeRegistryPayload({ inventory: 'invalid' }, '/tmp/registry.json', '@mf-types.zip')).toThrow(
+      'Remote type registry entry must be an object: inventory',
+    );
+  });
+
   test('loads local MF type archive and creates Scalprum module keys', async () => {
     const root = await mkdtemp(join(tmpdir(), 'scalprum-remote-types-'));
     const outputDirectory = join(root, 'generated');

@@ -4,7 +4,8 @@ import { fileURLToPath } from 'url';
 import type { CompilerLike, ScalprumRemoteTypesPluginOptions } from './plugin-types';
 
 export function getOutputDirectory(compiler: CompilerLike, options: ScalprumRemoteTypesPluginOptions): string {
-  return resolve(options.outputDirectory ?? `${compiler.context ?? process.cwd()}/node_modules/@scalprum/remote-types`);
+  const baseDirectory = compiler.context ?? process.cwd();
+  return resolve(baseDirectory, options.outputDirectory ?? 'node_modules/@scalprum/remote-types');
 }
 
 export function isRemoteLocation(location: string | URL): boolean {

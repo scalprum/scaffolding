@@ -310,7 +310,7 @@ Enabled mode treats registry and archive failures as build errors. This prevents
 Package tests use Vitest. Suite builds federation mock programmatically, runs consumer plugins through Webpack and Rspack, then compiles valid and invalid TypeScript fixtures with TypeScript diagnostics.
 
 ```bash
-npm run test:types
+npx nx test @scalprum/remote-types
 ```
 
 Invalid fixtures assert diagnostic code and message, including wrong component props and wrong remote hook arguments.
