@@ -73,7 +73,7 @@
     }
   },
   "release": {
-    "projects": ["@scalprum/core", "@scalprum/react-core", "@scalprum/react-test-utils"],
+    "projects": ["@scalprum/core", "@scalprum/remote-types", "@scalprum/react-core", "@scalprum/react-test-utils"],
     "projectsRelationship": "independent",
     "conventionalCommits": {
       "useCommitScope": true
