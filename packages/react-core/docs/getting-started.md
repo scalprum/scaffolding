@@ -437,15 +437,16 @@ Scalprum's Remote Hooks feature allows you to share React hooks across micro-fro
 ### Explore Advanced Features
 
 - **Error Handling**: Learn about automatic error boundaries and self-repair in ScalprumComponent
-- **Type Safety**: Add TypeScript definitions for your remote modules
+- **Type Safety**: Configure [`@scalprum/remote-types`](../../remote-types/README.md) to generate declarations. Known remote props, hook arguments, and results are then inferred by default; define local interfaces only for remotes without declaration archives.
 - **Prefetching**: Implement data prefetching for faster load times
 - **Testing**: Use `@scalprum/react-test-utils` for testing federated components
 
 ### Working Examples
 
 Check out the complete working examples in this repository:
-- `examples/test-app/src/routes/RemoteHooks.tsx` - Basic remote hook usage
-- `examples/test-app/src/routes/RemoteHookManager.tsx` - Hook manager examples
+- `examples/test-app/src/routes/RemoteHooks.tsx` - Remote hook usage with generated types
+- `examples/test-app/src/routes/RemoteHookManager.tsx` - Hook manager examples with generated types
+- `examples/test-app/src/routes/TypedRemoteTypes.tsx` - Generated type inference illustration
 - `federation-cdn-mock/src/modules/` - Example remote hook implementations
 
 ### Common Patterns

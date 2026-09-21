@@ -2,11 +2,19 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "allowJs": false,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "skipLibCheck": true,
     "jsxImportSource": "@emotion/react",
+    "baseUrl": ".",
+    "paths": {
+      "@scalprum/core": ["../dist/packages/core"],
+      "@scalprum/react-core": ["../dist/packages/react-core"],
+      "@scalprum/remote-types": ["../dist/packages/remote-types"]
+    },
     "module": "esnext",
+    "moduleResolution": "node"
   },
   "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 }

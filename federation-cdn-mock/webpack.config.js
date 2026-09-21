@@ -1,6 +1,7 @@
 const { resolve } = require('path');
 const { ModuleFederationPlugin, ContainerPlugin } = require('@module-federation/enhanced');
 const { DynamicRemotePlugin } = require('@openshift/dynamic-plugin-sdk-webpack');
+const { ScalprumRemoteTypesProducerPlugin } = require('../dist/packages/remote-types');
 
 console.log('Entry tests:', resolve(__dirname, './src/modules/moduleOne.tsx'));
 
@@ -29,6 +30,41 @@ const sharedModules = {
   },
 };
 
+const sdkExposes = {
+  './ModuleOne': resolve(__dirname, './src/modules/moduleOne.tsx'),
+  './ModuleTwo': resolve(__dirname, './src/modules/moduleTwo.tsx'),
+  './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
+  './ErrorModule': resolve(__dirname, './src/modules/errorModule.tsx'),
+  './PreLoadedModule': resolve(__dirname, './src/modules/preLoad.tsx'),
+  './NestedModule': resolve(__dirname, './src/modules/nestedModule.tsx'),
+  './ModuleFour': resolve(__dirname, './src/modules/moduleFour.tsx'),
+  './SDKComponent': resolve(__dirname, './src/modules/SDKComponent.tsx'),
+  './ApiModule': resolve(__dirname, './src/modules/apiModule.tsx'),
+  './DelayedModule': resolve(__dirname, './src/modules/delayedModule.tsx'),
+  './useCounterHook': resolve(__dirname, './src/modules/useCounterHook.tsx'),
+  './useApiHook': resolve(__dirname, './src/modules/useApiHook.tsx'),
+  './useTimerHook': resolve(__dirname, './src/modules/useTimerHook.tsx'),
+  './useSharedStoreHook': resolve(__dirname, './src/modules/useSharedStoreHook.tsx'),
+};
+
+class SDKModuleFederationPlugin extends ModuleFederationPlugin {
+  constructor(options) {
+    super({
+      ...options,
+      dts: false,
+    });
+  }
+}
+
+class FullManifestModuleFederationPlugin extends ModuleFederationPlugin {
+  constructor(options) {
+    super({
+      ...options,
+      dts: false,
+    });
+  }
+}
+
 const TestSDKPlugin = new DynamicRemotePlugin({
   extensions: [],
   sharedModules,
@@ -36,30 +72,14 @@ const TestSDKPlugin = new DynamicRemotePlugin({
   moduleFederationSettings: {
     // Use non native webpack plugins
     pluginOverride: {
-      ModuleFederationPlugin,
+      ModuleFederationPlugin: SDKModuleFederationPlugin,
       ContainerPlugin,
     },
   },
   pluginMetadata: {
     name: 'sdk-plugin',
     version: '1.0.0',
-    exposedModules: {
-      './ModuleOne': resolve(__dirname, './src/modules/moduleOne.tsx'),
-      './ModuleTwo': resolve(__dirname, './src/modules/moduleTwo.tsx'),
-      './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
-      './ErrorModule': resolve(__dirname, './src/modules/errorModule.tsx'),
-      './PreLoadedModule': resolve(__dirname, './src/modules/preLoad.tsx'),
-      './NestedModule': resolve(__dirname, './src/modules/nestedModule.tsx'),
-      './ModuleThree': resolve(__dirname, './src/modules/moduleThree.tsx'),
-      './ModuleFour': resolve(__dirname, './src/modules/moduleFour.tsx'),
-      './SDKComponent': resolve(__dirname, './src/modules/SDKComponent.tsx'),
-      './ApiModule': resolve(__dirname, './src/modules/apiModule.tsx'),
-      './DelayedModule': resolve(__dirname, './src/modules/delayedModule.tsx'),
-      './useCounterHook': resolve(__dirname, './src/modules/useCounterHook.tsx'),
-      './useApiHook': resolve(__dirname, './src/modules/useApiHook.tsx'),
-      './useTimerHook': resolve(__dirname, './src/modules/useTimerHook.tsx'),
-      './useSharedStoreHook': resolve(__dirname, './src/modules/useSharedStoreHook.tsx'),
-    },
+    exposedModules: sdkExposes,
   },
 });
 
@@ -71,7 +91,7 @@ const FullManifest = new DynamicRemotePlugin({
   moduleFederationSettings: {
     // Use non native webpack plugins
     pluginOverride: {
-      ModuleFederationPlugin,
+      ModuleFederationPlugin: FullManifestModuleFederationPlugin,
       ContainerPlugin,
     },
   },
@@ -95,12 +115,35 @@ function init() {
       publicPath: 'auto',
     },
     mode: 'development',
-    plugins: [TestSDKPlugin, FullManifest],
+    plugins: [
+      new ScalprumRemoteTypesProducerPlugin({
+        scope: 'sdk-plugin',
+        exposes: sdkExposes,
+        sourceRoot: './src',
+        tsConfigPath: './tsconfig.json',
+        outputDirectory: './dist',
+        archiveFilename: 'sdk-plugin-mf-types.zip',
+        sourceArchiveFilename: 'sdk-plugin-mf-types.zip',
+      }),
+      new ScalprumRemoteTypesProducerPlugin({
+        scope: 'full-manifest',
+        exposes: {
+          './SDKComponent': resolve(__dirname, './src/modules/SDKComponent.tsx'),
+        },
+        sourceRoot: './src',
+        tsConfigPath: './tsconfig.json',
+        outputDirectory: './dist',
+        archiveFilename: 'full-manifest-mf-types.zip',
+        sourceArchiveFilename: 'full-manifest-mf-types.zip',
+      }),
+      TestSDKPlugin,
+      FullManifest,
+    ],
     resolve: {
       alias: {
         '@scalprum/react-core': resolve(__dirname, '../dist/packages/react-core/esm'),
         '@scalprum/core': resolve(__dirname, '../dist/packages/core/esm'),
-      }
+      },
     },
     module: {
       rules: [

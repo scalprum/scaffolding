@@ -7,6 +7,7 @@
   "targets": {
     "build": {
       "executor": "@scalprum/build-utils:builder",
+      "dependsOn": ["@scalprum/remote-types:build"],
       "options": {
         "outputPath": "dist/packages/core",
         "esmTsConfig": "packages/core/tsconfig.esm.json",
@@ -41,7 +42,8 @@
       "executor": "@scalprum/build-utils:sync-dependencies"
     },
     "typecheck": {
-      "command": "tsc -p packages/core/tsconfig.esm.json --noEmit"
+      "command": "tsc -p packages/core/tsconfig.esm.json --noEmit",
+      "dependsOn": ["@scalprum/remote-types:build"]
     }
   }
 }

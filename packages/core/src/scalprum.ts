@@ -1,5 +1,6 @@
 import { PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
 import { warnDuplicatePkg } from './warnDuplicatePkg';
+import type { RemoteModule } from './remote-types';
 export const GLOBAL_NAMESPACE = '__scalprum__';
 export type AppMetadata<T extends {} = {}> = T & {
   name: string;
@@ -185,7 +186,13 @@ export const preloadModule = async (scope: string, module: string, processor?: (
   return setPendingLoading(scope, module, Promise.resolve(modulePromise));
 };
 
-export const getModule = async <T = any, P = any>(scope: string, module: string, importName = 'default'): Promise<T> => {
+export function getModule<S extends string, M extends string, I extends string | undefined = undefined>(
+  scope: S,
+  module: M,
+  importName?: I,
+): Promise<RemoteModule<S, M, I>>;
+export function getModule<T = any, P = any>(scope: string, module: string, importName?: string): Promise<T>;
+export async function getModule<T = any, P = any>(scope: string, module: string, importName = 'default'): Promise<T> {
   const scalprum = getScalprum();
   const { cachedModule } = getCachedModule(scope, module);
   let Module: ExposedScalprumModule<T, P>;
@@ -210,7 +217,7 @@ export const getModule = async <T = any, P = any>(scope: string, module: string,
   }
 
   return Module[importName];
-};
+}
 
 export const initialize = <T extends Record<string, any> = Record<string, any>>({
   appsConfig,

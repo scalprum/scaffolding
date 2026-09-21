@@ -1,38 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Card, CardContent, Typography, Button, Box, Alert, Chip } from '@mui/material';
-import { useRemoteHookManager, UseRemoteHookResult } from '@scalprum/react-core';
+import type { RemoteModuleResult } from '@scalprum/core';
+import { useRemoteHookManager } from '@scalprum/react-core';
+import type { HookHandle, UseRemoteHookResult } from '@scalprum/react-core';
 
-interface CounterResult {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-  reset: () => void;
-  setCount: (value: number) => void;
+type CounterResult = RemoteModuleResult<'sdk-plugin', './useCounterHook'>;
+type ApiResult = RemoteModuleResult<'sdk-plugin', './useApiHook'>;
+type TimerResult = RemoteModuleResult<'sdk-plugin', './useTimerHook'>;
+type ManagedHookResult = CounterResult | ApiResult | TimerResult;
+type ManagedHook = { type: 'counter' | 'api' | 'timer'; handle: HookHandle };
+
+function isCounterResult(result: UseRemoteHookResult<ManagedHookResult>): result is UseRemoteHookResult<CounterResult> {
+  return (
+    result.hookResult !== undefined &&
+    'count' in result.hookResult &&
+    'increment' in result.hookResult &&
+    typeof result.hookResult.count === 'number' &&
+    typeof result.hookResult.increment === 'function'
+  );
 }
 
-interface ApiResult {
-  data: any;
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
-}
-
-interface TimerResult {
-  timeLeft: number;
-  isRunning: boolean;
-  isComplete: boolean;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-}
-
-function isCounterResult(result: UseRemoteHookResult<any>): result is UseRemoteHookResult<CounterResult> {
-  return result && typeof result.hookResult.count === 'number' && typeof result.hookResult.increment === 'function';
-}
-
-function isApiResult(result: any): result is UseRemoteHookResult<ApiResult> {
+function isApiResult(result: UseRemoteHookResult<ManagedHookResult>): result is UseRemoteHookResult<ApiResult> {
   return (
     result &&
+    result.hookResult !== undefined &&
     'data' in result.hookResult &&
     'loading' in result.hookResult &&
     'error' in result.hookResult &&
@@ -40,20 +31,26 @@ function isApiResult(result: any): result is UseRemoteHookResult<ApiResult> {
   );
 }
 
-function isTimerResult(result: any): result is UseRemoteHookResult<TimerResult> {
-  return result && typeof result.hookResult.timeLeft === 'number' && typeof result.hookResult.start === 'function';
+function isTimerResult(result: UseRemoteHookResult<ManagedHookResult>): result is UseRemoteHookResult<TimerResult> {
+  return (
+    result.hookResult !== undefined &&
+    'timeLeft' in result.hookResult &&
+    'start' in result.hookResult &&
+    typeof result.hookResult.timeLeft === 'number' &&
+    typeof result.hookResult.start === 'function'
+  );
 }
 
 const RemoteHookManager = () => {
-  const { addHook, cleanup, hookResults } = useRemoteHookManager();
-  const [hooks, setHooks] = useState<any[]>([]);
+  const { addHook, cleanup, hookResults } = useRemoteHookManager<ManagedHookResult>();
+  const [hooks, setHooks] = useState<ManagedHook[]>([]);
 
   // Add counter hook
   const addCounterHook = () => {
     const handle = addHook({
       scope: 'sdk-plugin',
       module: './useCounterHook',
-      args: [{ initialValue: Math.floor(Math.random() * 10), step: 1 }],
+      args: [{ initialValue: 1, step: 1 }],
     });
 
     setHooks((prev) => [...prev, { type: 'counter', handle }]);
@@ -222,9 +219,9 @@ const RemoteHookManager = () => {
                                 {result.hookResult.error}
                               </Alert>
                             )}
-                            {result.hookResult.data && (
+                            {result.hookResult.data != null && (
                               <Typography variant="body2" data-testid={`api-data-${index}`}>
-                                {result.hookResult.data.message}
+                                {JSON.stringify(result.hookResult.data) ?? ''}
                               </Typography>
                             )}
                             <Button size="small" onClick={result.hookResult.refetch} data-testid={`api-refetch-${index}`} sx={{ mt: 1 }}>

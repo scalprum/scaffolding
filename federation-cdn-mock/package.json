@@ -2,14 +2,17 @@
   "name": "federation-cdn-mock",
   "private": true,
   "scripts": {
+    "prebuild": "node build-prep.js",
     "build": "webpack",
     "watch": "webpack --watch",
     "serve": "wait-on dist && http-server dist -p 8001 -c-1 --cors=*"
   },
   "devDependencies": {
-    "@module-federation/enhanced": "^0.10.0",
+    "@module-federation/enhanced": "2.9.0",
+    "@rspack/core": "2.2.5",
     "http-server": "^14.1.1",
     "swc-loader": "^0.2.6",
+    "typescript": "~5.9.3",
     "wait-on": "^7.2.0",
     "webpack-cli": "^5.1.4"
   },

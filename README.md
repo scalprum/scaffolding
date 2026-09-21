@@ -17,6 +17,7 @@ Scalprum is a JavaScript micro-frontend framework that enables you to build dyna
 
 ```bash
 npm install @scalprum/core @scalprum/react-core
+npm install -D @scalprum/remote-types
 ```
 
 ```jsx
@@ -43,6 +44,7 @@ function App() {
 | Package | Description |
 |---------|-------------|
 | [`@scalprum/core`](./packages/core) | Framework-agnostic core for module federation |
+| [`@scalprum/remote-types`](./packages/remote-types) | Build-time remote type loading for Webpack and Rspack |
 | [`@scalprum/react-core`](./packages/react-core) | React bindings with hooks and components |
 | [`@scalprum/build-utils`](./packages/build-utils) | Build tools and NX executors |
 | [`@scalprum/react-test-utils`](./packages/react-test-utils) | Testing utilities for Scalprum apps |
@@ -105,6 +107,8 @@ Documentation is organized within individual package directories, following mono
    ```
 
 3. **Configure Module Federation in your bundler**
+
+4. **Configure generated remote types (recommended):** Add `ScalprumRemoteTypesPlugin` to the host Webpack or Rspack config. Once generated declarations are included in `tsconfig.json`, `ScalprumComponent`, `useModule`, `useLoadModule`, `useRemoteHook`, and `getModule` infer known remote props, arguments, and results. Do not duplicate those remote interfaces in host code. See [`@scalprum/remote-types`](./packages/remote-types/README.md).
 
 For a complete step-by-step tutorial including remote module setup, see our **[Getting Started Guide](./packages/react-core/docs/getting-started.md)**.
 
@@ -180,7 +184,7 @@ We welcome contributions to Scalprum! Whether it's bug reports, feature requests
 
 ### Development Setup
 
-This project requires Node.js 24+.
+This project requires Node.js 26+.
 
 1. **Clone the repository:**
    ```bash
@@ -190,7 +194,7 @@ This project requires Node.js 24+.
 
 2. **Setup Node.js:**
    ```bash
-   nvm use              # Install/use Node 24 from .nvmrc
+   nvm use              # Install/use Node 26 from .nvmrc
    ```
 
 3. **Install dependencies:**

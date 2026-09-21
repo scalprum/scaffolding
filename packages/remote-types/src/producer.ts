@@ -31,8 +31,8 @@ function resolveSourceFile(context: string, source: string): string {
 }
 
 function getProjectConfig(context: string, tsConfigPath?: string): { options: ts.CompilerOptions; fileNames: string[] } {
-  const configPath = tsConfigPath ? resolve(context, tsConfigPath) : ts.findConfigFile(context, ts.sys.fileExists);
-  if (!configPath) return { options: {}, fileNames: [] };
+  if (!tsConfigPath) return { options: {}, fileNames: [] };
+  const configPath = resolve(context, tsConfigPath);
   const parsed = ts.getParsedCommandLineOfConfigFile(
     configPath,
     {},

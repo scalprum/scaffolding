@@ -1,19 +1,30 @@
 import { useContext, useEffect, useReducer, useState, useRef } from 'react';
-import { getModule } from '@scalprum/core';
+import { getModule, RemoteModuleArgs, RemoteModuleResult } from '@scalprum/core';
 import { RemoteHookContext } from './remote-hook-provider';
 import { UseRemoteHookResult } from './remote-hooks-types';
+export type DynamicHookResult<S extends string, M extends string, I extends string | undefined = undefined> = RemoteModuleResult<S, M, I>;
 
-export const useRemoteHook = <T>({
+export type DynamicHookArgs<S extends string, M extends string, I extends string | undefined = undefined> = RemoteModuleArgs<S, M, I>;
+
+export type TypedRemoteHookOptions<S extends string, M extends string, I extends string | undefined = undefined> = {
+  scope: S;
+  module: M;
+  importName?: I;
+  args?: DynamicHookArgs<S, M, I>;
+};
+
+export function useRemoteHook<S extends string, M extends string, I extends string | undefined = undefined>(
+  options: TypedRemoteHookOptions<S, M, I>,
+): UseRemoteHookResult<DynamicHookResult<S, M, I>>;
+export function useRemoteHook<T = unknown, S extends string = string, M extends string = string, I extends string | undefined = undefined>(
+  options: TypedRemoteHookOptions<S, M, I>,
+): UseRemoteHookResult<T>;
+export function useRemoteHook<T = unknown, S extends string = string, M extends string = string, I extends string | undefined = undefined>({
   scope,
   module,
   importName,
-  args = [],
-}: {
-  scope: string;
-  module: string;
-  importName?: string;
-  args?: any[];
-}): UseRemoteHookResult<T> => {
+  args = [] as unknown as DynamicHookArgs<S, M, I>,
+}: TypedRemoteHookOptions<S, M, I>): UseRemoteHookResult<T> {
   const { subscribe, updateState, getState, registerHook, updateArgs } = useContext(RemoteHookContext);
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const [id, setId] = useState<string>('');
@@ -28,7 +39,7 @@ export const useRemoteHook = <T>({
     // Load the federated hook module
     const loadHook = async () => {
       try {
-        const hookFunction = await getModule(scope, module, importName);
+        const hookFunction = await getModule<(...args: any[]) => any>(scope, module, importName);
 
         // Only update if component is still mounted
         if (isMounted) {
@@ -74,4 +85,4 @@ export const useRemoteHook = <T>({
     error: state.error,
     hookResult: state.hookResult,
   };
-};
+}

@@ -1,3 +1,5 @@
+import type { RemoteModuleArgs } from '@scalprum/core';
+
 // Shared types for remote hooks functionality
 export interface HookConfig {
   scope: string;
@@ -5,6 +7,13 @@ export interface HookConfig {
   importName?: string;
   args?: any[];
 }
+
+export type TypedHookConfig<S extends string, M extends string, I extends string | undefined = undefined> = {
+  scope: S;
+  module: M;
+  importName?: I;
+  args?: RemoteModuleArgs<S, M, I>;
+};
 
 export interface UseRemoteHookResult<T> {
   id: string;
@@ -30,7 +39,7 @@ export interface HookHandle {
 }
 
 export interface RemoteHookManager<R = unknown> {
-  addHook(config: HookConfig): HookHandle; // Returns handle with remove and updateArgs
+  addHook<S extends string, M extends string, I extends string | undefined = undefined>(config: TypedHookConfig<S, M, I>): HookHandle;
   cleanup(): void; // Cleanup for component unmount
   hookResults: UseRemoteHookResult<R>[]; // Results for all tracked hooks
 }

@@ -14,6 +14,8 @@ export interface SharedTodoState {
   lastUpdate: number;
 }
 
+type Filter = SharedTodoState['filter'];
+
 export const EVENTS = ['ADD_TODO', 'TOGGLE_TODO', 'DELETE_TODO', 'SET_FILTER', 'CLEAR_COMPLETED'] as const;
 
 export interface UseSharedStoreOptions {
@@ -62,7 +64,7 @@ const initialState: SharedTodoState = {
 };
 
 // Shared store reducer
-const todoReducer = (state: SharedTodoState, event: typeof EVENTS[number], payload?: any): SharedTodoState => {
+const todoReducer = (state: SharedTodoState, event: (typeof EVENTS)[number], payload?: any): SharedTodoState => {
   const newState = { ...state, lastUpdate: Date.now() };
 
   switch (event) {
@@ -76,24 +78,20 @@ const todoReducer = (state: SharedTodoState, event: typeof EVENTS[number], paylo
             text: payload.text,
             completed: false,
             createdAt: Date.now(),
-          }
+          },
         ],
       };
 
     case 'TOGGLE_TODO':
       return {
         ...newState,
-        todos: state.todos.map(todo =>
-          todo.id === payload.id
-            ? { ...todo, completed: !todo.completed }
-            : todo
-        ),
+        todos: state.todos.map((todo) => (todo.id === payload.id ? { ...todo, completed: !todo.completed } : todo)),
       };
 
     case 'DELETE_TODO':
       return {
         ...newState,
-        todos: state.todos.filter(todo => todo.id !== payload.id),
+        todos: state.todos.filter((todo) => todo.id !== payload.id),
       };
 
     case 'SET_FILTER':
@@ -105,7 +103,7 @@ const todoReducer = (state: SharedTodoState, event: typeof EVENTS[number], paylo
     case 'CLEAR_COMPLETED':
       return {
         ...newState,
-        todos: state.todos.filter(todo => !todo.completed),
+        todos: state.todos.filter((todo) => !todo.completed),
       };
 
     default:
@@ -132,22 +130,19 @@ const getSharedStore = () => {
  * Multiple instances of this hook will share the same state
  */
 export const useSharedStoreHook = (options: UseSharedStoreOptions = {}): UseSharedStoreResult => {
-  const {
-    instanceId = `instance-${Math.random().toString(36).substr(2, 9)}`,
-    enableLogging = false,
-  } = options;
+  const { instanceId = `instance-${Math.random().toString(36).substr(2, 9)}`, enableLogging = false } = options;
 
   const store = getSharedStore();
 
   // Subscribe to all state changes
-  const state = useGetState(store);
+  const state = useGetState<SharedTodoState>(store);
 
   // Subscribe to specific events for performance (examples)
-  const todos = useSubscribeStore(store, 'ADD_TODO', (state) => state.todos);
-  const filter = useSubscribeStore(store, 'SET_FILTER', (state) => state.filter);
+  const todos = useSubscribeStore<SharedTodoState, typeof EVENTS, TodoItem[]>(store, 'ADD_TODO', (state) => state.todos);
+  const filter = useSubscribeStore<SharedTodoState, typeof EVENTS, Filter>(store, 'SET_FILTER', (state) => state.filter);
 
   // Computed values
-  const filteredTodos = state.todos.filter(todo => {
+  const filteredTodos = state.todos.filter((todo) => {
     switch (state.filter) {
       case 'active':
         return !todo.completed;
@@ -158,8 +153,8 @@ export const useSharedStoreHook = (options: UseSharedStoreOptions = {}): UseShar
     }
   });
 
-  const activeCount = state.todos.filter(todo => !todo.completed).length;
-  const completedCount = state.todos.filter(todo => todo.completed).length;
+  const activeCount = state.todos.filter((todo) => !todo.completed).length;
+  const completedCount = state.todos.filter((todo) => todo.completed).length;
 
   // Actions
   const addTodo = (text: string) => {

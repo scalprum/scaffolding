@@ -137,7 +137,7 @@ new ScalprumRemoteTypesProducerPlugin({
 });
 ```
 
-Producer uses the nearest `tsconfig.json` by default. Set `tsConfigPath` when project configuration is stored elsewhere; compiler path aliases and ambient declaration files are included while the plugin controls declaration-only output.
+Set `tsConfigPath` to use project path aliases and ambient declaration files while the plugin controls declaration-only output. Without it, producer retains its standalone compiler defaults.
 
 When DynamicRemotePlugin cannot produce an archive, producer plugin can generate an MF-compatible archive from configured `exposes` as fallback:
 
