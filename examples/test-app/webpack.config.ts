@@ -35,6 +35,7 @@ const ShellConfig = new ModuleFederationPlugin({
       },
       '@openshift/dynamic-plugin-sdk': {
         singleton: true,
+        eager: true,
       },
     },
   ],
