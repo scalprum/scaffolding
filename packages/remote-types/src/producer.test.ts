@@ -11,13 +11,14 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
-async function runProducer(root: string, exposes: Record<string, string>): Promise<AdmZip> {
+async function runProducer(root: string, exposes: Record<string, string>, tsConfigPath?: string): Promise<AdmZip> {
   let done: (() => Promise<void>) | undefined;
   new ScalprumRemoteTypesProducerPlugin({
     exposes,
     outputDirectory: 'dist',
     scope: 'remote',
     sourceRoot: './src',
+    tsConfigPath,
     archiveFilename: 'types.zip',
     sourceArchiveFilename: 'types.zip',
   }).apply({
@@ -95,7 +96,7 @@ describe('ScalprumRemoteTypesProducerPlugin', () => {
       `import { label } from '@app/util';\nimport logo from './logo.svg';\nexport default function Widget() { return label + logo; }\n`,
     );
 
-    const archive = await runProducer(root, { './Widget': './src/Widget.ts' });
+    const archive = await runProducer(root, { './Widget': './src/Widget.ts' }, './tsconfig.json');
 
     expect(archive.getEntries().map((entry) => entry.entryName)).toContain('compiled-types/Widget.d.ts');
   });

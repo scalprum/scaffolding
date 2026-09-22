@@ -16,6 +16,10 @@
     "paths": {
       "@scalprum/build-utils": ["packages/build-utils/src/index.ts"],
       "@scalprum/core": ["packages/core/src/index.ts"],
+      "@scalprum/remote-types": ["packages/remote-types/src/index.ts"],
+      "@scalprum/remote-types/webpack": ["packages/remote-types/src/webpack.ts"],
+      "@scalprum/remote-types/rspack": ["packages/remote-types/src/rspack.ts"],
+      "@scalprum/remote-types/*": ["packages/remote-types/src/*"],
       "@scalprum/react-core": ["packages/react-core/src/index.ts"],
       "@scalprum/react-test-utils": ["packages/react-test-utils/src/index.ts"]
     }

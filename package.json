@@ -4,7 +4,7 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "node": ">=24.0.0",
+    "node": ">=26.0.0",
     "npm": ">=11.14.1"
   },
   "overrides": {
@@ -25,6 +25,7 @@
     "build": "nx run-many -t build --output-style=stream",
     "lint": "nx run-many -t lint --output-style=stream",
     "typecheck": "nx run-many -t typecheck --output-style=stream",
+    "test:types": "npx nx test @scalprum/remote-types",
     "postinstall": "rm -rf .webpack-cache"
   },
   "dependencies": {
@@ -51,7 +52,7 @@
     "@commitlint/config-conventional": "^19.8.0",
     "@cypress/webpack-dev-server": "^5.6.1",
     "@emotion/babel-plugin": "^11.13.5",
-    "@module-federation/enhanced": "^2.5.0",
+    "@module-federation/enhanced": "2.9.0",
     "@nx/cypress": "22.7.5",
     "@nx/eslint": "22.7.5",
     "@nx/eslint-plugin": "22.7.5",
@@ -89,7 +90,7 @@
     "jest-environment-jsdom": "^30.0.5",
     "jest-environment-node": "^30.0.5",
     "npm-run-all": "^4.1.5",
-    "nx": "22.7.7",
+    "nx": "22.7.5",
     "prettier": "^3.1.0",
     "react-refresh": "^0.10.0",
     "swc-loader": "^0.2.3",

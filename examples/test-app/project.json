@@ -7,6 +7,11 @@
   "targets": {
     "build": {
       "executor": "@nx/webpack:webpack",
+      "dependsOn": [
+        "@scalprum/remote-types:build",
+        "@scalprum/core:build",
+        "@scalprum/react-core:build"
+      ],
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {

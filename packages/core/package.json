@@ -13,6 +13,7 @@
   },
   "scripts": {},
   "dependencies": {
+    "@scalprum/remote-types": "^0.1.0",
     "@openshift/dynamic-plugin-sdk": "^9.1.0",
     "tslib": "^2.6.2"
   }

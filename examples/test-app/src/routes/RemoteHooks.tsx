@@ -1,36 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { Grid, Card, CardContent, Typography, Button, Box, Alert } from '@mui/material';
+import type { RemoteModuleArgs } from '@scalprum/core';
 import { useRemoteHook } from '@scalprum/react-core';
-
-interface CounterResult {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-  reset: () => void;
-  setCount: (value: number) => void;
-}
-
-interface ApiResult {
-  data: any;
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
-}
-
-interface TimerResult {
-  timeLeft: number;
-  isRunning: boolean;
-  isComplete: boolean;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  restart: () => void;
-}
 
 const RemoteHooks = () => {
   // Test useRemoteHook with counter hook
-  const counterHookArgs = useMemo(() => [{ initialValue: 5, step: 2 }], []);
-  const counterHook = useRemoteHook<CounterResult>({
+  const counterHookArgs = useMemo(() => [{ initialValue: 5, step: 2 }] satisfies RemoteModuleArgs<'sdk-plugin', './useCounterHook'>, []);
+  const counterHook = useRemoteHook({
     scope: 'sdk-plugin',
     module: './useCounterHook',
     args: counterHookArgs,
@@ -38,8 +14,11 @@ const RemoteHooks = () => {
 
   // Test useRemoteHook with API hook
   const [shouldFail, setShouldFail] = useState(false);
-  const apiHookArgs = useMemo(() => [{ delay: 1500, shouldFail, mockData: { message: 'Hello from remote API!' } }], [shouldFail]);
-  const apiHook = useRemoteHook<ApiResult>({
+  const apiHookArgs = useMemo(
+    () => [{ delay: 1500, shouldFail, mockData: { message: 'Hello from remote API!' } }] satisfies RemoteModuleArgs<'sdk-plugin', './useApiHook'>,
+    [shouldFail],
+  );
+  const apiHook = useRemoteHook({
     scope: 'sdk-plugin',
     module: './useApiHook',
     args: apiHookArgs,
@@ -47,8 +26,8 @@ const RemoteHooks = () => {
 
   // Test useRemoteHook with timer hook
   // Using useMemo to avoid infinite re-renders
-  const timerHookArgs = useMemo(() => [{ duration: 5, autoStart: false }], []);
-  const timerHook = useRemoteHook<TimerResult>({
+  const timerHookArgs = useMemo(() => [{ duration: 5, autoStart: false }] satisfies RemoteModuleArgs<'sdk-plugin', './useTimerHook'>, []);
+  const timerHook = useRemoteHook({
     scope: 'sdk-plugin',
     module: './useTimerHook',
     args: timerHookArgs,
@@ -124,7 +103,7 @@ const RemoteHooks = () => {
                     {apiHook.hookResult.error}
                   </Alert>
                 )}
-                {apiHook.hookResult.data && <Typography data-testid="api-data">{JSON.stringify(apiHook.hookResult.data)}</Typography>}
+                {apiHook.hookResult.data != null && <Typography data-testid="api-data">{JSON.stringify(apiHook.hookResult.data) ?? ''}</Typography>}
                 <Box sx={{ mt: 2, gap: 1, display: 'flex', flexWrap: 'wrap' }}>
                   <Button variant="contained" onClick={apiHook.hookResult.refetch} data-testid="api-refetch">
                     Refetch

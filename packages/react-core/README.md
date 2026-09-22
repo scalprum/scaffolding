@@ -28,18 +28,14 @@ import { ScalprumProvider, ScalprumComponent } from '@scalprum/react-core';
 const config = {
   myApp: {
     name: 'myApp',
-    manifestLocation: 'http://localhost:3001/plugin-manifest.json'
-  }
+    manifestLocation: 'http://localhost:3001/plugin-manifest.json',
+  },
 };
 
 function App() {
   return (
     <ScalprumProvider config={config}>
-      <ScalprumComponent
-        scope="myApp"
-        module="MyComponent"
-        fallback={<div>Loading...</div>}
-      />
+      <ScalprumComponent scope="myApp" module="MyComponent" fallback={<div>Loading...</div>} />
     </ScalprumProvider>
   );
 }
@@ -58,13 +54,13 @@ function App() {
   const config = {
     remoteApp: {
       name: 'remoteApp',
-      manifestLocation: 'http://localhost:3001/plugin-manifest.json'
-    }
+      manifestLocation: 'http://localhost:3001/plugin-manifest.json',
+    },
   };
 
   const api = {
     user: { id: '123', name: 'John' },
-    theme: 'dark'
+    theme: 'dark',
   };
 
   return (
@@ -76,6 +72,7 @@ function App() {
 ```
 
 **Props:**
+
 - `config: AppsConfig` - Configuration for remote modules
 - `api?: T` - Shared API context available to all modules
 - `pluginSDKOptions?` - Optional plugin SDK configuration
@@ -101,6 +98,7 @@ function Dashboard() {
 ```
 
 **Props:**
+
 - `scope: string` - Remote container name
 - `module: string` - Module name to load
 - `importName?: string` - Specific export (default: 'default')
@@ -109,6 +107,7 @@ function Dashboard() {
 - Additional props are forwarded to the remote component
 
 **Features:**
+
 - Automatic error boundaries
 - Self-repair on cache errors
 - Suspense integration
@@ -135,15 +134,17 @@ function MyComponent() {
 
 // Using optional selector for optimized re-renders
 function OptimizedComponent() {
-  const api = useScalprum(state => state.api);
+  const api = useScalprum((state) => state.api);
   return <div>User: {api.user.name}</div>;
 }
 ```
 
 **Parameters:**
+
 - `selector?: (state: ScalprumState) => T` - Optional selector function to extract specific state
 
 **Returns:**
+
 - `config` - Apps configuration
 - `api` - Shared API context
 - `initialized` - Whether Scalprum is ready
@@ -157,7 +158,8 @@ Hook for loading remote modules programmatically.
 import { useModule } from '@scalprum/react-core';
 
 function WidgetContainer() {
-  const Widget = useModule<React.ComponentType>('widgets', 'PieChart');
+  // With @scalprum/remote-types configured, Widget's type comes from the remote declaration archive.
+  const Widget = useModule('widgets', './PieChart');
 
   if (!Widget) {
     return <div>Loading widget...</div>;
@@ -168,6 +170,7 @@ function WidgetContainer() {
 ```
 
 **Parameters:**
+
 - `scope: string` - Remote container name
 - `module: string` - Module name
 - `defaultState?` - Initial state while loading
@@ -183,10 +186,13 @@ Advanced hook for loading modules with more control.
 import { useLoadModule } from '@scalprum/react-core';
 
 function DataDisplay() {
-  const [DataTable, error] = useLoadModule({
-    scope: 'tables',
-    module: 'DataGrid'
-  }, undefined);
+  const [DataTable, error] = useLoadModule(
+    {
+      scope: 'tables',
+      module: 'DataGrid',
+    },
+    undefined,
+  );
 
   if (error) return <Error message={error.message} />;
   if (!DataTable) return <Spinner />;
@@ -230,24 +236,20 @@ The `RemoteHookProvider` is automatically included in `ScalprumProvider` - no ad
 
 Load and execute hooks from remote federated modules.
 
+When `@scalprum/remote-types` is configured, use literal `scope` and `module` values. The generated declarations infer hook arguments and results; no local result interface or generic is needed.
+
 ```tsx
 import { useRemoteHook } from '@scalprum/react-core';
 import { useMemo } from 'react';
-
-interface CounterResult {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-}
 
 function MyComponent() {
   // IMPORTANT: Use useMemo when args contain objects/arrays
   const args = useMemo(() => [{ initialValue: 0, step: 1 }], []);
 
-  const { hookResult, loading, error } = useRemoteHook<CounterResult>({
+  const { hookResult, loading, error } = useRemoteHook({
     scope: 'counter-app',
     module: './useCounter',
-    args
+    args,
   });
 
   if (loading) return <div>Loading hook...</div>;
@@ -264,12 +266,14 @@ function MyComponent() {
 ```
 
 **Parameters:**
+
 - `scope: string` - Federated module scope
 - `module: string` - Module path
 - `importName?: string` - Named export (optional)
 - `args?: any[]` - Arguments to pass (must be memoized if containing objects/arrays)
 
 **Returns:**
+
 - `id: string` - Unique hook instance ID
 - `loading: boolean` - Loading state
 - `error: Error | null` - Error if any
@@ -292,7 +296,7 @@ function DynamicHooksComponent() {
     const handle = manager.addHook({
       scope: 'counter-app',
       module: './useCounter',
-      args: [{ initialValue: 0, step: 1 }]
+      args: [{ initialValue: 0, step: 1 }],
     });
 
     // Update args later
@@ -321,15 +325,18 @@ function DynamicHooksComponent() {
 ```
 
 **Methods:**
+
 - `addHook(config)` - Add a new remote hook, returns handle
 - `cleanup()` - Remove all hooks (called automatically on unmount)
 - `hookResults` - Results from all tracked hooks
 
 **Handle Methods:**
+
 - `remove()` - Remove this specific hook
 - `updateArgs(args)` - Update hook arguments
 
 For detailed remote hooks documentation, see:
+
 - [useRemoteHook Guide](./docs/use-remote-hook.md)
 - [useRemoteHookManager Guide](./docs/use-remote-hook-manager.md)
 - [RemoteHookProvider Reference](./docs/remote-hook-provider.md)
@@ -338,41 +345,29 @@ For detailed remote hooks documentation, see:
 ## Complete Example
 
 ```tsx
-import {
-  ScalprumProvider,
-  ScalprumComponent,
-  useScalprum,
-  useModule,
-  useRemoteHook
-} from '@scalprum/react-core';
+import { ScalprumProvider, ScalprumComponent, useScalprum, useModule, useRemoteHook } from '@scalprum/react-core';
 import { useMemo } from 'react';
 
 // Configuration
 const config = {
   dashboard: {
     name: 'dashboard',
-    manifestLocation: 'http://localhost:3001/plugin-manifest.json'
+    manifestLocation: 'http://localhost:3001/plugin-manifest.json',
   },
   widgets: {
     name: 'widgets',
-    manifestLocation: 'http://localhost:3002/plugin-manifest.json'
-  }
+    manifestLocation: 'http://localhost:3002/plugin-manifest.json',
+  },
 };
 
 const api = {
   user: { id: '123', name: 'John Doe' },
-  permissions: ['read', 'write']
+  permissions: ['read', 'write'],
 };
 
 // Using declarative component
 function DashboardView() {
-  return (
-    <ScalprumComponent
-      scope="dashboard"
-      module="MainDashboard"
-      fallback={<div>Loading dashboard...</div>}
-    />
-  );
+  return <ScalprumComponent scope="dashboard" module="MainDashboard" fallback={<div>Loading dashboard...</div>} />;
 }
 
 // Using hooks
@@ -394,7 +389,7 @@ function RemoteHookExample() {
   const { hookResult, loading, error } = useRemoteHook({
     scope: 'dashboard',
     module: './useUserData',
-    args
+    args,
   });
 
   if (loading) return <div>Loading...</div>;
@@ -435,13 +430,7 @@ function CustomError({ error, errorInfo }) {
 }
 
 function App() {
-  return (
-    <ScalprumComponent
-      scope="myApp"
-      module="MyComponent"
-      ErrorComponent={<CustomError />}
-    />
-  );
+  return <ScalprumComponent scope="myApp" module="MyComponent" ErrorComponent={<CustomError />} />;
 }
 ```
 
@@ -449,36 +438,28 @@ function App() {
 
 ## TypeScript Support
 
-Full type safety for remote modules and hooks:
+Remote declaration archives are default source of types for known scopes and modules:
 
 ```tsx
-import { ScalprumProvider, useModule, useRemoteHook } from '@scalprum/react-core';
-
-interface WidgetProps {
-  title: string;
-  data: number[];
-}
-
-interface UserHookResult {
-  user: { id: string; name: string };
-  loading: boolean;
-}
+import { useModule, useRemoteHook } from '@scalprum/react-core';
 
 function TypedExample() {
-  // Typed remote component
-  const Widget = useModule<React.ComponentType<WidgetProps>>('widgets', 'Chart');
+  // Props and component type come from generated declarations.
+  const Widget = useModule('widgets', './Chart');
 
-  // Typed remote hook
-  const { hookResult } = useRemoteHook<UserHookResult>({
+  // Arguments and result come from generated declarations.
+  const { hookResult } = useRemoteHook({
     scope: 'auth',
-    module: './useCurrentUser'
+    module: './useCurrentUser',
   });
 
   if (!Widget || !hookResult) return null;
 
-  return <Widget title="Sales" data={[1, 2, 3]} />;
+  return <Widget />;
 }
 ```
+
+For a remote without generated declarations, explicit generics remain available as a fallback. Prefer generated declarations whenever the remote publishes them.
 
 ## Build Tool Compatibility
 
@@ -495,7 +476,7 @@ Components can export a `prefetch` function to load data before rendering:
 ```tsx
 // In remote module
 export const prefetch = (api) => {
-  return fetch(`/api/data?user=${api.user.id}`).then(r => r.json());
+  return fetch(`/api/data?user=${api.user.id}`).then((r) => r.json());
 };
 
 export default function MyComponent({ data }) {
@@ -526,14 +507,14 @@ function DataComponent() {
   config={config}
   pluginSDKOptions={{
     pluginStoreFeatureFlags: {
-      disableStaticPlugins: false
+      disableStaticPlugins: false,
     },
     pluginLoaderOptions: {
       transformPluginManifest: (manifest) => ({
         ...manifest,
-        loadScripts: manifest.loadScripts.map(s => `${manifest.baseURL}${s}`)
-      })
-    }
+        loadScripts: manifest.loadScripts.map((s) => `${manifest.baseURL}${s}`),
+      }),
+    },
   }}
 >
   {/* Your app */}
@@ -543,11 +524,7 @@ function DataComponent() {
 ### Custom Manifest Processing
 
 ```tsx
-<ScalprumComponent
-  scope="myApp"
-  module="MyComponent"
-  processor={(manifest) => manifest.assets.js}
-/>
+<ScalprumComponent scope="myApp" module="MyComponent" processor={(manifest) => manifest.assets.js} />
 ```
 
 ## API Reference
@@ -609,9 +586,7 @@ const getTodoStore = () => {
             return { todos: [...state.todos, payload.todo] };
           case 'TOGGLE_TODO':
             return {
-              todos: state.todos.map(t =>
-                t.id === payload.id ? { ...t, completed: !t.completed } : t
-              ),
+              todos: state.todos.map((t) => (t.id === payload.id ? { ...t, completed: !t.completed } : t)),
             };
           default:
             return state;
@@ -646,6 +621,7 @@ export const useTodoStore = () => {
 ### Complete Documentation
 
 For comprehensive documentation including:
+
 - API reference for `createSharedStore`, `useGetState`, `useSubscribeStore`
 - Advanced patterns (async operations, performance optimization, persistence)
 - Module federation setup and configuration

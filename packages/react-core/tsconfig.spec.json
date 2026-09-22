@@ -7,6 +7,10 @@
     "noPropertyAccessFromIndexSignature": false,
     "composite": true,
     "declaration": true,
+    "paths": {
+      "@scalprum/core": ["packages/core/src/index.ts"],
+      "@scalprum/remote-types": ["packages/remote-types/src/index.ts"]
+    },
   },
   "include": [
     "jest.config.ts",

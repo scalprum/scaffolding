@@ -8,6 +8,7 @@ import {
   setPendingLoading,
   getPendingPrefetch,
   PrefetchFunction,
+  RemoteComponentProps,
 } from '@scalprum/core';
 import isEqual from 'lodash/isEqual';
 import { loadComponent } from './async-loader';
@@ -33,6 +34,27 @@ export type ScalprumComponentProps<API extends Record<string, any> = {}, Props e
   skipCache?: boolean;
 };
 
+export type DynamicScalprumProps<S extends string, M extends string, I extends string | undefined = undefined> = Omit<
+  ScalprumComponentProps<{}, RemoteComponentProps<S, M, I>>,
+  'scope' | 'module' | 'importName'
+> & {
+  scope: S;
+  module: M;
+  importName?: I;
+};
+
+type TypedScalprumComponent = {
+  <const S extends string, const M extends string, const I extends string>(
+    props: DynamicScalprumProps<S, M, I> & { importName: I } & React.RefAttributes<unknown>,
+  ): React.ReactElement | null;
+  <const S extends string, const M extends string>(
+    props: DynamicScalprumProps<S, M, undefined> & { importName?: undefined } & React.RefAttributes<unknown>,
+  ): React.ReactElement | null;
+  <const S extends string, const M extends string, const I extends string | undefined>(
+    props: DynamicScalprumProps<S, M, I> & React.RefAttributes<unknown>,
+  ): React.ReactElement | null;
+};
+
 interface LoadModuleProps extends Omit<ScalprumComponentProps, 'ErrorComponent'> {
   ErrorComponent: React.ComponentType;
 }
@@ -52,7 +74,9 @@ async function setComponentFromModule(
   >,
 ): Promise<PrefetchFunction | undefined> {
   const { prefetch, component } = await loadComponent(scope, module, importName);
-  isMounted && setComponent(() => component);
+  if (isMounted) {
+    setComponent(() => component);
+  }
   return prefetch;
 }
 
@@ -127,7 +151,9 @@ const LoadModule: React.ComponentType<LoadModuleProps> = ({
         }
       } else {
         try {
-          isMounted && setComponent(() => cachedModule[importName]);
+          if (isMounted) {
+            setComponent(() => cachedModule[importName]);
+          }
 
           pref = cachedModule.prefetch;
           if (pref) {
@@ -230,6 +256,4 @@ class BaseScalprumComponent extends React.Component<ScalprumComponentProps, Base
  * ScalprumComponent forwards all unrecognized props to the dynamically loaded remote component.
  * Pass any additional props needed by your remote module (e.g., history, store, appName).
  */
-export const ScalprumComponent: React.ComponentType<ScalprumComponentProps> = React.forwardRef((props: any, ref) => (
-  <BaseScalprumComponent {...props} innerRef={ref} />
-)) as React.ComponentType<ScalprumComponentProps>;
+export const ScalprumComponent = React.forwardRef((props: any, ref) => <BaseScalprumComponent {...props} innerRef={ref} />) as TypedScalprumComponent;

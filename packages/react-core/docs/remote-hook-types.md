@@ -2,7 +2,10 @@
 
 This document provides comprehensive TypeScript interfaces and types for the remote hooks functionality in Scalprum.
 
+For known remotes, generated declaration archives are the default source of hook argument and result types. The explicit interfaces below describe library result containers or fallback patterns for remotes without declaration archives.
+
 > **Related Documentation:**
+>
 > - [useRemoteHook](./use-remote-hook.md) - Using remote hooks
 > - [useRemoteHookManager](./use-remote-hook-manager.md) - Managing multiple hooks
 > - [RemoteHookProvider](./remote-hook-provider.md) - Context provider
@@ -18,14 +21,7 @@ This document provides comprehensive TypeScript interfaces and types for the rem
 ## Import
 
 ```tsx
-import type {
-  HookConfig,
-  UseRemoteHookResult,
-  RemoteHookHandle,
-  HookHandle,
-  RemoteHookManager,
-  RemoteHookContextType
-} from '@scalprum/react-core';
+import type { HookConfig, UseRemoteHookResult, RemoteHookHandle, HookHandle, RemoteHookManager, RemoteHookContextType } from '@scalprum/react-core';
 ```
 
 ## Hook Configuration
@@ -44,18 +40,20 @@ interface HookConfig {
 ```
 
 **Properties:**
+
 - `scope`: The federated module scope name
 - `module`: The module path within the scope (e.g., './useCounter')
 - `importName`: Optional named export to import (uses default export if not specified)
 - `args`: Optional arguments to pass to the remote hook
 
 **Example:**
+
 ```tsx
 const config: HookConfig = {
   scope: 'counter-app',
   module: './useCounter',
   importName: 'useAdvancedCounter', // optional
-  args: [{ initialValue: 0, step: 1 }] // optional
+  args: [{ initialValue: 0, step: 1 }], // optional
 };
 ```
 
@@ -75,12 +73,14 @@ interface UseRemoteHookResult<T> {
 ```
 
 **Properties:**
+
 - `id`: Unique identifier for the hook instance
 - `loading`: Whether the hook is currently loading
 - `error`: Any error that occurred during loading or execution
 - `hookResult`: The result returned by the remote hook (generic type T)
 
 **Example:**
+
 ```tsx
 interface CounterResult {
   count: number;
@@ -93,8 +93,8 @@ const result: UseRemoteHookResult<CounterResult> = {
   error: null,
   hookResult: {
     count: 5,
-    increment: () => {}
-  }
+    increment: () => {},
+  },
 };
 ```
 
@@ -112,6 +112,7 @@ interface HookHandle {
 ```
 
 **Methods:**
+
 - `remove()`: Remove this specific hook from the manager
 - `updateArgs(args: any[])`: Update the arguments passed to this hook
 
@@ -133,12 +134,14 @@ interface RemoteHookHandle<T = any> {
 ```
 
 **Properties:**
+
 - `loading`: Current loading state
 - `error`: Current error state
 - `hookResult`: Current hook result
 - `id`: Unique identifier
 
 **Methods:**
+
 - `updateArgs(args: any[])`: Update hook arguments
 - `remove()`: Remove the hook
 - `subscribe(callback)`: Subscribe to hook state changes (returns unsubscribe function)
@@ -158,11 +161,13 @@ interface RemoteHookManager {
 ```
 
 **Methods:**
+
 - `addHook(config)`: Add a new remote hook and return a handle
 - `cleanup()`: Remove all managed hooks and clean up resources
 - `hookResults`: An array of all current hook results
 
 **Example:**
+
 ```tsx
 function useHookManager() {
   const manager: RemoteHookManager = useRemoteHookManager();
@@ -170,7 +175,7 @@ function useHookManager() {
   const addCounter = () => {
     const handle: HookHandle = manager.addHook({
       scope: 'counter-app',
-      module: './useCounter'
+      module: './useCounter',
     });
 
     return handle;
@@ -201,40 +206,21 @@ interface RemoteHookContextType {
 
 ## Common Type Patterns
 
-### Defining Hook Result Types
+### Generated Hook Types
 
-When creating typed remote hooks, define clear interfaces for the hook results:
+For known remote scopes and modules, generated declarations provide hook result and argument types automatically:
 
 ```tsx
-// Remote hook result interface
-interface CounterHookResult {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-  reset: () => void;
-  setCount: (value: number) => void;
-}
-
-// Hook arguments interface
-interface CounterHookArgs {
-  initialValue?: number;
-  step?: number;
-}
-
-// Usage with typed results
 function TypedCounterComponent() {
-  const args = useMemo((): CounterHookArgs[] => [
-    { initialValue: 0, step: 1 }
-  ], []);
+  const args = useMemo(() => [{ initialValue: 0, step: 1 }], []);
 
-  const { hookResult, loading, error }: UseRemoteHookResult<CounterHookResult> =
-    useRemoteHook<CounterHookResult>({
-      scope: 'counter-app',
-      module: './useCounter',
-      args
-    });
+  const { hookResult, loading, error } = useRemoteHook({
+    scope: 'counter-app',
+    module: './useCounter',
+    args,
+  });
 
-  // TypeScript knows the exact shape of hookResult
+  // TypeScript knows generated shape of hookResult
   return (
     <div>
       <p>Count: {hookResult?.count}</p>
@@ -244,7 +230,11 @@ function TypedCounterComponent() {
 }
 ```
 
+Use local result interfaces or explicit generics only for remotes that do not publish declaration archives or for intentionally generic runtime values.
+
 ### Generic Hook Manager Usage
+
+Use a local result interface only when the remote does not publish declarations or when a manager intentionally combines unknown runtime hooks.
 
 ```tsx
 interface ApiHookResult {
@@ -261,14 +251,12 @@ function TypedHookManager() {
     return manager.addHook({
       scope: 'api-app',
       module: './useApiData',
-      args: [{ url: '/api/users' }]
+      args: [{ url: '/api/users' }],
     });
   };
 
   const apiResults = useMemo(() => {
-    return manager.hookResults.filter(result =>
-      result.hookResult && 'data' in result.hookResult
-    ) as UseRemoteHookResult<ApiHookResult>[];
+    return manager.hookResults.filter((result) => result.hookResult && 'data' in result.hookResult) as UseRemoteHookResult<ApiHookResult>[];
   }, [manager.hookResults]);
 
   return { addApiHook, apiResults };
@@ -288,9 +276,9 @@ function isHookLoaded<T>(result: UseRemoteHookResult<T>): result is UseRemoteHoo
 
 // Usage
 function SafeHookConsumer() {
-  const { hookResult, loading, error } = useRemoteHook<CounterHookResult>({
+  const { hookResult, loading, error } = useRemoteHook({
     scope: 'counter-app',
-    module: './useCounter'
+    module: './useCounter',
   });
 
   const result = { hookResult, loading, error };
@@ -300,7 +288,7 @@ function SafeHookConsumer() {
   }
 
   if (isHookLoaded(result)) {
-    // TypeScript knows hookResult is defined and of type CounterHookResult
+    // TypeScript knows generated hookResult type and that it is defined.
     return <div>Count: {result.hookResult.count}</div>;
   }
 
@@ -313,8 +301,7 @@ function SafeHookConsumer() {
 ### Hook Factory Types
 
 ```tsx
-type HookFactory<TArgs extends any[] = any[], TResult = any> =
-  (...args: TArgs) => TResult;
+type HookFactory<TArgs extends any[] = any[], TResult = any> = (...args: TArgs) => TResult;
 
 type RemoteHookConfig<TArgs extends any[] = any[]> = {
   scope: string;
@@ -324,9 +311,7 @@ type RemoteHookConfig<TArgs extends any[] = any[]> = {
 };
 
 // Usage
-function createTypedRemoteHook<TArgs extends any[], TResult>(
-  config: RemoteHookConfig<TArgs>
-): UseRemoteHookResult<TResult> {
+function createTypedRemoteHook<TArgs extends any[], TResult>(config: RemoteHookConfig<TArgs>): UseRemoteHookResult<TResult> {
   return useRemoteHook<TResult>(config);
 }
 ```
@@ -335,14 +320,36 @@ function createTypedRemoteHook<TArgs extends any[], TResult>(
 
 ```tsx
 type HookCollection = {
-  [key: string]: UseRemoteHookResult<any>;
+  [key: string]: UseRemoteHookResult<unknown>;
 };
 
 type HookRegistry<T extends Record<string, any>> = {
   [K in keyof T]: UseRemoteHookResult<T[K]>;
 };
 
-// Usage
+// Use explicit contracts when these remotes do not publish declaration archives.
+interface CounterHookResult {
+  count: number;
+  increment: () => void;
+  decrement: () => void;
+}
+
+interface ApiHookResult {
+  data: { message: string } | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+interface TimerHookResult {
+  timeLeft: number;
+  isRunning: boolean;
+  isComplete: boolean;
+  start: () => void;
+  pause: () => void;
+  reset: () => void;
+}
+
 interface MyHooks {
   counter: CounterHookResult;
   api: ApiHookResult;

@@ -12,6 +12,9 @@ runs:
       with:
         node-version-file: '.nvmrc'
         registry-url: ${{ inputs.registry-url }}
+    - name: Use npm 11
+      shell: bash
+      run: npm install --global npm@11.14.1
     - uses: nrwl/nx-set-shas@v4
     - uses: './.github/actions/node-cache'
     - name: Install deps

@@ -7,7 +7,7 @@ const ApiUpdates = () => {
       <Typography variant="h4">API Updates</Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box>
-          <ScalprumComponent module="./ApiModule" scope="sdk-plugin" importName="ApiConsumer" />
+          <ScalprumComponent module="./ApiModule" scope="sdk-plugin" importName="ApiConsumer" label="API consumer" />
         </Box>
         <Box>
           <ScalprumComponent module="./ApiModule" scope="sdk-plugin" importName="ApiChanger" />

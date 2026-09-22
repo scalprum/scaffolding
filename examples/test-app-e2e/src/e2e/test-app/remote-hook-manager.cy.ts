@@ -151,7 +151,7 @@ describe('useRemoteHookManager functionality', () => {
 
     // Verify the hook is functional
     cy.get('[data-testid="counter-increment-0"]').click();
-    cy.get('[data-testid="counter-value-0"]').should('not.contain', '0');
+    cy.get('[data-testid="counter-value-0"]').should('have.text', '2');
   });
 
   it('should preserve hook state when adding new hooks', () => {

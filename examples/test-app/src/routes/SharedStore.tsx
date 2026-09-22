@@ -17,34 +17,12 @@ import {
   Paper,
 } from '@mui/material';
 import { Delete as DeleteIcon, Check as CheckIcon, Undo as UndoIcon } from '@mui/icons-material';
+import type { RemoteModuleArgs, RemoteModuleResult } from '@scalprum/core';
 import { useRemoteHook } from '@scalprum/react-core';
 
-interface TodoItem {
-  id: string;
-  text: string;
-  completed: boolean;
-  createdAt: number;
-}
-
-interface UseSharedStoreResult {
-  // State getters
-  todos: TodoItem[];
-  filter: 'all' | 'active' | 'completed';
-  filteredTodos: TodoItem[];
-  activeCount: number;
-  completedCount: number;
-  lastUpdate: number;
-
-  // Actions
-  addTodo: (text: string) => void;
-  toggleTodo: (id: string) => void;
-  deleteTodo: (id: string) => void;
-  setFilter: (filter: 'all' | 'active' | 'completed') => void;
-  clearCompleted: () => void;
-
-  // Meta
-  instanceId: string;
-}
+type SharedStoreResult = RemoteModuleResult<'sdk-plugin', './useSharedStoreHook'>;
+type TodoItem = SharedStoreResult['todos'][number];
+type TodoFilter = SharedStoreResult['filter'];
 
 // Reusable components to eliminate duplication while preserving test selectors
 
@@ -105,11 +83,11 @@ const TodoInput: React.FC<TodoInputProps> = ({ instanceId, newTodoText, setNewTo
 
 interface FilterButtonsProps {
   instanceId: string;
-  filter: 'all' | 'active' | 'completed';
+  filter: TodoFilter;
   totalCount: number;
   activeCount: number;
   completedCount: number;
-  onSetFilter: (filter: 'all' | 'active' | 'completed') => void;
+  onSetFilter: (filter: TodoFilter) => void;
 }
 
 const FilterButtons: React.FC<FilterButtonsProps> = ({ instanceId, filter, totalCount, activeCount, completedCount, onSetFilter }) => {
@@ -222,9 +200,12 @@ const SharedTodoManager: React.FC<SharedTodoManagerProps> = ({ instanceId, title
   const [newTodoText, setNewTodoText] = useState('');
 
   // Each component makes its own independent call to useRemoteHook
-  const sharedStoreArgs = useMemo(() => [{ instanceId, enableLogging }], [instanceId, enableLogging]);
+  const sharedStoreArgs = useMemo(
+    () => [{ instanceId, enableLogging }] satisfies RemoteModuleArgs<'sdk-plugin', './useSharedStoreHook'>,
+    [instanceId, enableLogging],
+  );
 
-  const sharedStore = useRemoteHook<UseSharedStoreResult>({
+  const sharedStore = useRemoteHook({
     scope: 'sdk-plugin',
     module: './useSharedStoreHook',
     args: sharedStoreArgs,

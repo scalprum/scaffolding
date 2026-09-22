@@ -10,7 +10,11 @@
     "noFallthroughCasesInSwitch": true,
     "jsx": "react-jsx",
     "esModuleInterop": true,
-    "rootDir": "."
+    "rootDir": ".",
+    "paths": {
+      "@scalprum/core": ["dist/packages/core"],
+      "@scalprum/remote-types": ["dist/packages/remote-types"]
+    }
   },
   "files": [],
   "include": ["src/**/*.ts", "src/**/*.tsx"],

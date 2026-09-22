@@ -8,17 +8,17 @@ The `useRemoteHook` is a React hook that allows you to load and use hooks from r
 import { useRemoteHook } from '@scalprum/react-core';
 import { useMemo } from 'react';
 
-// For single, static remote hooks
+// For single, static remote hooks with generated remote declarations
 const args = useMemo(() => [{ config: 'value' }], []);
-const { hookResult, loading, error } = useRemoteHook<ResultType>({
+const { hookResult, loading, error } = useRemoteHook({
   scope: 'remote-app',
   module: './useMyHook',
   importName: 'useNamedHook', // optional, for named exports
-  args
+  args,
 });
 ```
 
-**When to use:** Loading a single remote hook with a known scope and module at component mount time.
+**When to use:** Loading a single remote hook with a known scope and module at component mount time. With `@scalprum/remote-types` configured, literal `scope` and `module` values infer `args` and `hookResult` types.
 
 **When NOT to use:** For managing multiple hooks dynamically - use [useRemoteHookManager](./use-remote-hook-manager.md) instead.
 
@@ -36,20 +36,14 @@ import { useRemoteHook } from '@scalprum/react-core';
 import { useRemoteHook } from '@scalprum/react-core';
 import { useMemo } from 'react';
 
-interface CounterResult {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-}
-
 function MyComponent() {
   // ✅ Correct: Use useMemo when args contain objects/arrays
   const args = useMemo(() => [{ initialValue: 0, step: 1 }], []);
 
-  const { hookResult, loading, error } = useRemoteHook<CounterResult>({
+  const { hookResult, loading, error } = useRemoteHook({
     scope: 'my-app',
     module: './useCounter',
-    args
+    args,
   });
 
   if (loading) return <div>Loading hook...</div>;
@@ -72,18 +66,22 @@ function MyComponent() {
 The hook accepts a configuration object with the following properties:
 
 #### `scope` (required)
+
 - **Type:** `string`
 - **Description:** The federated module scope name
 
 #### `module` (required)
+
 - **Type:** `string`
 - **Description:** The module path within the scope
 
 #### `importName` (optional)
+
 - **Type:** `string`
 - **Description:** Named export to import. If not provided, uses the default export
 
 #### `args` (optional)
+
 - **Type:** `any[]`
 - **Default:** `[]`
 - **Description:** Arguments to pass to the remote hook
@@ -94,18 +92,22 @@ The hook accepts a configuration object with the following properties:
 Returns a `UseRemoteHookResult<T>` object with:
 
 #### `id`
+
 - **Type:** `string`
 - **Description:** Unique identifier for this hook instance
 
 #### `loading`
+
 - **Type:** `boolean`
 - **Description:** Whether the hook is currently loading
 
 #### `error`
+
 - **Type:** `Error | null`
 - **Description:** Any error that occurred during loading or execution
 
 #### `hookResult`
+
 - **Type:** `T | undefined`
 - **Description:** The result returned by the remote hook
 
@@ -123,9 +125,9 @@ export const useCounter = (options = {}) => {
 
   return {
     count,
-    increment: () => setCount(c => c + step),
-    decrement: () => setCount(c => c - step),
-    reset: () => setCount(initialValue)
+    increment: () => setCount((c) => c + step),
+    decrement: () => setCount((c) => c - step),
+    reset: () => setCount(initialValue),
   };
 };
 
@@ -137,7 +139,7 @@ function CounterComponent() {
   const { hookResult, loading, error } = useRemoteHook({
     scope: 'counter-app',
     module: './useCounter',
-    args: counterArgs
+    args: counterArgs,
   });
 
   if (loading) return <div>Loading...</div>;
@@ -190,10 +192,14 @@ function DataComponent() {
   // ✅ Correct: Memoized args
   const apiArgs = useMemo(() => [{ url: '/api/users' }], []);
 
-  const { hookResult, loading: hookLoading, error: hookError } = useRemoteHook({
+  const {
+    hookResult,
+    loading: hookLoading,
+    error: hookError,
+  } = useRemoteHook({
     scope: 'api-app',
     module: './useApiData',
-    args: apiArgs
+    args: apiArgs,
   });
 
   if (hookLoading) return <div>Loading hook...</div>;
@@ -228,16 +234,12 @@ function DynamicArgsComponent() {
   const { hookResult, loading, error } = useRemoteHook({
     scope: 'counter-app',
     module: './useCounter',
-    args: counterArgs
+    args: counterArgs,
   });
 
   return (
     <div>
-      <input
-        type="number"
-        value={step}
-        onChange={(e) => setStep(Number(e.target.value))}
-      />
+      <input type="number" value={step} onChange={(e) => setStep(Number(e.target.value))} />
       <p>Count: {hookResult?.count}</p>
       <button onClick={hookResult?.increment}>+{step}</button>
     </div>
@@ -255,7 +257,7 @@ function BadExample() {
   const { hookResult } = useRemoteHook({
     scope: 'my-app',
     module: './useCounter',
-    args: [{ initialValue: 0, step: 1 }] // New object on every render!
+    args: [{ initialValue: 0, step: 1 }], // New object on every render!
   });
 
   return <div>{hookResult?.count}</div>;
@@ -272,7 +274,7 @@ function GoodExample1() {
   const { hookResult } = useRemoteHook({
     scope: 'my-app',
     module: './useCounter',
-    args
+    args,
   });
 
   return <div>{hookResult?.count}</div>;
@@ -283,7 +285,7 @@ function GoodExample2() {
   const { hookResult } = useRemoteHook({
     scope: 'my-app',
     module: './useSimpleCounter',
-    args: [0, 1] // Primitive values - no memoization needed
+    args: [0, 1], // Primitive values - no memoization needed
   });
 
   return <div>{hookResult?.count}</div>;
@@ -293,7 +295,7 @@ function GoodExample2() {
 function GoodExample3() {
   const { hookResult } = useRemoteHook({
     scope: 'my-app',
-    module: './useStaticCounter'
+    module: './useStaticCounter',
     // No args needed
   });
 
@@ -309,32 +311,30 @@ function ComplexArgsExample() {
   const [includeMetadata, setIncludeMetadata] = useState(false);
 
   // ✅ Memoize with all dynamic dependencies
-  const apiArgs = useMemo(() => [{
-    userId,
-    options: {
-      includeMetadata,
-      timeout: 5000
-    }
-  }], [userId, includeMetadata]);
+  const apiArgs = useMemo(
+    () => [
+      {
+        userId,
+        options: {
+          includeMetadata,
+          timeout: 5000,
+        },
+      },
+    ],
+    [userId, includeMetadata],
+  );
 
   const { hookResult, loading, error } = useRemoteHook({
     scope: 'user-app',
     module: './useUserData',
-    args: apiArgs
+    args: apiArgs,
   });
 
   return (
     <div>
-      <input
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-      />
+      <input value={userId} onChange={(e) => setUserId(e.target.value)} />
       <label>
-        <input
-          type="checkbox"
-          checked={includeMetadata}
-          onChange={(e) => setIncludeMetadata(e.target.checked)}
-        />
+        <input type="checkbox" checked={includeMetadata} onChange={(e) => setIncludeMetadata(e.target.checked)} />
         Include metadata
       </label>
       {/* Rest of component */}
@@ -352,7 +352,7 @@ function ErrorHandlingExample() {
   const { hookResult, loading, error } = useRemoteHook({
     scope: 'may-fail-app',
     module: './unreliableHook',
-    args
+    args,
   });
 
   if (loading) {
@@ -364,9 +364,7 @@ function ErrorHandlingExample() {
       <div>
         <h3>Failed to load remote hook</h3>
         <p>Error: {error.message}</p>
-        <button onClick={() => window.location.reload()}>
-          Retry
-        </button>
+        <button onClick={() => window.location.reload()}>Retry</button>
       </div>
     );
   }
@@ -382,31 +380,19 @@ function ErrorHandlingExample() {
 
 ## TypeScript Support
 
+Generated remote declarations are preferred. They provide hook argument and result types from the producer archive:
+
 ```tsx
-interface CounterHookResult {
-  count: number;
-  increment: () => void;
-  decrement: () => void;
-  reset: () => void;
-}
-
-interface CounterHookArgs {
-  initialValue?: number;
-  step?: number;
-}
-
 function TypedCounterComponent() {
-  const args = useMemo((): CounterHookArgs[] => [
-    { initialValue: 10, step: 5 }
-  ], []);
+  const args = useMemo(() => [{ initialValue: 10, step: 5 }], []);
 
-  const { hookResult, loading, error } = useRemoteHook<CounterHookResult>({
+  const { hookResult, loading, error } = useRemoteHook({
     scope: 'counter-app',
     module: './useCounter',
-    args
+    args,
   });
 
-  // TypeScript knows hookResult is CounterHookResult | undefined
+  // TypeScript knows generated hook result shape.
   return (
     <div>
       <p>Count: {hookResult?.count}</p>
@@ -416,9 +402,12 @@ function TypedCounterComponent() {
 }
 ```
 
+For remotes without declaration archives, use an explicit generic result type as a fallback. Do not duplicate interfaces for remotes that publish declarations.
+
 ## Performance Considerations
 
 ### Critical: Argument Memoization
+
 - **Use `useMemo` for `args` when they contain objects or arrays** - This prevents infinite re-renders
 - Arguments are compared using shallow equality between renders
 - **Primitive values** (strings, numbers, booleans) in args arrays don't need memoization
@@ -426,6 +415,7 @@ function TypedCounterComponent() {
 - Include all dynamic values in the `useMemo` dependency array
 
 ### Other Considerations
+
 - Remote hooks should follow standard React hooks rules and dependency patterns
 - Hook execution is asynchronous due to module loading
 - Always handle loading and error states
