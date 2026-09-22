@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/react-test-utils",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Includes test utilities for scalprum scaffolding.",
   "main": "./index.js",
   "module": "./esm/index.js",
@@ -14,8 +14,8 @@
   "scripts": {},
   "dependencies": {
     "@openshift/dynamic-plugin-sdk": "^9.1.0",
-    "@scalprum/core": "^0.10.4",
-    "@scalprum/react-core": "^0.13.4",
+    "@scalprum/core": "^0.11.0",
+    "@scalprum/react-core": "^0.14.0",
     "tslib": "^2.6.2",
     "whatwg-fetch": "^3.6.0"
   },

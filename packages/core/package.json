@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/core",
-  "version": "0.10.4",
+  "version": "0.11.0",
   "description": "Includes core functions for scalprum scaffolding.",
   "main": "./index.js",
   "module": "./esm/index.js",
@@ -13,7 +13,7 @@
   },
   "scripts": {},
   "dependencies": {
-    "@scalprum/remote-types": "^0.1.0",
+    "@scalprum/remote-types": "^0.1.2",
     "@openshift/dynamic-plugin-sdk": "^9.1.0",
     "tslib": "^2.6.2"
   }

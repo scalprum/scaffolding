@@ -1,6 +1,6 @@
 {
   "name": "@scalprum/remote-types",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Remote Module Federation types for Scalprum applications.",
   "main": "./index.js",
   "module": "./esm/index.js",
