@@ -1,0 +1,34 @@
+{
+  "name": "@scalprum/remote-types",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/remote-types/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@scalprum/build-utils:builder",
+      "options": {
+        "outputPath": "dist/packages/remote-types",
+        "esmTsConfig": "packages/remote-types/tsconfig.esm.json",
+        "cjsTsConfig": "packages/remote-types/tsconfig.cjs.json",
+        "assets": ["packages/remote-types/README.md", "packages/remote-types/esm", "LICENSE"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/remote-types/**/*.ts", "packages/remote-types/package.json"]
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "vitest run --config packages/remote-types/vitest.config.mjs"
+      }
+    },
+    "typecheck": {
+      "command": "tsc -p packages/remote-types/tsconfig.esm.json --noEmit"
+    }
+  }
+}
