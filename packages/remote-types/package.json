@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "adm-zip": "^0.6.0",
+    "adm-zip": "^0.6.1",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
