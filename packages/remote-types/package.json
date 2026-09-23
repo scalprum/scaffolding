@@ -5,6 +5,7 @@
   "main": "./index.js",
   "module": "./esm/index.js",
   "typings": "./index.d.ts",
+  "repository": "https://github.com/scalprum/scaffolding",
   "exports": {
     ".": {
       "types": "./index.d.ts",
