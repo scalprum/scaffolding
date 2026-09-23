@@ -88,6 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [install, lint, test, build, test-e2e, test-component, typecheck]
     if: github.event_name != 'pull_request'
+    concurrency:
+      group: release-main
+      cancel-in-progress: false
     permissions:
       id-token: write
       contents: write
@@ -101,4 +104,3 @@ jobs:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           gh_name: ${{ secrets.GH_NAME }}
           gh_email: ${{ secrets.GH_EMAIL }}
-
