@@ -57,7 +57,10 @@ Initializes the Scalprum instance with configuration.
 - `options?: Partial<ScalprumOptions>` - Optional configuration
 - `pluginStoreFeatureFlags?: FeatureFlags` - Feature flags for plugin store
 - `pluginLoaderOptions?: PluginLoaderOptions` - Options for plugin loader
+- `loader?: PluginLoaderInterface` - Inject an SDK-compatible loader for a non-browser runtime; configure its manifest transform and other loader behavior on the loader itself. This cannot be combined with `pluginLoaderOptions`.
 - `pluginStoreOptions?: PluginStoreOptions` - Options for plugin store
+
+The loader is fixed for an initialized Scalprum instance. Call `removeScalprum()` before initializing with a different loader.
 
 **Returns:** `Scalprum` instance
 

@@ -76,6 +76,7 @@ function App() {
 - `config: AppsConfig` - Configuration for remote modules
 - `api?: T` - Shared API context available to all modules
 - `pluginSDKOptions?` - Optional plugin SDK configuration
+- `loader?` - An SDK `PluginLoaderInterface` supplied to the provider's configurable form. Configure loader-specific options on the loader; it cannot be combined with `pluginSDKOptions.pluginLoaderOptions`.
 
 ### ScalprumComponent
 
