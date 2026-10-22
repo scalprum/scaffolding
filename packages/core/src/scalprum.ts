@@ -203,14 +203,14 @@ export async function getModule<T = any, P = any>(scope: string, module: string,
       `Module "${module}" could not be loaded because scope "${scope}" is not in the scalprum configuration. Available scopes: ${availableScopes}`,
     );
   }
-  const manifestLocation = appData.manifestLocation;
-  if (!manifestLocation) {
+  const manifest = appData.manifestLocation ?? appData.pluginManifest;
+  if (!manifest) {
     throw new Error(
-      `Module "${module}" could not be loaded because scope "${scope}" does not have a manifestLocation in the scalprum configuration.`,
+      `Module "${module}" could not be loaded because scope "${scope}" does not have a manifestLocation or pluginManifest in the scalprum configuration.`,
     );
   }
   if (!cachedModule) {
-    await processManifest(manifestLocation, scope, module);
+    await processManifest(manifest, scope, module);
     Module = await scalprum.pluginStore.getExposedModule(scope, module);
   } else {
     Module = cachedModule;

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
-import { initialize, getScalprum, getCachedModule, initSharedScope } from './scalprum';
+import { initialize, getScalprum, getCachedModule, getModule, initSharedScope, removeScalprum } from './scalprum';
 
 describe('scalprum', () => {
   const testManifest: PluginManifest = {
@@ -180,5 +180,159 @@ describe('scalprum', () => {
     await getScalprum().pluginStore.loadPlugin(testManifest);
     // @ts-ignore
     expect(getCachedModule('testScope', './testModule', true)).toEqual({});
+  });
+
+  describe('getModule', () => {
+    const moduleExport = { default: 'default-export', named: 'named-export' };
+
+    afterEach(() => {
+      removeScalprum();
+    });
+
+    test('should load module using pluginManifest when manifestLocation is absent', async () => {
+      const embeddedManifest: PluginManifest = {
+        extensions: [],
+        loadScripts: [],
+        name: 'appFour',
+        registrationMethod: 'custom',
+        version: '1.0.0',
+        baseURL: '/foo/bar',
+      };
+      initialize({
+        appsConfig: {
+          appFour: {
+            name: 'appFour',
+            pluginManifest: embeddedManifest,
+          },
+        },
+      });
+      // @ts-ignore
+      global.appFour = {
+        init: jest.fn(),
+        get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(moduleExport)),
+      };
+      const result = await getModule('appFour', './module');
+      expect(result).toBe('default-export');
+    });
+
+    test('should prefer manifestLocation over pluginManifest when both are configured', async () => {
+      const embeddedManifest: PluginManifest = {
+        extensions: [],
+        loadScripts: [],
+        name: 'appFive',
+        registrationMethod: 'custom',
+        version: '1.0.0',
+        baseURL: '/embedded',
+      };
+      // Return SDK-format manifest from URL so loadPlugin doesn't try to inject scripts
+      const urlManifest: PluginManifest = {
+        extensions: [],
+        loadScripts: [],
+        name: 'appFive',
+        registrationMethod: 'custom',
+        version: '1.0.0',
+        baseURL: '/url-based',
+      };
+      // @ts-ignore
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(urlManifest),
+      });
+      initialize({
+        appsConfig: {
+          appFive: {
+            name: 'appFive',
+            manifestLocation: '/appFive/manifest.json',
+            pluginManifest: embeddedManifest,
+          },
+        },
+      });
+      // @ts-ignore
+      global.appFive = {
+        init: jest.fn(),
+        get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(moduleExport)),
+      };
+      const result = await getModule('appFive', './module');
+      expect(result).toBe('default-export');
+      // Verify fetch was called with the manifestLocation URL, not the embedded manifest
+      expect(global.fetch).toHaveBeenCalledWith('/appFive/manifest.json', expect.any(Object));
+    });
+
+    test('should load module using manifestLocation (URL-only)', async () => {
+      // Return SDK-format manifest from URL so loadPlugin doesn't try to inject scripts
+      const urlManifest: PluginManifest = {
+        extensions: [],
+        loadScripts: [],
+        name: 'appThree',
+        registrationMethod: 'custom',
+        version: '1.0.0',
+        baseURL: '/url-based',
+      };
+      // @ts-ignore
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(urlManifest),
+      });
+      initialize({
+        appsConfig: {
+          appThree: {
+            name: 'appThree',
+            manifestLocation: '/appThree/manifest.json',
+          },
+        },
+      });
+      // @ts-ignore
+      global.appThree = {
+        init: jest.fn(),
+        get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(moduleExport)),
+      };
+      const result = await getModule('appThree', './module');
+      expect(result).toBe('default-export');
+      expect(global.fetch).toHaveBeenCalledWith('/appThree/manifest.json', expect.any(Object));
+    });
+
+    test('should throw when scope has neither manifestLocation nor pluginManifest', async () => {
+      initialize({
+        appsConfig: {
+          noManifest: {
+            name: 'noManifest',
+          },
+        },
+      });
+      await expect(getModule('noManifest', './module')).rejects.toThrow('does not have a manifestLocation or pluginManifest');
+    });
+
+    test('should resolve named export from embedded manifest', async () => {
+      const embeddedManifest: PluginManifest = {
+        extensions: [],
+        loadScripts: [],
+        name: 'appFour',
+        registrationMethod: 'custom',
+        version: '1.0.0',
+        baseURL: '/foo/bar',
+      };
+      initialize({
+        appsConfig: {
+          appFour: {
+            name: 'appFour',
+            pluginManifest: embeddedManifest,
+          },
+        },
+      });
+      // @ts-ignore
+      global.appFour = {
+        init: jest.fn(),
+        get: jest.fn().mockReturnValue(jest.fn().mockReturnValue(moduleExport)),
+      };
+      const result = await getModule('appFour', './module', 'named');
+      expect(result).toBe('named-export');
+    });
+
+    test('should throw when scope is not in configuration', async () => {
+      initialize({
+        appsConfig: {},
+      });
+      await expect(getModule('unknown', './module')).rejects.toThrow('is not in the scalprum configuration');
+    });
   });
 });
