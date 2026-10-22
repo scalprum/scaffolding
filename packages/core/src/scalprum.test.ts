@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { PluginManifest } from '@openshift/dynamic-plugin-sdk';
+import { PluginLoaderInterface, PluginManifest } from '@openshift/dynamic-plugin-sdk';
 import { initialize, getScalprum, getCachedModule, getModule, initSharedScope, removeScalprum } from './scalprum';
 
 describe('scalprum', () => {
@@ -334,5 +334,41 @@ describe('scalprum', () => {
       });
       await expect(getModule('unknown', './module')).rejects.toThrow('is not in the scalprum configuration');
     });
+  });
+});
+
+describe('custom loader configuration', () => {
+  const createLoader = (): PluginLoaderInterface => ({
+    loadPluginManifest: async () => ({
+      name: 'fixture',
+      version: '1.0.0',
+      registrationMethod: 'custom',
+      baseURL: '/fixtures/',
+      loadScripts: [],
+      extensions: [],
+    }),
+    transformPluginManifest: (manifest) => manifest,
+    loadPlugin: async () => ({ success: true, loadedExtensions: [] }),
+  });
+
+  beforeEach(removeScalprum);
+  afterEach(removeScalprum);
+
+  test('rejects browser loader options instead of silently ignoring them', () => {
+    expect(() =>
+      initialize({
+        appsConfig: {},
+        loader: createLoader(),
+        pluginLoaderOptions: { transformPluginManifest: (manifest) => manifest },
+      }),
+    ).toThrow('pluginLoaderOptions cannot be used with a custom loader');
+  });
+
+  test('requires a reset before changing the loader of an initialized store', () => {
+    const loader = createLoader();
+    initialize({ appsConfig: {}, loader });
+    expect(() => initialize({ appsConfig: {}, loader: createLoader() })).toThrow('already initialized with a different loader');
+    removeScalprum();
+    expect(() => initialize({ appsConfig: {}, loader: createLoader() })).not.toThrow();
   });
 });
