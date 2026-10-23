@@ -39,12 +39,8 @@ describe('@scalprum/node-loader package boundary', () => {
       '@module-federation/enhanced': '^2.9.0',
       '@openshift/dynamic-plugin-sdk': '^9.1.0',
     });
-    expect(manifest.devDependencies?.['@openshift/dynamic-plugin-sdk']).toBe(
-      manifest.peerDependencies?.['@openshift/dynamic-plugin-sdk'],
-    );
-    expect(manifest.peerDependencies?.['@openshift/dynamic-plugin-sdk']).toBe(
-      coreManifest.dependencies?.['@openshift/dynamic-plugin-sdk'],
-    );
+    expect(manifest.devDependencies?.['@openshift/dynamic-plugin-sdk']).toBe(manifest.peerDependencies?.['@openshift/dynamic-plugin-sdk']);
+    expect(manifest.peerDependencies?.['@openshift/dynamic-plugin-sdk']).toBe(coreManifest.dependencies?.['@openshift/dynamic-plugin-sdk']);
     expect(manifest.dependencies ?? {}).not.toHaveProperty('@scalprum/core');
     expect(manifest.dependencies ?? {}).not.toHaveProperty('@openshift/dynamic-plugin-sdk');
     expect(manifest.dependencies ?? {}).not.toHaveProperty('@module-federation/enhanced');
