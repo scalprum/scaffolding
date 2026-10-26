@@ -1,0 +1,30 @@
+{
+  "name": "@scalprum/node-loader",
+  "version": "0.0.1",
+  "description": "Node runtime package scaffold for Scalprum.",
+  "main": "./index.js",
+  "module": "./esm/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./esm/index.d.ts",
+        "default": "./esm/index.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    }
+  },
+  "repository": "https://github.com/scalprum/scaffolding.git",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@module-federation/enhanced": "^2.9.0",
+    "@openshift/dynamic-plugin-sdk": "^9.1.0"
+  },
+  "devDependencies": {
+    "@openshift/dynamic-plugin-sdk": "^9.1.0",
+    "@types/node": "^20.19.0"
+  }
+}

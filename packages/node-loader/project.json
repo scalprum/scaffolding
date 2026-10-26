@@ -1,0 +1,36 @@
+{
+  "name": "@scalprum/node-loader",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/node-loader/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@scalprum/build-utils:builder",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/node-loader",
+        "esmTsConfig": "packages/node-loader/tsconfig.esm.json",
+        "cjsTsConfig": "packages/node-loader/tsconfig.cjs.json",
+        "assets": ["packages/node-loader/README.md", "packages/node-loader/esm"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/node-loader/**/*.ts", "packages/node-loader/package.json"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "dependsOn": ["build"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/node-loader/jest.config.ts"
+      }
+    },
+    "typecheck": {
+      "command": "tsc -p packages/node-loader/tsconfig.esm.json --noEmit"
+    }
+  }
+}
