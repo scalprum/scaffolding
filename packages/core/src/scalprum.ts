@@ -1,4 +1,12 @@
-import { PluginStore, FeatureFlags, PluginLoaderOptions, PluginStoreOptions, PluginManifest } from '@openshift/dynamic-plugin-sdk';
+import {
+  PluginStore,
+  FeatureFlags,
+  PluginLoaderInterface,
+  PluginLoaderOptions,
+  PluginStoreOptions,
+  PluginManifest,
+  PluginEntryModule,
+} from '@openshift/dynamic-plugin-sdk';
 import { warnDuplicatePkg } from './warnDuplicatePkg';
 import type { RemoteModule } from './remote-types';
 export const GLOBAL_NAMESPACE = '__scalprum__';
@@ -63,6 +71,7 @@ declare let __webpack_share_scopes__: any;
 const SHARED_SCOPE_NAME = 'default';
 
 let scalprum: Scalprum | undefined;
+let configuredLoader: PluginLoaderInterface | undefined;
 
 export const getModuleIdentifier = (scope: string, module: string) => `${scope}#${module}`;
 
@@ -223,6 +232,7 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   appsConfig,
   api,
   options,
+  loader,
   pluginStoreFeatureFlags = {},
   pluginLoaderOptions = {},
   pluginStoreOptions = {},
@@ -230,11 +240,19 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   appsConfig: AppsConfig;
   api?: T;
   options?: Partial<ScalprumOptions>;
+  loader?: PluginLoaderInterface;
   pluginStoreFeatureFlags?: FeatureFlags;
   pluginLoaderOptions?: PluginLoaderOptions;
   pluginStoreOptions?: PluginStoreOptions;
 }): Scalprum<T> => {
+  if (loader && Object.keys(pluginLoaderOptions).length > 0) {
+    throw new Error('pluginLoaderOptions cannot be used with a custom loader. Configure the loader directly.');
+  }
+
   if (scalprum) {
+    if (loader !== configuredLoader) {
+      throw new Error('Scalprum is already initialized with a different loader. Call removeScalprum before changing loaders.');
+    }
     scalprum.api = api || {};
     scalprum.appsConfig = appsConfig;
     scalprum.scalprumOptions = {
@@ -246,19 +264,20 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
   }
   const defaultOptions: ScalprumOptions = {
     cacheTimeout: 120,
-    enableScopeWarning: global?.process?.env?.NODE_ENV === 'development',
+    enableScopeWarning: globalThis.process?.env?.NODE_ENV === 'development',
     ...options,
   };
 
-  // Create new plugin store
-  const pluginStore = new PluginStore({
-    ...pluginStoreOptions,
-    loaderOptions: {
-      sharedScope: getSharedScope(defaultOptions.enableScopeWarning),
-      getPluginEntryModule: ({ name }) => (window as { [key: string]: any })[name],
-      ...pluginLoaderOptions,
-    },
-  });
+  const pluginStore = loader
+    ? new PluginStore({ ...pluginStoreOptions, loader })
+    : new PluginStore({
+        ...pluginStoreOptions,
+        loaderOptions: {
+          sharedScope: getSharedScope(defaultOptions.enableScopeWarning),
+          getPluginEntryModule: ({ name }) => (globalThis as unknown as Record<string, PluginEntryModule | undefined>)[name],
+          ...pluginLoaderOptions,
+        },
+      });
   pluginStore.setFeatureFlags(pluginStoreFeatureFlags);
 
   scalprum = {
@@ -272,12 +291,14 @@ export const initialize = <T extends Record<string, any> = Record<string, any>>(
     api: api || {},
     pluginStore,
   };
+  configuredLoader = loader;
 
   return scalprum as Scalprum<T>;
 };
 
 export const removeScalprum = () => {
   scalprum = undefined;
+  configuredLoader = undefined;
 };
 
 export const getAppData = (name: string): AppMetadata => getScalprum().appsConfig[name];

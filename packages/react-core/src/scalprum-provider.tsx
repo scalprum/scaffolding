@@ -1,7 +1,14 @@
 import React, { PropsWithChildren, useMemo } from 'react';
 import { initialize, AppsConfig, Scalprum } from '@scalprum/core';
 import { ScalprumContext } from './scalprum-context';
-import { FeatureFlags, PluginLoaderOptions, PluginManifest, PluginStoreOptions, PluginStoreProvider } from '@openshift/dynamic-plugin-sdk';
+import {
+  FeatureFlags,
+  PluginLoaderInterface,
+  PluginLoaderOptions,
+  PluginManifest,
+  PluginStoreOptions,
+  PluginStoreProvider,
+} from '@openshift/dynamic-plugin-sdk';
 import { RemoteHookProvider } from './remote-hook-provider';
 
 /**
@@ -21,6 +28,7 @@ export type ScalprumProviderConfigurableProps<T extends Record<string, any> = Re
   config: AppsConfig;
   api?: T;
   children?: React.ReactNode;
+  loader?: PluginLoaderInterface;
   pluginSDKOptions?: {
     pluginStoreFeatureFlags?: FeatureFlags;
     pluginLoaderOptions?: PluginLoaderOptions & {
@@ -32,8 +40,7 @@ export type ScalprumProviderConfigurableProps<T extends Record<string, any> = Re
 }>;
 
 export type ScalprumProviderProps<T extends Record<string, any> = Record<string, any>> =
-  | ScalprumProviderInstanceProps<T>
-  | ScalprumProviderConfigurableProps<T>;
+  ScalprumProviderInstanceProps<T> | ScalprumProviderConfigurableProps<T>;
 
 function baseTransformPluginManifest<T extends PluginManifest>(manifest: T): T {
   if ('loadScripts' in manifest) {
@@ -42,15 +49,17 @@ function baseTransformPluginManifest<T extends PluginManifest>(manifest: T): T {
   return manifest;
 }
 
-export function ScalprumProvider<T extends Record<string, any> = Record<string, any>>(
-  props: ScalprumProviderProps<T>,
-): React.ReactElement<any> {
+export function ScalprumProvider<T extends Record<string, any> = Record<string, any>>(props: ScalprumProviderProps<T>): React.ReactElement<any> {
   const state: Scalprum<T> = useMemo(() => {
     if (isInstanceProps(props)) {
       return props.scalprum;
     }
 
-    const { config, api, pluginSDKOptions } = props;
+    const { config, api, loader, pluginSDKOptions } = props;
+    if (loader) {
+      return initialize<T>({ appsConfig: config, api, loader, ...pluginSDKOptions });
+    }
+
     const { postProcessManifest, transformPluginManifest } = pluginSDKOptions?.pluginLoaderOptions || {};
     // SDK v4 and v5 compatibility layer
     const internalTransformPluginManifest: PluginLoaderOptions['transformPluginManifest'] =
@@ -74,7 +83,7 @@ export function ScalprumProvider<T extends Record<string, any> = Record<string, 
     });
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-  }, [props.api, props.config, props.scalprum]);
+  }, [props.api, props.config, props.scalprum, props.loader]);
 
   const value = useMemo(
     () => ({
