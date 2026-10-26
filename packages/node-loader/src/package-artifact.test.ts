@@ -33,11 +33,47 @@ const npmInstallTimeoutMs = 240_000;
 const runtimeTimeoutMs = 30_000;
 const typecheckTimeoutMs = 60_000;
 
+async function runCompiler(args: string[], options: { cwd: string; timeout: number }): Promise<void> {
+  try {
+    await execFileAsync(process.execPath, args, options);
+  } catch (error: unknown) {
+    const output = (name: 'stdout' | 'stderr'): string =>
+      typeof error === 'object' && error !== null && name in error && typeof error[name] === 'string' ? error[name] : '';
+    const reason = error instanceof Error ? error.message : String(error);
+
+    throw Object.assign(new Error(`TypeScript compiler subprocess failed: ${reason}\nstdout:\n${output('stdout')}\nstderr:\n${output('stderr')}`), {
+      cause: error,
+    });
+  }
+}
+
 async function readManifest(path: string): Promise<PackageManifest> {
   return JSON.parse(await readFile(path, 'utf8')) as PackageManifest;
 }
 
 describe('@scalprum/node-loader package boundary', () => {
+  it('includes compiler stdout and stderr when the compiler subprocess fails', async () => {
+    const stdout = 'compiler stdout diagnostic';
+    const stderr = 'compiler stderr diagnostic';
+    let failure: unknown;
+
+    try {
+      await runCompiler(
+        ['--eval', `process.stdout.write(${JSON.stringify(stdout)}); process.stderr.write(${JSON.stringify(stderr)}); process.exitCode = 1;`],
+        { cwd: workspaceRoot, timeout: runtimeTimeoutMs },
+      );
+    } catch (error: unknown) {
+      failure = error;
+    }
+
+    expect(failure).toBeInstanceOf(Error);
+    const compilerError = failure as Error & { cause?: unknown };
+    expect(compilerError.message).toContain('TypeScript compiler subprocess failed');
+    expect(compilerError.message).toContain(stdout);
+    expect(compilerError.message).toContain(stderr);
+    expect(compilerError.cause).toBeInstanceOf(Error);
+  });
+
   it('declares host-provided runtimes and package-local Node types only', async () => {
     const manifest = await readManifest(sourceManifestPath);
     const coreManifest = await readManifest(resolve(workspaceRoot, 'packages/core/package.json'));
@@ -166,7 +202,7 @@ describe('@scalprum/node-loader package boundary', () => {
           2,
         ),
       );
-      await execFileAsync(process.execPath, [typescriptPath, '--project', 'tsconfig.json'], {
+      await runCompiler([typescriptPath, '--project', 'tsconfig.json'], {
         cwd: consumerRoot,
         timeout: typecheckTimeoutMs,
       });
