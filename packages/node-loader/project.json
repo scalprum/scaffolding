@@ -3,6 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/node-loader/src",
   "projectType": "library",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@scalprum/build-utils:builder",
@@ -31,6 +32,11 @@
     },
     "typecheck": {
       "command": "tsc -p packages/node-loader/tsconfig.esm.json --noEmit"
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
     }
   }
 }
