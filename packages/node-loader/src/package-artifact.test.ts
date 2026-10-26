@@ -1,6 +1,7 @@
-import { access, readFile } from 'fs/promises';
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { execFile } from 'child_process';
-import { resolve } from 'path';
+import { tmpdir } from 'os';
+import { join, resolve } from 'path';
 import { promisify } from 'util';
 import { pathToFileURL } from 'url';
 
@@ -22,9 +23,15 @@ type PackageManifest = {
   types?: string;
 };
 
+type PackResult = { filename: string }[];
+
 const workspaceRoot = process.cwd();
 const sourceManifestPath = resolve(workspaceRoot, 'packages/node-loader/package.json');
 const artifactPath = resolve(workspaceRoot, 'dist/packages/node-loader');
+const npmPackTimeoutMs = 30_000;
+const npmInstallTimeoutMs = 240_000;
+const runtimeTimeoutMs = 30_000;
+const typecheckTimeoutMs = 60_000;
 
 async function readManifest(path: string): Promise<PackageManifest> {
   return JSON.parse(await readFile(path, 'utf8')) as PackageManifest;
@@ -79,4 +86,92 @@ describe('@scalprum/node-loader package boundary', () => {
       `const value = await import(${JSON.stringify(pathToFileURL(esmPath).href)}); if (Object.keys(value).length) process.exit(1);`,
     ]);
   });
+
+  it('runs as an installed package from an isolated consumer', async () => {
+    const temporaryRoot = await mkdtemp(join(tmpdir(), 'scalprum-node-loader-consumer-'));
+    const consumerRoot = join(temporaryRoot, 'consumer');
+
+    try {
+      await mkdir(consumerRoot);
+      const manifest = await readManifest(resolve(artifactPath, 'package.json'));
+      const peerDependencies = Object.entries(manifest.peerDependencies ?? {});
+      expect(peerDependencies.length).toBeGreaterThan(0);
+
+      const packResult = await execFileAsync('npm', ['pack', artifactPath, '--pack-destination', temporaryRoot, '--json'], {
+        cwd: workspaceRoot,
+        timeout: npmPackTimeoutMs,
+        maxBuffer: 10 * 1024 * 1024,
+      });
+      const [{ filename }] = JSON.parse(packResult.stdout) as PackResult;
+      const tarballPath = join(temporaryRoot, filename);
+
+      await writeFile(resolve(consumerRoot, 'package.json'), JSON.stringify({ name: 'node-loader-consumer', private: true }, null, 2));
+      await execFileAsync(
+        'npm',
+        [
+          'install',
+          '--no-save',
+          '--package-lock=false',
+          '--no-audit',
+          '--no-fund',
+          '--offline=false',
+          tarballPath,
+          ...peerDependencies.map(([name, range]) => `${name}@${range}`),
+        ],
+        { cwd: consumerRoot, timeout: npmInstallTimeoutMs, maxBuffer: 10 * 1024 * 1024 },
+      );
+
+      await execFileAsync(
+        process.execPath,
+        [
+          '--eval',
+          `const value = require('@scalprum/node-loader'); if (Object.keys(value).length !== 0) throw new Error('Expected empty CommonJS exports');`,
+        ],
+        { cwd: consumerRoot, timeout: runtimeTimeoutMs },
+      );
+      await execFileAsync(
+        process.execPath,
+        [
+          '--input-type=module',
+          '--eval',
+          `import * as value from '@scalprum/node-loader'; if (Object.keys(value).length !== 0) throw new Error('Expected empty ESM exports');`,
+        ],
+        { cwd: consumerRoot, timeout: runtimeTimeoutMs },
+      );
+
+      const typescriptPath = resolve(workspaceRoot, 'node_modules/typescript/bin/tsc');
+      await writeFile(
+        resolve(consumerRoot, 'consumer.cts'),
+        "import loader = require('@scalprum/node-loader');\nconst empty: typeof loader = {};\nexport {};\n",
+      );
+      await writeFile(
+        resolve(consumerRoot, 'consumer.mts'),
+        "import * as loader from '@scalprum/node-loader';\nconst empty: typeof loader = {};\nexport {};\n",
+      );
+      await writeFile(
+        resolve(consumerRoot, 'tsconfig.json'),
+        JSON.stringify(
+          {
+            compilerOptions: {
+              strict: true,
+              noEmit: true,
+              module: 'NodeNext',
+              moduleResolution: 'NodeNext',
+              target: 'ES2022',
+              types: [],
+            },
+            files: ['consumer.cts', 'consumer.mts'],
+          },
+          null,
+          2,
+        ),
+      );
+      await execFileAsync(process.execPath, [typescriptPath, '--project', 'tsconfig.json'], {
+        cwd: consumerRoot,
+        timeout: typecheckTimeoutMs,
+      });
+    } finally {
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
+  }, 450_000);
 });
