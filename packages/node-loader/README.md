@@ -1,6 +1,6 @@
 # @scalprum/node-loader
 
-> **Draft:** Focused isolated regression and strict TypeScript checks pass. A real bundled CJS host/producer acceptance run remains outstanding. This package is not published by this change.
+> **Draft:** Focused isolated unit and strict declaration-consumer checks pass. Nx package-artifact and real bundled CJS host/producer acceptance remain outstanding. This package is not published by this change.
 
 Node adapter for the SDK 9.1 `PluginLoaderInterface`.
 
@@ -29,7 +29,7 @@ The adapter uses the already initialized `@module-federation/enhanced` singleton
 - `fetchImpl`, `transformPluginManifest<T>`, and `canLoadPlugin(manifest, reload)` are honored.
 - URL manifest loading uses `fetchImpl(url, { cache: 'no-cache' })` and basic remote-manifest validation. Transform results are cached by original object identity; transform receives an SDK-cloned manifest, leaving the caller's object unchanged.
 - Local manifests load without a federation runtime. Remote `custom` registration is supported; `callback` registration is rejected with an SDK failure result.
-- Remote entry is selected from the transformed `loadScripts` by its declared `remoteEntry` filename. Its exact URL, prefix, and query are retained; registration type is `commonjs-module`. No first-script selection or base-URL derivation.
+- Remote entry is selected from the transformed `loadScripts` by its declared `remoteEntry` filename. Supported basenames are `remoteEntry`, `remoteEntry.js`, `remoteEntry.cjs`, `remoteEntry.mjs`, and their hashed forms (`remoteEntry.<hash>.<ext>`). Arbitrary custom filenames are rejected rather than guessed from script order. The exact URL, prefix, and query are retained; registration type is `commonjs-module`. No first-script selection or base-URL derivation.
 - SDK encoded refs retain SDK 9.1 syntax: `{ $codeRef: 'command' }` selects the default export and `{ $codeRef: 'command.named' }` selects `named`. SDK `parseEncodedCodeRef`, `isEncodedCodeRef`, `applyCodeRefSymbol`, and `CodeRef` preserve parsing and marker identity. References stay lazy; the SDK entry module maps `command`/`./command` to enhanced request `pluginName/command`. A nullish result from `loadRemote` rejects the module request rather than returning a factory that yields no module.
 - `canReloadScript`, `entryCallbackSettings`, `customDependencyResolutions`, `isDependencyResolvable`, and `getPluginEntryModule` are rejected rather than silently ignored. Plugin dependency resolution is also unsupported and returns an SDK failure result.
 
@@ -45,7 +45,7 @@ The intended runtime is a Node process hosting an Rspack-bundled federation host
 
 ## Verification
 
-Unit tests cover SDK result shapes, remote/local manifest paths, generic transform caching, CodeRef decoding and laziness, exact remote-entry registration, readiness acquisition/initialization, repeated and cross-loader coalescing, failure/retry behavior, nullish module results, frozen-manifest immutability, host absence, and option rejection. Isolated verification on Node 24.21.0 passed 11 Jest 29.7 tests using TypeScript 5.8.3 transpilation, SDK 9.1.0, and Enhanced 2.9.0. Strict semantic checking of `index.ts` and `index.test.ts` also passed with TypeScript 5.8.3 and isolated Jest/Node types. These isolated checks are not Nx workspace target runs, package artifact checks, or real Enhanced-host integration. The HTTP CJS producer/host scenario, exposed-module requests, and React-hook checks in development/production remain outstanding; mock tests are not runtime acceptance evidence.
+Unit tests cover SDK result shapes, remote/local manifest paths, generic transform caching, CodeRef decoding and laziness, exact and hashed remote-entry registration, custom-entry rejection, readiness acquisition/initialization, repeated and cross-loader coalescing, failure/retry and reload behavior, nullish module results, frozen-manifest immutability, host absence, and option rejection. Isolated verification on Node 24.21.0 passed 17 Jest 29.7 tests using TypeScript 5.8.3 transpilation, SDK 9.1.0, and Enhanced 2.9.0. A generated-declaration CJS/ESM consumer simulation also passed strict TypeScript checking with `skipLibCheck: false` and `@types/react` 18.3.18. These isolated checks are not Nx workspace target runs, package artifact checks, or real Enhanced-host integration. The HTTP CJS producer/host scenario, exposed-module requests, and React-hook checks in development/production remain outstanding; mock tests are not runtime acceptance evidence.
 
 ```bash
 npm exec nx show projects
@@ -56,4 +56,4 @@ npm exec nx run @scalprum/node-loader:lint
 npm exec nx run @scalprum/node-loader:typecheck
 ```
 
-The SDK and enhanced runtime remain host-provided peers. The SDK peer range matches `@scalprum/core`; `CodeRef` markers are module-instance-specific, so host and adapter must resolve the same SDK instance.
+The SDK and enhanced runtime remain host-provided peers. The SDK peer range matches `@scalprum/core`; `CodeRef` markers are module-instance-specific, so host and adapter must resolve the same SDK instance. The SDK's declarations import React types, so strict TypeScript consumers must install `@types/react` as a dev dependency; this package keeps the SDK as a direct peer/dev dependency and does not hide declaration errors with `skipLibCheck`.

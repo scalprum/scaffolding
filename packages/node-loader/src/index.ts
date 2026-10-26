@@ -45,7 +45,7 @@ export interface NodePluginLoaderOptions extends Partial<PluginLoaderOptions> {
 }
 
 const readiness = new WeakMap<EnhancedRuntime, Map<string, Promise<void>>>();
-const remoteEntryPattern = /^remoteEntry(?:\.(?:js|cjs|mjs))?$/i;
+const remoteEntryPattern = /^remoteEntry(?:\.(?:js|cjs|mjs)|\.[\w-]+\.(?:js|cjs|mjs))?$/i;
 
 function isEnhancedRuntime(value: unknown): value is EnhancedRuntime {
   return (
@@ -235,7 +235,7 @@ function decodeCodeRefs(extension: LoadedExtension, entryModule: PluginEntryModu
 }
 
 function createLoadedExtensions(manifest: PluginManifest, entryModule?: PluginEntryModule): LoadedExtension[] {
-  const buildHash = manifest.registrationMethod === 'local' ? randomUUID() : manifest.buildHash ?? randomUUID();
+  const buildHash = manifest.registrationMethod === 'local' ? randomUUID() : (manifest.buildHash ?? randomUUID());
 
   return manifest.extensions.map((extension, index) => {
     const loaded = Object.assign(cloneDeepOnlyCloneableValues(extension), {
@@ -356,11 +356,15 @@ export function createNodePluginLoader(options: NodePluginLoaderOptions = {}): P
       }
 
       const reload = processedPlugins.has(manifest.name);
-      processedPlugins.add(manifest.name);
       const request = loadPluginOnce(manifest, reload);
       pendingLoads.set(manifest.name, request);
       request.then(
-        () => pendingLoads.delete(manifest.name),
+        (result) => {
+          if (result.success) {
+            processedPlugins.add(manifest.name);
+          }
+          pendingLoads.delete(manifest.name);
+        },
         () => pendingLoads.delete(manifest.name),
       );
       return request;

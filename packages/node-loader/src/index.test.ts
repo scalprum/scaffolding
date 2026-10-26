@@ -188,6 +188,33 @@ describe('@scalprum/node-loader SDK contract', () => {
     expect(original.loadScripts[1]).toBe(originalEntry);
   });
 
+  it.each(['remoteEntry.abc123.js', 'remoteEntry.abc123.cjs', 'remoteEntry.abc123.mjs'])(
+    'recognizes hashed remote entry filename %s without selecting other scripts',
+    async (filename) => {
+      const entry = `https://cdn.example.test/plugins/${filename}?build=42`;
+      const registerRemotes = jest.fn();
+      const result = await createNodePluginLoader({ getRuntime: () => makeRuntime({ registerRemotes }) }).loadPlugin(
+        makeManifest([`/assets/${filename.replace('remoteEntry', 'chunk')}`, entry]),
+      );
+
+      expect(result.success).toBe(true);
+      expect(registerRemotes).toHaveBeenCalledWith([{ name: 'producer', entry, type: 'commonjs-module' }]);
+    },
+  );
+
+  it('rejects custom entry filenames rather than guessing from loadScripts order', async () => {
+    const registerRemotes = jest.fn();
+    const result = await createNodePluginLoader({ getRuntime: () => makeRuntime({ registerRemotes }) }).loadPlugin(
+      makeManifest(['/assets/custom-entry.cjs', '/assets/chunk.js']),
+    );
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.errorMessage).toContain('no declared remoteEntry');
+    }
+    expect(registerRemotes).not.toHaveBeenCalled();
+  });
+
   it('supports local manifests without a federation host and honors canLoadPlugin reload state', async () => {
     const local: PluginManifest = {
       name: 'local-plugin',
@@ -209,6 +236,49 @@ describe('@scalprum/node-loader SDK contract', () => {
     if (!reload.success) {
       expect(reload.errorMessage).toContain('not allowed to be reloaded');
     }
+    expect(canLoadPlugin).toHaveBeenNthCalledWith(1, local, false);
+    expect(canLoadPlugin).toHaveBeenNthCalledWith(2, local, true);
+  });
+
+  it('allows retry after an unsuccessful first load and marks only success as a reload', async () => {
+    const canLoadPlugin = jest.fn((_manifest: PluginManifest, reload: boolean) => !reload);
+    const registerRemotes = jest
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error('first registration failed');
+      })
+      .mockImplementation(() => undefined);
+    const runtime = makeRuntime({ registerRemotes });
+    const remote = makeManifest();
+    remote.name = 'retry-plugin';
+    const remoteLoader = createNodePluginLoader({
+      canLoadPlugin,
+      getRuntime: () => runtime,
+    });
+    const first = await remoteLoader.loadPlugin(remote);
+    expect(first.success).toBe(false);
+    const retry = await remoteLoader.loadPlugin(remote);
+    expect(retry.success).toBe(true);
+    const subsequentReload = await remoteLoader.loadPlugin(remote);
+    expect(subsequentReload.success).toBe(false);
+    expect(canLoadPlugin).toHaveBeenNthCalledWith(1, remote, false);
+    expect(canLoadPlugin).toHaveBeenNthCalledWith(2, remote, false);
+    expect(canLoadPlugin).toHaveBeenNthCalledWith(3, remote, true);
+    expect(registerRemotes).toHaveBeenCalledTimes(2);
+  });
+
+  it('passes reload=true for a later permitted reload after a successful load', async () => {
+    const local: PluginManifest = {
+      name: 'reload-plugin',
+      version: '1.0.0',
+      registrationMethod: 'local',
+      extensions: [],
+    };
+    const canLoadPlugin = jest.fn((_manifest: PluginManifest, _reload: boolean) => true);
+    const loader = createNodePluginLoader({ canLoadPlugin });
+
+    expect((await loader.loadPlugin(local)).success).toBe(true);
+    expect((await loader.loadPlugin(local)).success).toBe(true);
     expect(canLoadPlugin).toHaveBeenNthCalledWith(1, local, false);
     expect(canLoadPlugin).toHaveBeenNthCalledWith(2, local, true);
   });
