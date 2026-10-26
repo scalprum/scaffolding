@@ -2,8 +2,6 @@
 
 This package is an Nx scaffold only. It has no loader implementation or public loader exports; `src/index.ts` deliberately exports an empty module until implementation work in FM-116. This package is not published by this change.
 
-The `0.0.1` package version follows the design's planned one-time bootstrap version (C28); it does not imply that a release or publication occurred.
-
 ## Runtime and SDK contract
 
 - `@module-federation/enhanced` is a peer dependency because the eventual loader must use the host's runtime instance.
