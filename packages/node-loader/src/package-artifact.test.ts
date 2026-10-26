@@ -119,12 +119,16 @@ describe('@scalprum/node-loader package boundary', () => {
     const esmPath = resolve(artifactPath, manifest.exports?.['.'].import.default as string);
     await execFileAsync(process.execPath, [
       '--eval',
-      `const value = require(${JSON.stringify(cjsPath)}); if (Object.keys(value).length) process.exit(1);`,
+      `const value = require(${JSON.stringify(
+        cjsPath,
+      )}); if (typeof value.createNodePluginLoader !== 'function') throw new Error('Missing CommonJS loader factory');`,
     ]);
     await execFileAsync(process.execPath, [
       '--input-type=module',
       '--eval',
-      `const value = await import(${JSON.stringify(pathToFileURL(esmPath).href)}); if (Object.keys(value).length) process.exit(1);`,
+      `const value = await import(${JSON.stringify(
+        pathToFileURL(esmPath).href,
+      )}); if (typeof value.createNodePluginLoader !== 'function') throw new Error('Missing ESM loader factory');`,
     ]);
   });
 
@@ -158,6 +162,7 @@ describe('@scalprum/node-loader package boundary', () => {
           '--offline=false',
           tarballPath,
           ...peerDependencies.map(([name, range]) => `${name}@${range}`),
+          '@types/react@^18.3.18',
         ],
         { cwd: consumerRoot, timeout: npmInstallTimeoutMs, maxBuffer: 10 * 1024 * 1024 },
       );
@@ -166,7 +171,7 @@ describe('@scalprum/node-loader package boundary', () => {
         process.execPath,
         [
           '--eval',
-          `const value = require('@scalprum/node-loader'); if (Object.keys(value).length !== 0) throw new Error('Expected empty CommonJS exports');`,
+          `const value = require('@scalprum/node-loader'); if (typeof value.createNodePluginLoader !== 'function') throw new Error('Missing installed CommonJS loader factory');`,
         ],
         { cwd: consumerRoot, timeout: runtimeTimeoutMs },
       );
@@ -175,7 +180,7 @@ describe('@scalprum/node-loader package boundary', () => {
         [
           '--input-type=module',
           '--eval',
-          `import * as value from '@scalprum/node-loader'; if (Object.keys(value).length !== 0) throw new Error('Expected empty ESM exports');`,
+          `import * as value from '@scalprum/node-loader'; if (typeof value.createNodePluginLoader !== 'function') throw new Error('Missing installed ESM loader factory');`,
         ],
         { cwd: consumerRoot, timeout: runtimeTimeoutMs },
       );
@@ -183,11 +188,22 @@ describe('@scalprum/node-loader package boundary', () => {
       const typescriptPath = resolve(workspaceRoot, 'node_modules/typescript/bin/tsc');
       await writeFile(
         resolve(consumerRoot, 'consumer.cts'),
-        "import loader = require('@scalprum/node-loader');\nconst empty: typeof loader = {};\nexport {};\n",
+        `import loader = require('@scalprum/node-loader');
+import type { NodePluginLoaderOptions, PluginManifest } from '@scalprum/node-loader';
+const options: NodePluginLoaderOptions = { canLoadPlugin: (manifest, reload) => manifest.name.length > 0 && !reload };
+const manifest: PluginManifest = { name: 'consumer', version: '1.0.0', registrationMethod: 'local', extensions: [] };
+if (typeof loader.createNodePluginLoader !== 'function' || options.canLoadPlugin?.(manifest, false) !== true) throw new Error();
+export {};
+`,
       );
       await writeFile(
         resolve(consumerRoot, 'consumer.mts'),
-        "import * as loader from '@scalprum/node-loader';\nconst empty: typeof loader = {};\nexport {};\n",
+        `import { createNodePluginLoader, type NodePluginLoaderOptions, type PluginManifest } from '@scalprum/node-loader';
+const options: NodePluginLoaderOptions = { canLoadPlugin: (manifest, reload) => manifest.name.length > 0 && !reload };
+const manifest: PluginManifest = { name: 'consumer', version: '1.0.0', registrationMethod: 'local', extensions: [] };
+if (typeof createNodePluginLoader !== 'function' || options.canLoadPlugin?.(manifest, false) !== true) throw new Error();
+export {};
+`,
       );
       await writeFile(
         resolve(consumerRoot, 'tsconfig.json'),
@@ -199,6 +215,7 @@ describe('@scalprum/node-loader package boundary', () => {
               module: 'NodeNext',
               moduleResolution: 'NodeNext',
               target: 'ES2022',
+              skipLibCheck: false,
               types: [],
             },
             files: ['consumer.cts', 'consumer.mts'],
