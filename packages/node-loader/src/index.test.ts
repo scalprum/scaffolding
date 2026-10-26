@@ -1,10 +1,4 @@
-import {
-  isCodeRef,
-  type AnyObject,
-  type PluginLoaderOptions,
-  type PluginManifest,
-  type RemotePluginManifest,
-} from '@openshift/dynamic-plugin-sdk';
+import { isCodeRef, type AnyObject, type PluginLoaderOptions, type PluginManifest, type RemotePluginManifest } from '@openshift/dynamic-plugin-sdk';
 import { createNodePluginLoader, type EnhancedRuntime } from './index';
 
 const makeManifest = (loadScripts: string[] = ['/assets/chunk.js', '/assets/remoteEntry.cjs?v=4']): RemotePluginManifest => ({
@@ -18,6 +12,38 @@ const makeManifest = (loadScripts: string[] = ['/assets/chunk.js', '/assets/remo
     { type: 'test/extension', properties: { component: { $codeRef: 'command' } } },
   ],
 });
+
+function makeRuntime(overrides: Partial<EnhancedRuntime> = {}): EnhancedRuntime {
+  return {
+    registerRemotes: jest.fn(),
+    loadRemote: async <T extends AnyObject>(): Promise<T | null> => ({}) as T,
+    remoteHandler: {
+      getRemoteModuleAndOptions: async () => ({
+        module: { init: async () => undefined },
+        remoteMatchInfo: {},
+      }),
+    },
+    ...overrides,
+  };
+}
+
+function deepFreeze<T>(value: T): T {
+  if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
+    for (const key of Reflect.ownKeys(value)) {
+      deepFreeze(Reflect.get(value, key));
+    }
+    Object.freeze(value);
+  }
+  return value;
+}
+
+function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
 
 describe('@scalprum/node-loader SDK contract', () => {
   it('acquires and validates remote manifests with fetchImpl', async () => {
@@ -54,12 +80,21 @@ describe('@scalprum/node-loader SDK contract', () => {
 
   it('returns SDK-loaded extensions and a lazy entry module using encoded SDK code refs', async () => {
     const registerRemotes = jest.fn();
+    const initRemote = jest.fn(async () => undefined);
+    const getRemoteModuleAndOptions = jest.fn(async () => ({
+      module: { init: initRemote },
+      remoteMatchInfo: { remoteSnapshot: { modules: [] } },
+    }));
     const remoteModule: AnyObject = { default: 'default export', named: 'named export' };
-    const loadRemote = jest.fn(async <T extends AnyObject>(id: string): Promise<T> => {
+    const loadRemote = jest.fn(async <T extends AnyObject>(id: string): Promise<T | null> => {
       expect(id).toBe('producer/command');
       return remoteModule as T;
+    }) as EnhancedRuntime['loadRemote'] & jest.Mock;
+    const runtime = makeRuntime({
+      registerRemotes,
+      loadRemote,
+      remoteHandler: { getRemoteModuleAndOptions },
     });
-    const runtime: EnhancedRuntime = { registerRemotes, loadRemote };
     const loader = createNodePluginLoader({ getRuntime: () => runtime });
     const manifest = makeManifest();
     const originalJson = JSON.stringify(manifest);
@@ -73,9 +108,9 @@ describe('@scalprum/node-loader SDK contract', () => {
     expect(result.loadedExtensions[0]).toEqual(
       expect.objectContaining({ pluginName: 'producer', uid: expect.stringMatching(/^producer\[0\]_/), type: 'test/extension' }),
     );
-    expect(registerRemotes).toHaveBeenCalledWith([
-      { name: 'producer', entry: '/assets/remoteEntry.cjs?v=4', type: 'commonjs-module' },
-    ]);
+    expect(registerRemotes).toHaveBeenCalledWith([{ name: 'producer', entry: '/assets/remoteEntry.cjs?v=4', type: 'commonjs-module' }]);
+    expect(getRemoteModuleAndOptions).toHaveBeenCalledWith({ id: 'producer' });
+    expect(initRemote).toHaveBeenCalledWith('producer', { modules: [] });
     expect(JSON.stringify(manifest)).toBe(originalJson);
     expect(result.entryModule).toBeDefined();
     expect(loadRemote).not.toHaveBeenCalled();
@@ -96,9 +131,61 @@ describe('@scalprum/node-loader SDK contract', () => {
     await expect(defaultComponent()).resolves.toBe('default export');
     expect(loadRemote).toHaveBeenCalledTimes(2);
 
-    const moduleFactory = await result.entryModule?.get('./command');
+    if (!result.entryModule) {
+      throw new Error('Expected a loaded entry module');
+    }
+    const moduleFactory = await result.entryModule.get('./command');
     expect(moduleFactory().named).toBe('named export');
     expect(loadRemote).toHaveBeenCalledWith('producer/command');
+  });
+
+  it.each([null, undefined])('rejects nullish module result %s instead of returning a misleading factory', async (missing) => {
+    const runtime = makeRuntime({ loadRemote: async <T extends AnyObject>() => missing as unknown as T | null });
+    const loader = createNodePluginLoader({ getRuntime: () => runtime });
+    const result = await loader.loadPlugin(makeManifest());
+
+    expect(result.success).toBe(true);
+    if (!result.success || !result.entryModule) {
+      throw new Error('Expected a loaded remote entry module');
+    }
+
+    await expect(result.entryModule.get('./command')).rejects.toThrow(
+      'Enhanced runtime returned no module for plugin "producer" request "./command".',
+    );
+  });
+
+  it('decodes CodeRefs from deeply frozen manifests without mutating the source', async () => {
+    const manifest = deepFreeze(makeManifest());
+    const originalJson = JSON.stringify(manifest);
+    const loader = createNodePluginLoader({ getRuntime: () => makeRuntime() });
+
+    const result = await loader.loadPlugin(manifest);
+
+    expect(result.success).toBe(true);
+    expect(JSON.stringify(manifest)).toBe(originalJson);
+    if (result.success) {
+      expect(isCodeRef(result.loadedExtensions[0].properties.component)).toBe(true);
+    }
+  });
+
+  it('registers the exact remoteEntry URL and query from the transformed manifest', async () => {
+    const entry = 'https://cdn.example.test/plugins/v7/remoteEntry.cjs?build=42&kind=cjs';
+    const registerRemotes = jest.fn();
+    const transformPluginManifest: NonNullable<PluginLoaderOptions['transformPluginManifest']> = <T extends PluginManifest>(manifest: T): T => {
+      (manifest as RemotePluginManifest).loadScripts = ['/assets/chunk.js', entry];
+      return manifest;
+    };
+    const runtime = makeRuntime({ registerRemotes });
+    const loader = createNodePluginLoader({ getRuntime: () => runtime, transformPluginManifest });
+    const original = makeManifest();
+    const originalEntry = original.loadScripts[1];
+    const transformed = loader.transformPluginManifest(original);
+
+    const result = await loader.loadPlugin(transformed);
+
+    expect(result.success).toBe(true);
+    expect(registerRemotes).toHaveBeenCalledWith([{ name: 'producer', entry, type: 'commonjs-module' }]);
+    expect(original.loadScripts[1]).toBe(originalEntry);
   });
 
   it('supports local manifests without a federation host and honors canLoadPlugin reload state', async () => {
@@ -126,27 +213,79 @@ describe('@scalprum/node-loader SDK contract', () => {
     expect(canLoadPlugin).toHaveBeenNthCalledWith(2, local, true);
   });
 
-  it('coalesces concurrent registration and resolves loader errors as SDK failure results', async () => {
-    let finishRegistration: (() => void) | undefined;
-    const registerRemotes = jest.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          finishRegistration = resolve;
-        }),
-    );
-    const runtime: EnhancedRuntime = {
+  it('awaits remote acquisition and initialization while coalescing readiness across loaders', async () => {
+    const registration = deferred<void>();
+    const acquisition = deferred<{
+      module: { init: () => Promise<void> };
+      remoteMatchInfo: { remoteSnapshot: { modules: string[] } };
+    }>();
+    const initialization = deferred<void>();
+    const acquireStarted = deferred<void>();
+    const initStarted = deferred<void>();
+    const registerRemotes = jest.fn(() => registration.promise);
+    const getRemoteModuleAndOptions = jest.fn(() => {
+      acquireStarted.resolve(undefined);
+      return acquisition.promise;
+    });
+    const initRemote = jest.fn(() => {
+      initStarted.resolve(undefined);
+      return initialization.promise;
+    });
+    const runtime = makeRuntime({
       registerRemotes,
-      loadRemote: async <T extends AnyObject>() => ({} as T),
-    };
-    const loader = createNodePluginLoader({ getRuntime: () => runtime });
+      remoteHandler: { getRemoteModuleAndOptions },
+    });
+    const loaderA = createNodePluginLoader({ getRuntime: () => runtime });
+    const loaderB = createNodePluginLoader({ getRuntime: () => runtime });
     const manifest = makeManifest();
 
-    const first = loader.loadPlugin(manifest);
-    const second = loader.loadPlugin(manifest);
+    const first = loaderA.loadPlugin(manifest);
+    const second = loaderB.loadPlugin(manifest);
+    await Promise.resolve();
     expect(registerRemotes).toHaveBeenCalledTimes(1);
-    finishRegistration?.();
+    registration.resolve(undefined);
+    await acquireStarted.promise;
+    expect(getRemoteModuleAndOptions).toHaveBeenCalledTimes(1);
+
+    let firstSettled = false;
+    let secondSettled = false;
+    void first.then(() => {
+      firstSettled = true;
+    });
+    void second.then(() => {
+      secondSettled = true;
+    });
+    acquisition.resolve({
+      module: { init: initRemote },
+      remoteMatchInfo: { remoteSnapshot: { modules: ['command'] } },
+    });
+    await initStarted.promise;
+    await Promise.resolve();
+    expect(firstSettled).toBe(false);
+    expect(secondSettled).toBe(false);
+    expect(initRemote).toHaveBeenCalledWith('producer', { modules: ['command'] });
+    initialization.resolve(undefined);
     expect((await first).success).toBe(true);
     expect((await second).success).toBe(true);
+    expect(registerRemotes).toHaveBeenCalledTimes(1);
+    expect(getRemoteModuleAndOptions).toHaveBeenCalledTimes(1);
+    expect(initRemote).toHaveBeenCalledTimes(1);
+
+    const repeatedLoad = await loaderA.loadPlugin(manifest);
+    expect(repeatedLoad.success).toBe(true);
+    expect(registerRemotes).toHaveBeenCalledTimes(1);
+    expect(getRemoteModuleAndOptions).toHaveBeenCalledTimes(1);
+    expect(initRemote).toHaveBeenCalledTimes(1);
+
+    const missingReadinessApi = await createNodePluginLoader({
+      getRuntime: () => makeRuntime({ version: '2.8.0', remoteHandler: undefined }),
+    }).loadPlugin(manifest);
+    expect(missingReadinessApi.success).toBe(false);
+    if (!missingReadinessApi.success) {
+      expect(missingReadinessApi.errorMessage).toContain('Unsupported @module-federation/enhanced host runtime');
+      expect(missingReadinessApi.errorMessage).toContain('version "2.8.0"');
+      expect(missingReadinessApi.errorMessage).toContain('remoteHandler.getRemoteModuleAndOptions');
+    }
 
     const missingHost = await createNodePluginLoader({ getRuntime: () => undefined }).loadPlugin(manifest);
     expect(missingHost.success).toBe(false);
@@ -154,24 +293,66 @@ describe('@scalprum/node-loader SDK contract', () => {
       expect(missingHost.errorMessage).toContain('Initialize the host first');
     }
 
-    const invalidEntry = await loader.loadPlugin(makeManifest(['/assets/chunk.js']));
+    const invalidEntry = await loaderA.loadPlugin(makeManifest(['/assets/chunk.js']));
     expect(invalidEntry.success).toBe(false);
     if (!invalidEntry.success) {
       expect(invalidEntry.errorMessage).toContain('no declared remoteEntry');
     }
 
-    const failedRuntime: EnhancedRuntime = {
+    const failedRuntime = makeRuntime({
       registerRemotes: () => {
         throw new Error('host registration failed');
       },
-      loadRemote: async <T extends AnyObject>() => ({} as T),
-    };
+    });
     const failed = await createNodePluginLoader({ getRuntime: () => failedRuntime }).loadPlugin(makeManifest());
     expect(failed.success).toBe(false);
     if (!failed.success) {
       expect(failed.errorMessage).toContain('host registration failed');
       expect(failed.errorCause).toEqual(new Error('host registration failed'));
     }
+  });
+
+  it('returns acquisition and initialization failures as SDK failures and evicts failed readiness for retry', async () => {
+    const acquisitionError = new Error('container acquisition failed');
+    const acquisitionFailure = makeRuntime({
+      remoteHandler: {
+        getRemoteModuleAndOptions: async () => {
+          throw acquisitionError;
+        },
+      },
+    });
+    const acquisitionResult = await createNodePluginLoader({ getRuntime: () => acquisitionFailure }).loadPlugin(makeManifest());
+    expect(acquisitionResult.success).toBe(false);
+    if (!acquisitionResult.success) {
+      expect(acquisitionResult.errorMessage).toContain('container acquisition failed');
+      expect(acquisitionResult.errorCause).toBe(acquisitionError);
+    }
+
+    const initializationError = new Error('container initialization failed');
+    const registerRemotes = jest.fn();
+    const initRemote = jest.fn(async (): Promise<void> => undefined);
+    initRemote.mockRejectedValueOnce(initializationError).mockResolvedValueOnce(undefined);
+    const getRemoteModuleAndOptions = jest.fn(async () => ({
+      module: { init: initRemote },
+      remoteMatchInfo: {},
+    }));
+    const retryRuntime = makeRuntime({
+      registerRemotes,
+      remoteHandler: { getRemoteModuleAndOptions },
+    });
+    const retryLoader = createNodePluginLoader({ getRuntime: () => retryRuntime });
+
+    const firstAttempt = await retryLoader.loadPlugin(makeManifest());
+    expect(firstAttempt.success).toBe(false);
+    if (!firstAttempt.success) {
+      expect(firstAttempt.errorMessage).toContain('container initialization failed');
+      expect(firstAttempt.errorCause).toBe(initializationError);
+    }
+    const retry = await retryLoader.loadPlugin(makeManifest());
+    expect(retry.success).toBe(true);
+    expect(registerRemotes).toHaveBeenCalledTimes(2);
+    expect(getRemoteModuleAndOptions).toHaveBeenCalledTimes(2);
+    expect(initRemote).toHaveBeenCalledTimes(2);
   });
 
   it('rejects unsupported SDK options, with exact shared-scope guidance', () => {

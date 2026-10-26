@@ -19,10 +19,24 @@ import {
 
 type RemoteConfig = { name: string; entry: string; type: 'commonjs-module' };
 
+/** Public Module surface used for container acquisition and host-managed initialization. */
+interface EnhancedRemoteModule {
+  init(id?: string, remoteSnapshot?: unknown): Promise<unknown>;
+}
+
+interface EnhancedRemoteHandler {
+  getRemoteModuleAndOptions(options: { id: string }): Promise<{
+    module: EnhancedRemoteModule;
+    remoteMatchInfo: { remoteSnapshot?: unknown };
+  }>;
+}
+
 /** Subset of an initialized enhanced runtime used by this adapter. */
 export interface EnhancedRuntime {
+  version?: string;
   registerRemotes(remotes: RemoteConfig[]): unknown;
-  loadRemote<T extends AnyObject>(id: string): Promise<T>;
+  loadRemote<T extends AnyObject>(id: string): Promise<T | null>;
+  remoteHandler?: Partial<EnhancedRemoteHandler>;
 }
 
 export interface NodePluginLoaderOptions extends Partial<PluginLoaderOptions> {
@@ -75,10 +89,7 @@ function isRemotePluginManifest(value: unknown): value is RemotePluginManifest {
       }
       const properties = Reflect.get(extension, 'properties');
       return (
-        typeof Reflect.get(extension, 'type') === 'string' &&
-        typeof properties === 'object' &&
-        properties !== null &&
-        !Array.isArray(properties)
+        typeof Reflect.get(extension, 'type') === 'string' && typeof properties === 'object' && properties !== null && !Array.isArray(properties)
       );
     }) &&
     Array.isArray(loadScripts) &&
@@ -103,14 +114,21 @@ function findRemoteEntry(manifest: RemotePluginManifest): string {
 }
 
 function getModuleRequest(pluginName: string, publicCommand: string): string {
-  const unqualified = publicCommand.startsWith(`${pluginName}/`)
-    ? publicCommand.slice(pluginName.length + 1)
-    : publicCommand;
+  const unqualified = publicCommand.startsWith(`${pluginName}/`) ? publicCommand.slice(pluginName.length + 1) : publicCommand;
   const expose = unqualified.startsWith('./') ? unqualified.slice(2) : unqualified;
   if (!expose) {
     throw new Error(`Plugin "${pluginName}" has an empty exposed module request.`);
   }
   return `${pluginName}/${expose}`;
+}
+
+function readinessApiError(runtime: EnhancedRuntime): string {
+  const version = typeof runtime.version === 'string' ? runtime.version : 'unknown';
+  return (
+    `Unsupported @module-federation/enhanced host runtime version "${version}": remote readiness requires the Enhanced 2.9.0 API ` +
+    'remoteHandler.getRemoteModuleAndOptions({ id }) and the returned module.init(id, remoteSnapshot). ' +
+    'Initialize a compatible Enhanced host before loading plugins.'
+  );
 }
 
 function registerRemote(runtime: EnhancedRuntime, manifest: RemotePluginManifest, entry: string): Promise<void> {
@@ -126,11 +144,29 @@ function registerRemote(runtime: EnhancedRuntime, manifest: RemotePluginManifest
     return existing;
   }
 
-  const pending = Promise.resolve(
-    runtime.registerRemotes([{ name: manifest.name, entry, type: 'commonjs-module' }]),
-  ).then(() => undefined);
+  const pending = Promise.resolve().then(async () => {
+    const remoteHandler = runtime.remoteHandler;
+    if (typeof remoteHandler?.getRemoteModuleAndOptions !== 'function') {
+      throw new Error(readinessApiError(runtime));
+    }
+
+    await runtime.registerRemotes([{ name: manifest.name, entry, type: 'commonjs-module' }]);
+
+    const { module, remoteMatchInfo } = await remoteHandler.getRemoteModuleAndOptions({ id: manifest.name });
+    if (!module || typeof module.init !== 'function') {
+      throw new Error(`Enhanced runtime returned no initializable module for plugin "${manifest.name}".`);
+    }
+
+    // Enhanced Module.init owns remoteEntry acquisition and all host share-scope/container setup.
+    // Deliberately do not call remoteEntryExports.init or request/execute an exposed module here.
+    await module.init(manifest.name, remoteMatchInfo?.remoteSnapshot);
+  });
   cache.set(key, pending);
-  pending.catch(() => cache?.delete(key));
+  void pending.catch(() => {
+    if (cache?.get(key) === pending) {
+      cache.delete(key);
+    }
+  });
   return pending;
 }
 
@@ -140,8 +176,11 @@ function createEntryModule(runtime: EnhancedRuntime, manifest: RemotePluginManif
     // the adapter intentionally does not call remote init or manipulate a share scope.
     init: () => undefined,
     get: async <TModule extends AnyObject>(moduleRequest: string) => {
-      const module = await runtime.loadRemote<TModule>(getModuleRequest(manifest.name, moduleRequest));
-      return () => module;
+      const module: unknown = await runtime.loadRemote<TModule>(getModuleRequest(manifest.name, moduleRequest));
+      if (module === null || module === undefined) {
+        throw new Error(`Enhanced runtime returned no module for plugin "${manifest.name}" request "${moduleRequest}".`);
+      }
+      return () => module as TModule;
     },
   };
 }
@@ -191,9 +230,7 @@ function decodeCodeRefs(extension: LoadedExtension, entryModule: PluginEntryModu
 
   const properties = visit(extension.properties);
   if (typeof properties === 'object' && properties !== null) {
-    for (const key of Object.keys(extension.properties)) {
-      Reflect.set(extension.properties, key, Reflect.get(properties, key));
-    }
+    Reflect.set(extension, 'properties', properties);
   }
 }
 
