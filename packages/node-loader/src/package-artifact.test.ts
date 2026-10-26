@@ -2,7 +2,7 @@ import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { execFile } from 'child_process';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
-import { promisify } from 'util';
+import { promisify, types } from 'util';
 import { pathToFileURL } from 'url';
 
 const execFileAsync = promisify(execFile);
@@ -12,9 +12,8 @@ type PackageManifest = {
   devDependencies?: Record<string, string>;
   exports?: {
     '.': {
-      import: string;
-      require: string;
-      types: string;
+      import: { types: string; default: string };
+      require: { types: string; default: string };
     };
   };
   main?: string;
@@ -37,9 +36,14 @@ async function runCompiler(args: string[], options: { cwd: string; timeout: numb
   try {
     await execFileAsync(process.execPath, args, options);
   } catch (error: unknown) {
-    const output = (name: 'stdout' | 'stderr'): string =>
-      typeof error === 'object' && error !== null && name in error && typeof error[name] === 'string' ? error[name] : '';
-    const reason = error instanceof Error ? error.message : String(error);
+    const output = (name: 'stdout' | 'stderr'): string => {
+      if (typeof error === 'object' && error !== null && name in error) {
+        const value: unknown = Reflect.get(error, name);
+        return typeof value === 'string' ? value : '';
+      }
+      return '';
+    };
+    const reason = types.isNativeError(error) ? error.message : String(error);
 
     throw Object.assign(new Error(`TypeScript compiler subprocess failed: ${reason}\nstdout:\n${output('stdout')}\nstderr:\n${output('stderr')}`), {
       cause: error,
@@ -71,7 +75,7 @@ describe('@scalprum/node-loader package boundary', () => {
     expect(compilerError.message).toContain('TypeScript compiler subprocess failed');
     expect(compilerError.message).toContain(stdout);
     expect(compilerError.message).toContain(stderr);
-    expect(compilerError.cause).toBeInstanceOf(Error);
+    expect(types.isNativeError(compilerError.cause)).toBe(true);
   });
 
   it('declares host-provided runtimes and package-local Node types only', async () => {
@@ -96,9 +100,10 @@ describe('@scalprum/node-loader package boundary', () => {
       manifest.main,
       manifest.module,
       manifest.types,
-      manifest.exports?.['.'].import,
-      manifest.exports?.['.'].require,
-      manifest.exports?.['.'].types,
+      manifest.exports?.['.'].import.types,
+      manifest.exports?.['.'].import.default,
+      manifest.exports?.['.'].require.types,
+      manifest.exports?.['.'].require.default,
     ];
 
     expect(entrypoints.every((entrypoint) => typeof entrypoint === 'string')).toBe(true);
@@ -111,7 +116,7 @@ describe('@scalprum/node-loader package boundary', () => {
     });
 
     const cjsPath = resolve(artifactPath, manifest.main as string);
-    const esmPath = resolve(artifactPath, manifest.exports?.['.'].import as string);
+    const esmPath = resolve(artifactPath, manifest.exports?.['.'].import.default as string);
     await execFileAsync(process.execPath, [
       '--eval',
       `const value = require(${JSON.stringify(cjsPath)}); if (Object.keys(value).length) process.exit(1);`,
