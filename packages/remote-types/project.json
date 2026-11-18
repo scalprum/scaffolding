@@ -29,6 +29,11 @@
     },
     "typecheck": {
       "command": "tsc -p packages/remote-types/tsconfig.esm.json --noEmit"
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
     }
   }
 }
